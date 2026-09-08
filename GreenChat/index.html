@@ -1,698 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Project Hub</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #080808;
-            color: white;
-            min-height: 100vh;
-        }
-
-        /* TOP BAR */
-        header {
-            width: 100%;
-            padding: 25px 40px;
-            background: #101010;
-            border-bottom: 1px solid #292929;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 14px;
-        }
-
-        /* MAIN */
-        main {
-            max-width: 1400px;
-            margin: auto;
-            padding: 50px 30px;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .hero h1 {
-            font-size: 55px;
-            margin-bottom: 15px;
-        }
-
-        .hero h1 span {
-            color: #00ff88;
-        }
-
-        .hero p {
-            color: #999;
-            font-size: 18px;
-        }
-
-        /* PROJECT GRID */
-        .projects {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .project {
-            background: #111;
-            border: 1px solid #292929;
-            border-radius: 15px;
-            padding: 25px;
-
-            min-height: 190px;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-
-            transition: 0.2s;
-        }
-
-        .project:hover {
-            transform: translateY(-5px);
-            border-color: #00ff88;
-            box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);
-        }
-
-        .project-number {
-            color: #00ff88;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .project h2 {
-            font-size: 22px;
-            margin-bottom: 8px;
-        }
-
-        .project p {
-            color: #888;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* PROJECT BUTTON */
-        .project-button {
-            display: block;
-            text-align: center;
-
-            margin-top: 20px;
-            padding: 12px;
-
-            background: #00ff88;
-            color: #000;
-
-            text-decoration: none;
-            font-weight: bold;
-
-            border-radius: 8px;
-
-            transition: 0.2s;
-        }
-
-        .project-button:hover {
-            background: white;
-        }
-
-        /* JAKE MODE MESSAGE */
-        #mode-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-
-            transform: translate(-50%, -50%);
-
-            background: #000;
-            color: #00ff88;
-
-            border: 2px solid #00ff88;
-            border-radius: 12px;
-
-            padding: 25px 40px;
-
-            font-size: 24px;
-            font-weight: bold;
-
-            box-shadow:
-                0 0 15px #00ff88,
-                0 0 40px rgba(0, 255, 136, 0.5);
-
-            z-index: 10000;
-
-            display: none;
-        }
-
-        /* SECRET CODE AREA */
-        #secret-area {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-
-            display: flex;
-            gap: 5px;
-
-            z-index: 9998;
-        }
-
-        #secret-code {
-            width: 120px;
-            padding: 8px 10px;
-
-            background: #000;
-            color: white;
-
-            border: 1px solid #333;
-            border-radius: 6px;
-
-            outline: none;
-        }
-
-        #secret-code:focus {
-            border-color: #00ff88;
-            box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
-        }
-
-        #code-button {
-            padding: 8px 12px;
-
-            background: #111;
-            color: #00ff88;
-
-            border: 1px solid #00ff88;
-            border-radius: 6px;
-
-            cursor: pointer;
-            font-weight: bold;
-
-            transition: 0.2s;
-        }
-
-        #code-button:hover {
-            background: #00ff88;
-            color: #000;
-        }
-
-        /* NORMAL MODE BUTTON */
-        #normal-mode-button {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-
-            padding: 10px 15px;
-
-            background: #000;
-            color: #00d9ff;
-
-            border: 2px solid #00d9ff;
-            border-radius: 7px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-            display: none;
-
-            z-index: 9999;
-
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-
-            transition: 0.2s;
-        }
-
-        #normal-mode-button:hover {
-            background: #00d9ff;
-            color: #000;
-
-            box-shadow:
-                0 0 10px #00d9ff,
-                0 0 20px #00d9ff;
-        }
-
-        /* FOOTER */
-        footer {
-            text-align: center;
-            padding: 40px;
-            color: #555;
-        }
-
-        /* MOBILE */
-        @media (max-width: 600px) {
-
-            header {
-                padding: 20px;
-            }
-
-            .hero h1 {
-                font-size: 38px;
-            }
-
-            main {
-                padding: 35px 20px;
-            }
-
-            #secret-area {
-                bottom: 10px;
-                right: 10px;
-            }
-
-            #normal-mode-button {
-                bottom: 10px;
-                right: 10px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenChat</title>
+<style>
+:root{--bg:#050706;--bg2:#090d0a;--panel:#0d120f;--panel2:#111812;--panel3:#172019;--border:#223027;--green:#00ff88;--green2:#00d873;--greenSoft:rgba(0,255,136,.12);--text:#f3f7f4;--muted:#87958b;--danger:#ff5268;--warning:#ffc857}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+#authScreen{height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;background:radial-gradient(circle at 20% 20%,rgba(0,255,136,.10),transparent 30%),radial-gradient(circle at 80% 80%,rgba(0,255,136,.05),transparent 30%),var(--bg)}
+.authBox{width:100%;max-width:430px;background:rgba(13,18,15,.95);border:1px solid var(--border);border-radius:24px;padding:35px;box-shadow:0 30px 100px rgba(0,0,0,.6)}
+.logo{text-align:center;margin-bottom:30px}.logoIcon{width:70px;height:70px;border-radius:20px;margin:auto;display:flex;align-items:center;justify-content:center;background:var(--greenSoft);border:1px solid rgba(0,255,136,.3);font-size:34px}
+.logo h1{color:var(--green);font-size:32px;margin-top:15px}.logo p{color:var(--muted);margin-top:7px;font-size:13px}
+.authTabs{display:flex;background:#080c09;padding:4px;border-radius:10px;margin-bottom:20px}
+.authTabs button{flex:1;padding:11px;border:none;background:transparent;color:var(--muted);border-radius:8px}.authTabs button.active{background:var(--greenSoft);color:var(--green);font-weight:bold}
+.authForm{display:flex;flex-direction:column;gap:12px}.authForm input{width:100%;padding:14px;border-radius:10px;border:1px solid var(--border);background:#080c09;color:white}
+.authForm input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 3px var(--greenSoft)}
+.primary{background:var(--green);color:#001b0e;border:none;font-weight:bold;padding:14px;border-radius:10px}.primary:hover{background:#19ff97;transform:translateY(-1px)}
+.authError{color:var(--danger);background:rgba(255,82,104,.08);border:1px solid rgba(255,82,104,.2);padding:10px;border-radius:8px;font-size:13px}
+.authInfo{color:var(--muted);font-size:11px;line-height:1.5;margin-top:16px;text-align:center}
+#app{width:100%;height:100vh;display:flex}
+.sidebar{width:330px;min-width:330px;height:100%;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebarTop{padding:18px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;justify-content:space-between}.brand h2{color:var(--green)}
+.brandLeft{display:flex;align-items:center;gap:8px}
+.plusButton{width:32px;height:32px;border-radius:8px;border:1px solid rgba(0,255,136,.3);background:var(--green);color:#001b0e;font-weight:bold;font-size:20px;display:flex;align-items:center;justify-content:center;line-height:1}
+.plusButton:hover{background:#19ff97}
+.minusButton{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,82,104,.4);background:rgba(255,82,104,.12);color:var(--danger);font-weight:bold;font-size:22px;display:flex;align-items:center;justify-content:center;line-height:1}
+.minusButton:hover{background:rgba(255,82,104,.25)}
+.miniBtn{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;line-height:1;font-size:13px;padding:0;cursor:pointer}
+.settingsMini{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.settingsMini:hover{color:var(--green);border-color:var(--green)}
+.plusMini{background:var(--green);color:#001b0e;font-weight:bold;border:1px solid rgba(0,255,136,.3)}
+.plusMini:hover{background:#19ff97}
+.minusMini{background:rgba(255,82,104,.12);color:var(--danger);font-weight:bold;font-size:15px;border:1px solid rgba(255,82,104,.4)}
+.minusMini:hover{background:rgba(255,82,104,.25)}
+.profileButton{width:38px;height:38px;border-radius:50%;border:1px solid rgba(0,255,136,.3);background:var(--greenSoft);color:var(--green);font-weight:bold}
+.search{margin-top:15px}.search input{width:100%;background:#080c09;border:1px solid var(--border);color:white;padding:12px;border-radius:10px}.search input:focus{outline:none;border-color:var(--green)}
+.searchResults{margin-top:8px;max-height:180px;overflow-y:auto}
+.searchUser{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px}.searchUser:hover{background:var(--panel3)}
+.avatar{width:42px;height:42px;min-width:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--greenSoft);color:var(--green);font-weight:bold;border:1px solid rgba(0,255,136,.2)}
+.userText{flex:1;min-width:0}.userText strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.userText small{color:var(--muted)}
+.nav{display:flex;padding:8px 10px;gap:5px;border-bottom:1px solid var(--border)}
+.nav button{flex:1;padding:8px 5px;background:transparent;color:var(--muted);border:none;border-radius:8px;position:relative;font-size:13px}
+.nav button:hover,.nav button.active{background:var(--greenSoft);color:var(--green)}
+.badge{position:absolute;top:2px;right:6px;min-width:16px;height:16px;padding:2px 4px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:var(--green);color:#001b0e;font-size:9px;font-weight:bold}
+.list{flex:1;overflow-y:auto;padding:8px}.sectionTitle{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:10px 7px}
+.friend{width:100%;border:none;background:transparent;color:white;display:flex;align-items:center;gap:11px;padding:10px;border-radius:11px;text-align:left}
+.friend:hover,.friend.active{background:var(--panel3)}.friend.active{box-shadow:inset 3px 0 var(--green)}
+.friendRow{display:flex;align-items:center;gap:6px;border-radius:11px}.friendRow .friend{border-radius:11px}.friendRow:hover{background:var(--panel3)}
+.delFriend{width:34px;height:34px;min-width:34px;border:none;border-radius:9px;background:transparent;color:var(--muted);font-size:15px}.delFriend:hover{color:var(--danger);background:rgba(255,82,104,.12)}
+.friendInfo{flex:1;min-width:0}.friendInfo strong{display:block}.friendInfo span{display:block;color:var(--muted);font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unread{background:var(--green);color:#001b0e;border-radius:20px;padding:3px 7px;font-size:10px;font-weight:bold}
+.request{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
+.requestTop{display:flex;align-items:center;gap:10px}.requestButtons{display:flex;gap:7px;margin-top:10px}
+.requestButtons button{flex:1;padding:8px;border-radius:8px;border:none}
+.accept{background:var(--green);color:#001b0e}.reject{background:rgba(255,82,104,.1);color:var(--danger);border:1px solid rgba(255,82,104,.25)!important}
+.sidebarBottom{border-top:1px solid var(--border);padding:12px}
+.currentUser{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.currentUserInfo{flex:1;min-width:0}.currentUserInfo strong{display:block}.currentUserInfo small{color:var(--green)}
+.logout{width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:9px}.logout:hover{color:var(--danger);border-color:var(--danger)}
+.chat{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;background:radial-gradient(circle at center,rgba(0,255,136,.025),transparent 45%),var(--bg2)}
+.chatHeader{height:70px;min-height:70px;border-bottom:1px solid var(--border);background:rgba(9,13,10,.9);display:flex;align-items:center;padding:0 18px;gap:12px}
+.backButton{display:none}.chatUser{flex:1}.chatUser strong{display:block}.chatUser small{color:var(--green)}
+.chatActions{display:flex;gap:5px}
+.iconButton{width:38px;height:38px;border:none;background:transparent;color:var(--muted);border-radius:9px}.iconButton:hover{background:var(--greenSoft);color:var(--green)}
+.leaveBtn{color:var(--danger);font-size:14px;padding:0 8px}.leaveBtn:hover{background:rgba(255,82,104,.15);color:var(--danger)}
+.delListBtn{color:var(--danger);font-size:14px;padding:0 8px}.delListBtn:hover{background:rgba(255,82,104,.15);color:var(--danger)}
+#allProjectsBtn{position:fixed;top:10px;right:12px;z-index:4000;background:var(--panel);border:1px solid rgba(0,255,136,.35);color:var(--green);font-size:11px;font-weight:bold;letter-spacing:1px;padding:8px 14px;border-radius:20px;text-decoration:none;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#allProjectsBtn:hover{background:var(--green);color:#001b0e}
+.groupBar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:rgba(9,13,10,.95)}
+.groupBar .groupBarInfo{color:var(--muted);font-size:11px}
+.groupBar button{font-size:12px;font-weight:bold;padding:7px 14px;border-radius:16px;border:1px solid rgba(255,82,104,.35);background:rgba(255,82,104,.1);color:var(--danger);cursor:pointer}
+.groupBar button.del{background:rgba(255,82,104,.18);border-color:rgba(255,82,104,.55)}
+.groupBar button:hover{background:rgba(255,82,104,.25)}
+.messages{flex:1;overflow-y:auto;padding:25px;display:flex;flex-direction:column;gap:9px}
+.empty{flex:1;display:flex;justify-content:center;align-items:center;text-align:center;color:var(--muted)}.emptyIcon{font-size:50px;margin-bottom:12px}
+.message{max-width:70%;position:relative;display:flex;flex-direction:column}.message.me{align-self:flex-end;align-items:flex-end}.message.them{align-self:flex-start;align-items:flex-start}
+.msgSender{font-size:11px;color:var(--green);margin-bottom:2px;padding-left:6px}
+.bubble{padding:10px 14px;border-radius:16px;background:var(--panel3);border:1px solid var(--border);word-break:break-word;line-height:1.45}.me .bubble{background:var(--green);color:#001b0e;border-color:var(--green)}
+.messageTime{font-size:9px;color:var(--muted);margin:4px 6px 0}
+.replyQuote{border-left:3px solid var(--green);padding:6px 9px;margin-bottom:7px;border-radius:5px;background:rgba(0,0,0,.15);font-size:11px}.replyQuote strong{color:var(--green);display:block;margin-bottom:2px}
+.forwarded{color:var(--muted);font-size:10px;margin-bottom:5px;font-style:italic}
+.reactions{display:flex;gap:4px;margin-top:-3px}.reaction{border:1px solid var(--border);background:var(--panel);border-radius:20px;padding:3px 7px;font-size:12px}.reaction:hover{border-color:var(--green)}
+.messageTools{position:absolute;top:-32px;display:flex;gap:3px;opacity:0;pointer-events:none;transition:.15s}.message:hover .messageTools{opacity:1;pointer-events:auto}
+.me .messageTools{left:0}.them .messageTools{right:0}
+.messageTools button{width:28px;height:28px;border-radius:7px;background:var(--panel);border:1px solid var(--border);color:var(--muted)}.messageTools button:hover{color:var(--green)}
+.replyBar{display:none;padding:9px 15px;background:var(--panel2);border-top:1px solid var(--border);align-items:center}.replyBar.show{display:flex}
+.replyContent{flex:1;border-left:3px solid var(--green);padding-left:10px}.replyContent strong{color:var(--green);font-size:11px}.replyContent div{color:var(--muted);font-size:11px;margin-top:2px}
+.cancelReply{background:none;border:none;color:var(--muted);font-size:20px}
+.composer{padding:12px;border-top:1px solid var(--border);background:var(--panel);position:relative}
+.composerRow{display:flex;gap:7px;align-items:center}
+.composer input{flex:1;min-width:0;background:#080c09;border:1px solid var(--border);color:white;padding:13px;border-radius:11px}.composer input:focus{outline:none;border-color:var(--green)}
+.sendButton{width:44px;height:44px;border:none;border-radius:11px;background:var(--green);color:#001b0e;font-weight:bold}.sendButton:hover{box-shadow:0 0 20px rgba(0,255,136,.25)}
+.emojiPicker{position:absolute;bottom:70px;left:12px;width:310px;max-height:260px;overflow-y:auto;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.7);display:none;z-index:20}.emojiPicker.show{display:block}
+.emojiGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.emojiGrid button{border:none;background:transparent;padding:7px;font-size:21px;border-radius:7px}.emojiGrid button:hover{background:var(--greenSoft)}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);z-index:100;padding:20px}.modal.show{display:flex}
+.modalBox{width:100%;max-width:450px;max-height:80vh;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 30px 100px rgba(0,0,0,.7)}
+.modalHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modalHeader h2{color:var(--green)}
+.close{background:none;border:none;color:var(--muted);font-size:23px}.close:hover{color:var(--danger)}
+.forwardUser{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;border:none;width:100%;color:white;background:transparent;text-align:left}.forwardUser:hover{background:var(--panel3)}
+.profileLarge{text-align:center}.profileLarge .avatar{width:80px;height:80px;font-size:27px;margin:auto}
+.profileLarge h2{margin-top:12px}.profileLarge p{color:var(--muted);margin-top:5px}
+.friendCode{display:inline-block;margin-top:12px;padding:10px 18px;background:var(--greenSoft);border:1px solid rgba(0,255,136,.3);border-radius:10px;font-size:22px;font-weight:bold;letter-spacing:4px;color:var(--green)}
+.friendCodeLabel{color:var(--muted);font-size:11px;margin-top:8px}
+.deleteAccount{width:100%;margin-top:22px;padding:13px;border-radius:10px;background:rgba(255,82,104,.08);color:var(--danger);border:1px solid var(--danger);font-weight:bold}.deleteAccount:hover{background:rgba(255,82,104,.2)}
+.actionSheet{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);z-index:1200;width:300px;max-width:90vw;background:var(--panel);border:1px solid var(--green);border-radius:18px;box-shadow:0 20px 80px rgba(0,0,0,.8);opacity:0;pointer-events:none;transition:.18s;padding:14px;display:flex;flex-direction:column;gap:6px}
+.actionSheet.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.actionSheet .asBubble{background:var(--panel3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:6px;word-break:break-word;max-height:70px;overflow:hidden}
+.asRow{display:flex;gap:8px}
+.asBtn{flex:1;padding:11px;border-radius:11px;border:none;font-weight:bold;font-size:13px}.asBtn:hover{transform:translateY(-1px)}
+.asReact{flex:1;padding:9px 0;border-radius:11px;border:1px solid var(--border);background:var(--panel2);font-size:22px}.asReact:hover{border-color:var(--green);background:var(--greenSoft)}
+.asBack{width:100%;padding:11px;border-radius:11px;background:rgba(255,82,104,.1);color:var(--danger);border:1px solid rgba(255,82,104,.25);font-weight:bold}.asBack:hover{background:rgba(255,82,104,.2)}
+.contextMenu{position:fixed;z-index:1000;min-width:170px;padding:6px;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 15px 60px rgba(0,0,0,.7)}
+.contextMenu button{width:100%;background:transparent;color:var(--muted);border:none;text-align:left;padding:9px;border-radius:7px}.contextMenu button:hover{color:var(--green);background:var(--greenSoft)}
+.toast{position:fixed;bottom:25px;right:25px;background:var(--panel);border:1px solid var(--green);color:var(--text);padding:13px 17px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);transform:translateY(100px);opacity:0;transition:.25s;z-index:2000}.toast.show{transform:translateY(0);opacity:1}
+.plusMenu{position:absolute;top:55px;left:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 15px 60px rgba(0,0,0,.7);z-index:50;display:none;min-width:160px}.plusMenu.show{display:block}
+.plusMenu button{width:100%;background:transparent;color:var(--muted);border:none;text-align:left;padding:10px 14px;border-radius:8px;font-size:13px}.plusMenu button:hover{color:var(--green);background:var(--greenSoft)}
+.absMenu{position:absolute;top:38px;right:0;left:auto}
+.tabHeader{position:relative;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)}
+.tabHeader h2{font-size:15px;font-weight:bold;color:var(--text);margin:0}
+.listItem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;background:var(--panel2)}
+.listItem:hover{background:var(--panel3)}.listItem .listName{flex:1;font-weight:bold;font-size:13px}.listItem .listCount{color:var(--muted);font-size:11px}
+.listFriends{padding:4px 0}.listFriendTag{display:inline-flex;align-items:center;gap:4px;background:var(--greenSoft);border:1px solid rgba(0,255,136,.2);border-radius:20px;padding:4px 10px;font-size:11px;margin:3px;color:var(--green)}
+.listFriendTag button{background:none;border:none;color:var(--danger);font-size:13px;padding:0 2px;line-height:1}
+@media(max-width:700px){.sidebar{width:100%;min-width:100%}.chat{position:fixed;inset:0;z-index:20;transform:translateX(100%);transition:transform .25s ease}.chat.open{transform:translateX(0)}.backButton{display:block}.message{max-width:85%}.messageTools{display:none}.messages{padding:15px 10px}.authBox{padding:25px 18px}.emojiPicker{width:calc(100vw - 24px)}.sidebarTop{padding:12px}.nav{padding:6px 8px}.nav button{padding:6px 4px;font-size:12px}}
+</style>
 </head>
-
 <body>
-
-    <!-- HEADER -->
-    <header>
-
-        <div class="logo">
-            PROJECT HUB
-        </div>
-
-        <div class="subtitle">
-            By Jake Scalzo
-        </div>
-
-    </header>
-
-
-    <!-- MAIN -->
-    <main>
-
-        <section class="hero">
-
-            <h1>
-                My <span>Projects</span>
-            </h1>
-
-            <p>
-                A collection of all my coding projects in one place.
-            </p>
-
-        </section>
-
-
-        <!-- PROJECTS -->
-        <section class="projects">
-
-
-            <!-- ARCADE -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 01
-                    </div>
-
-                    <h2>
-                        Arcade Hub
-                    </h2>
-
-                    <p>
-                        A collection of html games
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="Arcade/index.html"
-                >
-                    OPEN ARCADE HUB
-                </a>
-
-            </div>
-
-
-            <!-- GRIND HUB -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 02
-                    </div>
-
-                    <h2 id="grind-title">
-                        Grind Hub
-                    </h2>
-
-                    <p id="grind-description">
-                        Stay organized, track your progress,
-                        and keep the grind moving.
-                    </p>
-
-                </div>
-
-                <a
-                    id="grind-button"
-                    class="project-button"
-                    href="GrindHub/index.html"
-                >
-                    OPEN GRIND HUB
-                </a>
-
-            </div>
-
-
-            <!-- MASSAGE -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 03
-                    </div>
-
-                    <h2>
-                        Massage
-                    </h2>
-
-                    <p>
-                        My massage project.
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="Massage/index.html"
-                >
-                    OPEN MASSAGE
-                </a>
-
-            </div>
-
-
-            <!-- NOTES -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 04
-                    </div>
-
-                    <h2>
-                        Notes
-                    </h2>
-
-                    <p>
-                        My notes and information hub.
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="Notes/index.html"
-                >
-                    OPEN NOTES
-                </a>
-
-            </div>
-            <!-- SIAMSMARTHOME -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 05
-                    </div>
-
-                    <h2>
-                        Siam Smart Home
-                    </h2>
-
-                    <p>
-                        Information about Siam Smart home
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="SiamSmartHome/index.html"
-                >
-                    OPEN SIAM SMART HOME
-                </a>
-
-            </div>
-
-            <!-- GREENCHAT -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 06
-                    </div>
-
-                    <h2>
-                        GreenChat
-                    </h2>
-
-                    <p>
-                        A place to chat with friends
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="GreenChat/index.html"
-                >
-                    OPEN GREENCHAT
-                </a>
-
-            </div>
-
-
-        </section>
-
-    </main>
-
-
-    <!-- FOOTER -->
-    <footer>
-        My Coding Project Collection
-    </footer>
-
-
-    <!-- JAKE MODE MESSAGE -->
-    <div id="mode-message">
-        Entering Jake mode
-    </div>
-
-
-    <!-- SECRET CODE SPOT -->
-    <div id="secret-area">
-
-        <input
-            type="password"
-            id="secret-code"
-            placeholder="Enter code"
-            autocomplete="off"
-        >
-
-        <button
-            id="code-button"
-            type="button"
-        >
-            ENTER
-        </button>
-
-    </div>
-
-
-    <!-- NORMAL MODE BUTTON -->
-    <button
-        id="normal-mode-button"
-        type="button"
-    >
-        BACK TO NORMAL MODE
-    </button>
-
-
-    <script>
-
-        // ==========================================
-        // GET ELEMENTS
-        // ==========================================
-
-        const secretCode =
-            document.getElementById("secret-code");
-
-        const codeButton =
-            document.getElementById("code-button");
-
-        const secretArea =
-            document.getElementById("secret-area");
-
-        const normalModeButton =
-            document.getElementById("normal-mode-button");
-
-        const modeMessage =
-            document.getElementById("mode-message");
-
-        const grindButton =
-            document.getElementById("grind-button");
-
-        const grindTitle =
-            document.getElementById("grind-title");
-
-        const grindDescription =
-            document.getElementById("grind-description");
-
-
-        // ==========================================
-        // ENTER JAKE MODE
-        // ==========================================
-
-        function enterJakeMode() {
-
-            const code = secretCode.value.trim();
-
-            if (code === "jjaakkeelol") {
-
-                // Change Grind Hub into My Grind Hub
-                grindButton.href = "MyGrindHub/index.html";
-                grindButton.textContent = "OPEN MY GRIND HUB";
-
-                // Change title
-                grindTitle.textContent = "My Grind Hub";
-
-                // Change description
-                grindDescription.textContent =
-                    "Jake mode activated. Welcome to your private Grind Hub.";
-
-                // HIDE THE CODE SPOT
-                secretArea.style.display = "none";
-
-                // SHOW NORMAL MODE BUTTON
-                normalModeButton.style.display = "block";
-
-                // Show Jake Mode message
-                modeMessage.style.display = "block";
-
-                // Hide Jake Mode message after 2 seconds
-                setTimeout(function() {
-
-                    modeMessage.style.display = "none";
-
-                }, 2000);
-
-                // Clear code
-                secretCode.value = "";
-
-            } else {
-
-                // Wrong code
-                secretCode.value = "";
-
-                secretCode.placeholder = "Wrong code";
-
-                setTimeout(function() {
-
-                    secretCode.placeholder = "Enter code";
-
-                }, 1500);
-
-            }
-
-        }
-
-
-        // ==========================================
-        // ENTER BUTTON
-        // ==========================================
-
-        codeButton.addEventListener(
-            "click",
-            enterJakeMode
-        );
-
-
-        // ==========================================
-        // ENTER KEY
-        // ==========================================
-
-        secretCode.addEventListener(
-            "keydown",
-            function(event) {
-
-                if (event.key === "Enter") {
-
-                    event.preventDefault();
-
-                    enterJakeMode();
-
-                }
-
-            }
-        );
-
-
-        // ==========================================
-        // BACK TO NORMAL MODE
-        // ==========================================
-
-        normalModeButton.addEventListener(
-            "click",
-            function() {
-
-                // Change Grind Hub back
-                grindButton.href = "GrindHub/index.html";
-                grindButton.textContent = "OPEN GRIND HUB";
-
-                // Change title back
-                grindTitle.textContent = "Grind Hub";
-
-                // Change description back
-                grindDescription.textContent =
-                    "Stay organized, track your progress, and keep the grind moving.";
-
-                // HIDE NORMAL MODE BUTTON
-                normalModeButton.style.display = "none";
-
-                // SHOW CODE SPOT AGAIN
-                secretArea.style.display = "flex";
-
-                // Put cursor back in code box
-                secretCode.focus();
-
-            }
-        );
-
-    </script>
-
+<a href="../index.html" id="allProjectsBtn">ALL PROJECTS</a>
+<div id="authScreen"><div class="authBox"><div class="logo"><div class="logoIcon">💬</div><h1>GreenChat</h1><p>A simple private local messaging app</p></div><div class="authTabs"><button id="loginTab" class="active" onclick="showAuth('login')">Login</button><button id="signupTab" onclick="showAuth('signup')">Sign Up</button></div><form id="loginForm" class="authForm" autocomplete="off"><input id="loginName" placeholder="Your name" autocomplete="off"><input id="loginPassword" type="text" placeholder="Password" autocomplete="off" oninput="maskPw(this)"><button class="primary" type="submit">Login</button><div id="loginError" class="authError hidden"></div></form><form id="signupForm" class="authForm hidden" autocomplete="off"><input id="signupName" placeholder="Choose a name" autocomplete="off"><input id="signupPassword" type="text" placeholder="Choose a password" autocomplete="off" oninput="maskPw(this)"><input id="signupPassword2" type="text" placeholder="Repeat password" autocomplete="off" oninput="maskPw(this)"><button class="primary" type="submit">Create Account</button><div id="signupError" class="authError hidden"></div></form><div class="authInfo">Your account and chats are saved in this browser. Clearing browser storage will remove local data.</div></div></div>
+<div id="app" class="hidden">
+<aside class="sidebar">
+<div class="sidebarTop"><div class="brand"><div class="brandLeft"><h2>GreenChat</h2></div></div><div class="search"><input id="searchInput" placeholder="Search people..." oninput="searchUsers()"><div id="searchResults" class="searchResults"></div></div></div>
+<div class="nav"><button id="friendsTab" class="active" onclick="showSideTab('friends')">Friends<span id="messagesBadge" class="badge hidden">0</span></button><button id="listsTab" onclick="showSideTab('lists')">Lists<span id="listsBadge" class="badge hidden">0</span></button><button id="notificationsTab" onclick="showSideTab('notifications')">🔔<span id="notificationBadge" class="badge hidden">0</span></button></div>
+<div class="tabHeader" id="friendsHeader"><h2>Friends</h2><button class="plusButton" onclick="showNewFriendModal()" title="Add friend">+</button></div>
+<div class="tabHeader hidden" id="listsHeader"><h2>Lists</h2><button class="miniBtn plusMini" onclick="showNewListModal()" title="New list" style="width:26px;height:26px;font-size:16px">+</button></div>
+<div id="friendsList" class="list"></div><div id="requestsList" class="list hidden"></div><div id="notificationsList" class="list hidden"></div><div id="listsList" class="list hidden"></div>
+<div class="sidebarBottom"><div class="currentUser" onclick="openProfile()" style="cursor:pointer"><div id="myAvatar" class="avatar">?</div><div class="currentUserInfo"><strong id="myName">User</strong><small>Online</small></div></div><button class="logout" onclick="logout()">Log out</button></div>
+</aside>
+<main id="chat" class="chat"><header class="chatHeader"><button id="chatProfileBtn" class="iconButton hidden" onclick="openProfileOfFriend()" title="Profile">👤</button><button class="iconButton backButton hidden" onclick="closeChat()">←</button><div id="chatAvatar" class="avatar">💬</div><div class="chatUser"><strong id="chatName">Select a friend</strong><small id="chatStatus">Choose someone to start chatting</small></div></header>
+<div id="messages" class="messages"><div class="empty"><div><div class="emptyIcon">💬</div><h2>Welcome to GreenChat</h2><p>Select a friend to start chatting.</p></div></div></div>
+<div id="replyBar" class="replyBar"><div class="replyContent"><strong id="replyName">Replying</strong><div id="replyText"></div></div><button class="cancelReply" onclick="cancelReply()">×</button></div>
+<div id="groupBar" class="groupBar hidden"><span class="groupBarInfo">Group options</span><span style="flex:1"></span><button id="deleteListBtn" class="del" onclick="startDeleteList()">Delete List</button><button id="leaveListBtn" onclick="leaveCurrentList()">Leave</button></div>
+<div class="composer"><div id="emojiPicker" class="emojiPicker"><div id="emojiGrid" class="emojiGrid"></div></div><div class="composerRow"><button class="iconButton" onclick="toggleEmojiPicker()" title="Emoji">😊</button><input id="messageInput" placeholder="Message..." autocomplete="off" onkeydown="messageKeydown(event)"><button class="sendButton" onclick="sendMessage()">➤</button></div></div>
+</main>
+</div>
+<div id="profileModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2>Profile</h2><button class="close" onclick="closeModal('profileModal')">×</button></div><div class="profileLarge"><div id="profileAvatar" class="avatar">?</div><h2 id="profileName">User</h2><p id="profileFriends">0 friends</p><div class="friendCodeLabel">Your friend code</div><div id="profileCode" class="friendCode">---</div></div><button id="deleteAcctBtn" class="deleteAccount" onclick="startDeleteAccount()">🗑 Delete Account</button></div></div>
+<div id="confirmModal" class="modal"><div class="modalBox"><h2 id="confirmTitle" style="color:var(--green)">Are you sure?</h2><p id="confirmText" style="color:var(--muted);margin-top:8px"></p><div style="display:flex;gap:10px;margin-top:18px"><button class="primary" id="confirmYes">Yes</button><button class="reject" onclick="closeModal('confirmModal')">Cancel</button></div></div></div>
+<div id="deleteModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2 id="delTitle">Delete Account</h2><button class="close" onclick="closeModal('deleteModal')">×</button></div><p style="color:var(--muted);margin-bottom:12px">Enter your password to confirm.</p><input id="delPassword" type="text" placeholder="Password" autocomplete="off" oninput="maskPw(this)" style="width:100%;padding:14px;border-radius:10px;border:1px solid var(--border);background:#080c09;color:white"><div style="display:flex;gap:10px;margin-top:14px"><button class="reject" onclick="closeModal('deleteModal')" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,82,104,.1);color:var(--danger);border:1px solid rgba(255,82,104,.25)">Cancel</button><button class="primary" onclick="doDelete()" style="flex:1;background:var(--danger);color:white">Delete</button></div><div id="delError" class="authError hidden" style="margin-top:12px"></div></div></div>
+<div id="newFriendModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2>Add Friend</h2><button class="close" onclick="closeModal('newFriendModal')">×</button></div><div class="authForm"><input id="nfName" placeholder="Their name"><input id="nfCode" placeholder="Friend code (3 digits)" maxlength="3" inputmode="numeric"><button class="primary" onclick="addFriendByCode()">Add Friend</button><div id="nfError" class="authError hidden"></div></div></div></div>
+<div id="newListModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2>New List</h2><button class="close" onclick="closeModal('newListModal')">×</button></div><button class="primary" onclick="createList()" style="margin-bottom:10px">Add</button><input id="nlName" placeholder="List name" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#080c09;color:white;margin-bottom:10px"><div id="nlSelected" class="listFriends"></div><div id="nlResults" class="list" style="max-height:40vh;border:1px solid var(--border);border-radius:12px;margin:6px 0"></div></div></div>
+
+<div id="promoteModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2>Promote</h2><button class="close" onclick="closeModal('promoteModal')">×</button></div><div id="promoteListPick" style="margin-bottom:12px"></div><div id="promoteUsers"></div></div></div>
+<div id="forwardModal" class="modal"><div class="modalBox"><div class="modalHeader"><h2>Forward message</h2><button class="close" onclick="closeModal('forwardModal')">×</button></div><div id="forwardUsers"></div></div></div>
+<div id="contextMenu" class="contextMenu hidden"><button onclick="contextReply()">↩ Reply</button><button onclick="contextReact('❤️')">❤️ React</button><button onclick="contextForward()">➡ Forward</button><button id="contextEdit" onclick="contextEdit()">✏️ Edit</button><button id="contextDelete" onclick="contextDelete()">🗑 Delete</button></div>
+<div id="actionSheet" class="actionSheet"><div id="asBubble" class="asBubble"></div><div class="asRow"><button class="asBtn" onclick="asAction('reply')" style="background:var(--green);color:#001b0e">↩ Reply</button><button class="asBtn" onclick="asAction('forward')" style="background:var(--greenSoft);color:var(--green);border:1px solid rgba(0,255,136,.3)">➡ Forward</button></div><div class="asRow"><button class="asReact" onclick="asAction('👍')">👍</button><button class="asReact" onclick="asAction('❤️')">❤️</button><button class="asReact" onclick="asAction('😂')">😂</button><button class="asReact" onclick="asAction('🔥')">🔥</button><button class="asReact" onclick="asAction('👏')">👏</button></div><button class="asBack" onclick="closeActionSheet()">Back</button></div>
+<div id="toast" class="toast"></div>
+<script>
+const STORAGE_KEY="greenchat_database_v1",SESSION_KEY="greenchat_current_user_v1";
+let db={users:{},chats:{},notifications:{},lists:{}};
+let currentUser=null,currentFriend=null,currentGroup=null,replyingTo=null,contextMessage=null,forwardingMessage=null,currentListId=null,nlPick=[],memberMode="promote",deleteMode="account",deleteListId=null,profileUser=null;
+function saveDB(){localStorage.setItem(STORAGE_KEY,JSON.stringify(db))}
+function loadDB(){const s=localStorage.getItem(STORAGE_KEY);if(s)try{db=JSON.parse(s)}catch{db={users:{},chats:{},notifications:{},lists:{}}};if(!db.users)db.users={};if(!db.chats)db.chats={};if(!db.notifications)db.notifications={};if(!db.lists)db.lists={};const legacy=Object.entries(db.lists).filter(([k,v])=>Array.isArray(v));legacy.forEach(([owner,arr])=>{arr.forEach(l=>{db.lists[l.uid||l.id]={id:l.id,uid:l.uid||l.id,name:l.name,owner:owner,members:[owner].concat(l.friends||[])}});delete db.lists[owner]})}
+function saveSession(u){localStorage.setItem(SESSION_KEY,u)}function getSession(){return localStorage.getItem(SESSION_KEY)}function clearSession(){localStorage.removeItem(SESSION_KEY)}
+function normalizeName(n){return n.trim().toLowerCase()}
+function displayName(u){return db.users[u]?.name||u}
+function initials(n){const p=n.trim().split(/\s+/);return p.length===1?p[0].slice(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase()}
+function escapeHTML(t){return String(t).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function chatKey(a,b){return[a,b].sort().join("__")}
+function showToast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>e.classList.remove("show"),2500)}
+function maskPw(i){const prev=i._real||"";const real=prev.length>i.value.length?prev.slice(0,i.value.length):prev+i.value.slice(prev.length);i._real=real;i.value="*".repeat(real.length)}
+function generateCode(){let c;do{c=String(Math.floor(100+Math.random()*900))}while(Object.values(db.users).some(u=>u.friendCode===c));return c}
+function ensureCodes(){Object.values(db.users).forEach(u=>{if(!u.friendCode)u.friendCode=generateCode()});saveDB()}
+function cleanupOldChats(){const limit=Date.now()-2592000000;let changed=false;Object.keys(db.chats).forEach(k=>{const before=db.chats[k].length;db.chats[k]=db.chats[k].filter(m=>m.time>=limit);if(db.chats[k].length!==before)changed=true;if(!db.chats[k].length)delete db.chats[k]});if(changed)saveDB()}
+function showAuth(type){const l=type==="login";document.getElementById("loginForm").classList.toggle("hidden",!l);document.getElementById("signupForm").classList.toggle("hidden",l);document.getElementById("loginTab").classList.toggle("active",l);document.getElementById("signupTab").classList.toggle("active",!l);hideError("loginError");hideError("signupError")}
+function showError(id,t){const e=document.getElementById(id);e.textContent=t;e.classList.remove("hidden")}
+function hideError(id){document.getElementById(id).classList.add("hidden")}
+document.getElementById("signupForm").addEventListener("submit",function(e){e.preventDefault();const n=document.getElementById("signupName").value.trim(),sp=document.getElementById("signupPassword"),sp2=document.getElementById("signupPassword2"),p=sp._real||"",p2=sp2._real||"";if(n.length<2){showError("signupError","Name must be at least 2 characters.");return}if(p.length<3){showError("signupError","Password must be at least 3 characters.");return}if(p!==p2){showError("signupError","Passwords do not match.");return}const u=normalizeName(n);if(db.users[u]){showError("signupError","That name is already taken.");return}db.users[u]={name:n,password:p,friends:[],incoming:[],outgoing:[],friendCode:generateCode(),created:Date.now()};db.notifications[u]=[];saveDB();document.getElementById("signupName").value="";sp._real="";sp.value="";sp2._real="";sp2.value="";showToast("Account created!");showAuth("login");document.getElementById("loginName").value=n});
+document.getElementById("loginForm").addEventListener("submit",function(e){e.preventDefault();const n=document.getElementById("loginName").value.trim(),lp=document.getElementById("loginPassword"),p=lp._real||"",u=normalizeName(n);if(!db.users[u]){showError("loginError","Account not found.");return}if(db.users[u].password!==p){showError("loginError","Incorrect password.");return}currentUser=u;saveSession(u);lp._real="";lp.value="";startApp()});
+function startApp(){if(!currentUser||!db.users[currentUser])return;document.getElementById("authScreen").classList.add("hidden");document.getElementById("app").classList.remove("hidden");currentFriend=null;updateMyProfile();renderFriends();renderRequests();renderNotifications();renderLists();showSideTab("friends");renderEmptyChat()}
+function logout(){currentUser=null;currentFriend=null;clearSession();document.getElementById("app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden")}
+function updateMyProfile(){const u=db.users[currentUser];document.getElementById("myName").textContent=u.name;document.getElementById("myAvatar").textContent=initials(u.name)}
+function openProfile(){profileUser=currentUser;const u=db.users[currentUser];document.getElementById("profileAvatar").textContent=initials(u.name);document.getElementById("profileName").textContent=u.name;document.getElementById("profileFriends").textContent=u.friends.length+" friend"+(u.friends.length===1?"":"s");document.getElementById("profileCode").textContent=u.friendCode;document.getElementById("deleteAcctBtn").classList.remove("hidden");openModal("profileModal")}
+function openProfileOfFriend(){if(!currentFriend)return;const u=db.users[currentFriend];document.getElementById("profileAvatar").textContent=initials(u.name);document.getElementById("profileName").textContent=u.name;document.getElementById("profileFriends").textContent=u.friends.length+" friend"+(u.friends.length===1?"":"s");document.getElementById("profileCode").textContent=u.friendCode;document.getElementById("deleteAcctBtn").classList.add("hidden");openModal("profileModal")}
+function toggleMenu(id,e){e.stopPropagation();document.querySelectorAll(".plusMenu.show").forEach(m=>m.classList.remove("show"));document.getElementById(id).classList.toggle("show")}
+document.addEventListener("click",()=>document.querySelectorAll(".plusMenu").forEach(m=>m.classList.remove("show")));
+function showNewFriendModal(){document.getElementById("nfName").value="";document.getElementById("nfCode").value="";hideError("nfError");openModal("newFriendModal")}
+function addFriendByCode(){const n=document.getElementById("nfName").value.trim(),c=document.getElementById("nfCode").value.trim();if(!n){showError("nfError","Enter their name.");return}if(!/^\d{3}$/.test(c)){showError("nfError","Code must be 3 digits.");return}const target=Object.entries(db.users).find(([k,v])=>v.friendCode===c&&k!==currentUser);if(!target){showError("nfError","No user with that code.");return}const[u,usr]=target,me=db.users[currentUser];if(me.friends.includes(u)){showError("nfError","Already friends.");return}if(me.outgoing.includes(u)){showError("nfError","Request already sent.");return}me.outgoing.push(u);usr.incoming.push(currentUser);if(!db.notifications[u])db.notifications[u]=[];db.notifications[u].push({id:crypto.randomUUID(),type:"friend_request",from:currentUser,text:me.name+" sent you a friend request.",read:false,time:Date.now()});saveDB();closeModal("newFriendModal");showToast("Friend request sent to "+usr.name+"!");searchUsers()}
+function getList(id){const s=db.lists||{};return s[id]||null}
+function showNewListModal(){nlPick=[];document.getElementById("nlName").value="";document.getElementById("nlSelected").innerHTML="";renderNewListPick();openModal("newListModal")}
+function renderNewListPick(){const box=document.getElementById("nlResults"),me=db.users[currentUser],friends=me.friends||[];if(!friends.length){box.innerHTML='<p style="padding:10px;color:var(--muted);font-size:12px">No friends to add. Add friends first.</p>';return}box.innerHTML='<div class="sectionTitle">Tap to select friends</div>'+friends.map(u=>{const fr=db.users[u];if(!fr)return"";const on=nlPick.includes(u);return'<div class="searchUser" style="cursor:pointer;background:'+(on?"var(--greenSoft)":"transparent")+'" onclick="toggleNLPick(\''+u+'\')"><div class="avatar">'+escapeHTML(initials(fr.name))+'</div><div class="userText"><strong>'+escapeHTML(fr.name)+'</strong><small>'+(on?"Selected ✓":"Tap to add")+'</small></div></div>'}).join("")}
+function toggleNLPick(u){nlPick.includes(u)?nlPick=nlPick.filter(x=>x!==u):nlPick.push(u);renderNewListPick();document.getElementById("nlSelected").innerHTML=nlPick.map(x=>{const fr=db.users[x];return'<div class="listFriendTag">'+escapeHTML(fr?fr.name:x)+'</div>'}).join("")}
+function createList(){const n=document.getElementById("nlName").value.trim();if(!n){showToast("Enter a list name.");return}const id=crypto.randomUUID();db.lists=db.lists||{};db.lists[id]={id:getMyListCount(),uid:id,name:n,owner:currentUser,members:[currentUser]};nlPick.forEach(u=>{if(!db.notifications[u])db.notifications[u]=[];if(!db.notifications[u].some(x=>x.type==="list_invite"&&x.listId===id))db.notifications[u].push({id:crypto.randomUUID(),type:"list_invite",from:currentUser,listId:id,text:displayName(currentUser)+" invited you to a list: "+n,read:false,time:Date.now()})});saveDB();closeModal("newListModal");renderLists();renderNotifications();showToast("List created!")}
+function getMyListCount(){return Object.keys(db.lists||{}).length}
+function myLists(){const s=db.lists||{};return Object.values(s).filter(l=>l.members.includes(currentUser))}
+function renderLists(){updateUnreadBadges();const lists=myLists(),box=document.getElementById("listsList");if(!lists.length){box.innerHTML='<div class="empty" style="padding:30px 10px"><div><button class="miniBtn plusMini" onclick="showNewListModal()" title="Create list" style="width:40px;height:40px;font-size:22px;border-radius:10px;margin:0 auto">+</button><p style="margin-top:10px">No lists yet.</p><small>Press the + to create one.</small></div></div>';return}box.innerHTML='<div class="sectionTitle">Your Lists</div>';lists.forEach(l=>{let ctl="";if(l.owner===currentUser)ctl='<span style="display:flex;gap:3px;margin-left:6px"><button class="miniBtn settingsMini" onclick="event.stopPropagation();manageForList(\''+l.uid+'\',\'promote\')" title="Settings">⚙</button><button class="miniBtn plusMini" onclick="event.stopPropagation();manageForList(\''+l.uid+'\',\'add\')" title="Add people">+</button><button class="miniBtn minusMini" onclick="event.stopPropagation();manageForList(\''+l.uid+'\',\'remove\')" title="Remove people">−</button></span>';box.innerHTML+='<div class="listItem" onclick="openGroupChat(\''+l.uid+'\')"><span style="font-size:16px">📋</span><span class="listName">'+escapeHTML(l.name)+'</span><span class="listCount">'+l.members.length+' members</span>'+ctl+'</div>'})}
+function manageForList(id,mode){const list=getList(id);if(!list)return;if(list.owner!==currentUser){showToast("Only the owner can manage this list.");return}memberMode=mode;currentListId=id;document.querySelector("#promoteModal .modalHeader h2").textContent=mode==="promote"?"Promote owner":mode==="add"?"Add people":"Remove people";const pick=document.getElementById("promoteListPick");pick.innerHTML='<div style="padding:6px;color:var(--muted);font-size:12px">'+escapeHTML(list.name)+' · '+list.members.length+' members</div>';renderMemberUsers();openModal("promoteModal")}
+
+function renderMemberUsers(){const list=getList(currentListId),box=document.getElementById("promoteUsers");if(!list)return;let users=[];if(memberMode==="add")users=(db.users[currentUser].friends||[]).filter(u=>!list.members.includes(u)&&!(db.notifications[u]||[]).some(n=>n.type==="list_invite"&&n.listId===list.uid));else users=(list.members||[]).filter(u=>u!==list.owner&&u!==currentUser);if(!users.length){box.innerHTML='<p style="padding:10px;color:var(--muted);font-size:12px">'+(memberMode==="add"?"No friends to add.":"No members to manage.")+'</p>';return}box.innerHTML=users.map(u=>{const usr=db.users[u];if(!usr)return"";const act=memberMode==="add"?"doInvite('"+list.uid+"','"+u+"')":memberMode==="promote"?"doPromote('"+list.uid+"','"+u+"')":"doRemove('"+list.uid+"','"+u+"')";const hint=memberMode==="add"?"Tap to invite":memberMode==="promote"?"Tap to make owner":"Tap to remove";return'<div class="searchUser" style="cursor:pointer" onclick="'+act+'"><div class="avatar">'+escapeHTML(initials(usr.name))+'</div><div class="userText"><strong>'+escapeHTML(usr.name)+'</strong><small>'+hint+'</small></div></div>'}).join("")}
+function doPromote(id,u){const list=getList(id);if(!list||list.owner!==currentUser){showToast("Only the owner can do that.");return}list.owner=u;saveDB();closeModal("promoteModal");renderLists();showToast(displayName(u)+" is now the owner.")}
+function doRemove(id,u){const list=getList(id);if(!list||list.owner!==currentUser){showToast("Only the owner can do that.");return}showConfirm("Remove from list","Remove "+displayName(u)+" from this list?",()=>{list.members=list.members.filter(m=>m!==u);saveDB();renderMemberUsers();renderLists();showToast(displayName(u)+" removed from list.")})}
+function doInvite(id,u){const list=getList(id);if(!list||list.owner!==currentUser){showToast("Only the owner can do that.");return}if(list.members.includes(u))return;if(!db.notifications[u])db.notifications[u]=[];if(db.notifications[u].some(n=>n.type==="list_invite"&&n.listId===list.uid)){showToast("Invite already sent.");return}db.notifications[u].push({id:crypto.randomUUID(),type:"list_invite",from:currentUser,listId:list.uid,text:displayName(currentUser)+" invited you to a list: "+list.name,read:false,time:Date.now()});saveDB();renderMemberUsers();showToast("Invite sent to "+displayName(u)+".")}
+function searchUsers(){const q=normalizeName(document.getElementById("searchInput").value),box=document.getElementById("searchResults");if(!q){box.innerHTML="";return}const matches=Object.entries(db.users).filter(([u,v])=>u!==currentUser&&(u.includes(q)||v.name.toLowerCase().includes(q))).slice(0,10);if(!matches.length){box.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">No users found</div>';return}const me=db.users[currentUser];box.innerHTML=matches.map(([u,v])=>{const af=me.friends.includes(u),inc=me.incoming.includes(u),out=me.outgoing.includes(u);let a="";if(af)a='<span style="color:var(--green);font-size:11px">Friends</span>';else if(inc)a='<button class="accept" style="padding:6px 9px;border:0;border-radius:7px" onclick="acceptRequest(\''+u+'\')">Accept</button>';else if(out)a='<span style="color:var(--muted);font-size:11px">Sent</span>';else a='<button class="accept" style="padding:6px 9px;border:0;border-radius:7px" onclick="sendFriendRequest(\''+u+'\')">Add</button>';return'<div class="searchUser"><div class="avatar">'+escapeHTML(initials(v.name))+'</div><div class="userText"><strong>'+escapeHTML(v.name)+'</strong><small>@'+escapeHTML(u)+'</small></div>'+a+'</div>'}).join("")}
+function sendFriendRequest(u){if(!db.users[u])return;const me=db.users[currentUser],t=db.users[u];if(me.friends.includes(u)){showToast("Already friends.");return}if(me.outgoing.includes(u)){showToast("Request already sent.");return}me.outgoing.push(u);t.incoming.push(currentUser);if(!db.notifications[u])db.notifications[u]=[];db.notifications[u].push({id:crypto.randomUUID(),type:"friend_request",from:currentUser,text:me.name+" sent you a friend request.",read:false,time:Date.now()});saveDB();showToast("Friend request sent.");searchUsers()}
+function acceptRequest(u){const me=db.users[currentUser],o=db.users[u];me.incoming=me.incoming.filter(x=>x!==u);o.outgoing=o.outgoing.filter(x=>x!==currentUser);if(!me.friends.includes(u))me.friends.push(u);if(!o.friends.includes(currentUser))o.friends.push(currentUser);if(!db.notifications[u])db.notifications[u]=[];db.notifications[u].push({id:crypto.randomUUID(),type:"friend_accepted",from:currentUser,text:me.name+" accepted your friend request.",read:false,time:Date.now()});db.notifications[currentUser]=(db.notifications[currentUser]||[]).filter(n=>!(n.type==="friend_request"&&n.from===u));saveDB();renderFriends();renderRequests();renderNotifications();searchUsers();showToast("You are now friends with "+o.name+"!")}
+function rejectRequest(u){const me=db.users[currentUser],o=db.users[u];me.incoming=me.incoming.filter(x=>x!==u);o.outgoing=o.outgoing.filter(x=>x!==currentUser);db.notifications[currentUser]=(db.notifications[currentUser]||[]).filter(n=>!(n.type==="friend_request"&&n.from===u));saveDB();renderRequests();renderNotifications();searchUsers();showToast("Request rejected.")}
+function deleteFriend(u){const fr=db.users[u];if(!fr)return;showConfirm("Remove Friend","Remove "+fr.name+" from your friends?",()=>{const me=db.users[currentUser];me.friends=me.friends.filter(x=>x!==u);if(db.users[u]){db.users[u].friends=db.users[u].friends.filter(x=>x!==currentUser)}delete db.chats[chatKey(currentUser,u)];saveDB();if(currentFriend===u){closeChat()}renderFriends();showToast(fr.name+" removed.")})}
+function renderFriends(){updateUnreadBadges();const box=document.getElementById("friendsList"),u=db.users[currentUser];if(!u.friends.length){box.innerHTML='<div class="empty" style="padding:30px 10px"><div><div style="font-size:35px">👥</div><p style="margin-top:8px">No friends yet.</p><small>Search for someone above.</small></div></div>';return}box.innerHTML='<div class="sectionTitle">Friends</div>';u.friends.forEach(f=>{const fr=db.users[f];if(!fr)return;const k=chatKey(currentUser,f),msgs=db.chats[k]||[],last=msgs[msgs.length-1];let pv="No messages yet";if(last){pv=last.text;if(last.sender===currentUser)pv="You: "+pv}const ur=msgs.filter(m=>m.sender===f&&!m.read).length;box.innerHTML+='<div class="friendRow"><button class="friend '+(currentFriend===f?"active":"")+'" onclick="openChat(\''+f+'\')"><div class="avatar">'+escapeHTML(initials(fr.name))+'</div><div class="friendInfo"><strong>'+escapeHTML(fr.name)+'</strong><span>'+escapeHTML(pv)+'</span></div>'+(ur?'<span class="unread">'+ur+'</span>':"")+'</button><button class="delFriend" title="Remove friend" onclick="deleteFriend(\''+f+'\')">🗑</button></div>'})}
+function renderRequests(){}
+function renderNotifications(){const box=document.getElementById("notificationsList"),me=db.users[currentUser],nots=db.notifications[currentUser]||[],incoming=me.incoming||[];let html=(incoming.length?'<div class="sectionTitle">Friend Requests</div>':"");incoming.forEach(u=>{const usr=db.users[u];if(!usr)return;html+='<div class="request"><div class="requestTop"><div class="avatar">'+escapeHTML(initials(usr.name))+'</div><div class="userText"><strong>'+escapeHTML(usr.name)+'</strong><small>wants to be your friend</small></div></div><div class="requestButtons"><button class="accept" onclick="acceptRequest(\''+u+'\')">Accept</button><button class="reject" onclick="rejectRequest(\''+u+'\')">Decline</button></div></div>'});const generic=nots.filter(n=>n.type!=="friend_request");if(generic.length){html+='<div class="sectionTitle">Notifications</div>';[...generic].reverse().forEach(n=>{const fr=db.users[n.from],btns=n.type==="list_invite"?'<div class="requestButtons"><button class="accept" onclick="acceptListInvite(\''+n.id+'\',\''+(n.listId||"")+'\')">Accept</button><button class="reject" onclick="declineListInvite(\''+n.id+'\')">Decline</button></div>':"";html+='<div class="request"><div style="display:flex;gap:10px;align-items:center;width:100%"><div class="avatar">'+(fr?escapeHTML(initials(fr.name)):"?")+'</div><div class="userText" style="flex:1"><strong>'+escapeHTML(n.text)+'</strong><small>'+new Date(n.time).toLocaleString()+'</small></div></div></div>'+btns})}if(!incoming.length&&!generic.length)box.innerHTML='<div class="empty" style="padding:30px"><div><div style="font-size:35px">🔔</div><p>No notifications.</p></div></div>';else box.innerHTML=html;nots.forEach(n=>n.read=true);updateNotifBadge();saveDB()}
+function acceptListInvite(nid,listId){const list=getList(listId),me=db.users[currentUser];if(list){if(!list.members.includes(currentUser))list.members.push(currentUser);showToast("You joined "+list.name+".")}else showToast("This list no longer exists.");db.notifications[currentUser]=(db.notifications[currentUser]||[]).filter(n=>n.id!==nid);saveDB();renderNotifications();renderLists()}
+function declineListInvite(nid){db.notifications[currentUser]=(db.notifications[currentUser]||[]).filter(n=>n.id!==nid);saveDB();renderNotifications();showToast("Invite declined.")}
+function updateNotifBadge(){const me=db.users[currentUser],nots=db.notifications[currentUser]||[];const n=(me.incoming||[]).length+nots.filter(x=>x.type==="list_invite"||!x.read).length;const uin=document.getElementById("notificationBadge");uin.textContent=n;uin.classList.toggle("hidden",n===0)}
+function updateUnreadBadges(){if(!currentUser)return;let fv=0,lv=0;db.users[currentUser].friends.forEach(f=>{fv+=(db.chats[chatKey(currentUser,f)]||[]).filter(m=>m.sender===f&&!m.read).length});myLists().forEach(l=>{lv+=(db.chats["g__"+l.uid]||[]).filter(m=>m.sender!==currentUser&&!m.read).length});for(const[id,n]of[["messagesBadge",fv],["listsBadge",lv]]){const b=document.getElementById(id);b.textContent=n;b.classList.toggle("hidden",n===0)}}
+function showSideTab(tab){["friendsList","requestsList","notificationsList","listsList"].forEach(id=>document.getElementById(id).classList.add("hidden"));document.getElementById("friendsHeader").classList.toggle("hidden",tab!=="friends");document.getElementById("listsHeader").classList.toggle("hidden",tab!=="lists");document.getElementById(tab==="friends"?"friendsList":tab==="lists"?"listsList":"notificationsList").classList.remove("hidden");document.getElementById("friendsTab").classList.toggle("active",tab==="friends");document.getElementById("listsTab").classList.toggle("active",tab==="lists");document.getElementById("notificationsTab").classList.toggle("active",tab!=="friends"&&tab!=="lists");if(tab==="notifications"){renderNotifications();updateNotifBadge()};if(tab==="lists")renderLists()}
+function openChat(u){if(!db.users[currentUser].friends.includes(u))return;currentGroup=null;currentFriend=u;const fr=db.users[u];document.getElementById("chatName").textContent=fr.name;document.getElementById("chatAvatar").textContent=initials(fr.name);document.getElementById("chatStatus").textContent="Online";document.getElementById("chat").classList.add("open");document.getElementById("chatProfileBtn").classList.remove("hidden");document.getElementById("groupBar").classList.add("hidden");markMessagesRead();renderMessages();renderFriends();document.getElementById("messageInput").focus()}
+function openGroupChat(id){const list=getList(id);if(!list||!list.members.includes(currentUser))return;currentFriend=null;currentGroup=id;document.getElementById("chatName").textContent=list.name;document.getElementById("chatAvatar").textContent="📋";document.getElementById("chatStatus").textContent=list.members.length+" members";document.getElementById("chat").classList.add("open");document.getElementById("chatProfileBtn").classList.add("hidden");document.getElementById("groupBar").classList.remove("hidden");document.getElementById("deleteListBtn").classList.toggle("hidden",list.owner!==currentUser);document.getElementById("leaveListBtn").classList.remove("hidden");markMessagesRead();renderMessages();renderLists();renderEmptyGroupCheck();document.getElementById("messageInput").focus()}
+function leaveCurrentList(){const list=getList(currentGroup);if(!list)return;const wasOwner=list.owner===currentUser;list.members=list.members.filter(m=>m!==currentUser);if(wasOwner&&list.members.length){list.owner=list.members[0];if(!db.notifications[list.owner])db.notifications[list.owner]=[];db.notifications[list.owner].push({id:crypto.randomUUID(),type:"info",from:currentUser,text:displayName(currentUser)+" left the list, you are now the owner: "+list.name,read:false,time:Date.now()})}if(!list.members.length)delete db.lists[list.uid];saveDB();closeChat();renderLists();showToast("You left the list.")}
+function closeChat(){document.getElementById("chat").classList.remove("open");currentFriend=null;currentGroup=null;document.getElementById("chatProfileBtn").classList.add("hidden");document.getElementById("groupBar").classList.add("hidden");renderFriends()}
+function renderEmptyChat(){document.getElementById("chatName").textContent="Select a friend";document.getElementById("chatAvatar").textContent="💬";document.getElementById("chatStatus").textContent="Choose someone to start chatting";document.getElementById("chatProfileBtn").classList.add("hidden");document.getElementById("groupBar").classList.add("hidden");document.getElementById("messages").innerHTML='<div class="empty"><div><div class="emptyIcon">💬</div><h2>Welcome to GreenChat</h2><p>Select a friend to start chatting.</p></div></div>'}
+function getCurrentMessages(){if(currentGroup){const gk="g__"+currentGroup;if(!db.chats[gk])db.chats[gk]=[];return db.chats[gk]}if(!currentFriend)return[];const k=chatKey(currentUser,currentFriend);if(!db.chats[k])db.chats[k]=[];return db.chats[k]}
+function sendMessage(){if(!currentFriend&&!currentGroup){showToast("Select a chat first.");return}const input=document.getElementById("messageInput"),text=input.value.trim();if(!text)return;const k=currentGroup?"g__"+currentGroup:chatKey(currentUser,currentFriend);if(!db.chats[k])db.chats[k]=[];db.chats[k].push({id:crypto.randomUUID(),sender:currentUser,text,time:Date.now(),read:false,reactions:{},edited:false,replyTo:replyingTo?{id:replyingTo.id,sender:replyingTo.sender,text:replyingTo.text}:null,forwarded:false});input.value="";replyingTo=null;document.getElementById("replyBar").classList.remove("show");saveDB();renderMessages();renderFriends();setTimeout(()=>{const m=document.getElementById("messages");m.scrollTop=m.scrollHeight},20)}
+function messageKeydown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}}
+function renderEmptyGroupCheck(){const gk="g__"+currentGroup,l=getList(currentGroup);if(currentGroup&&(!l||!db.chats[gk]||!db.chats[gk].length))document.getElementById("messages").innerHTML='<div class="empty"><div><div class="emptyIcon">📋</div><h2>'+escapeHTML(l?l.name:"")+'</h2><p>Say hi to the group.</p></div></div>'}
+function renderMessages(){const box=document.getElementById("messages");if(!currentFriend&&!currentGroup){renderEmptyChat();return}const msgs=getCurrentMessages();if(!msgs.length){if(currentGroup){renderEmptyGroupCheck();return}box.innerHTML='<div class="empty"><div><div class="emptyIcon">👋</div><h2>Start the conversation</h2><p>Send your first message.</p></div></div>';return}box.innerHTML="";msgs.forEach(msg=>{const mine=msg.sender===currentUser;let rh="";if(msg.replyTo)rh='<div class="replyQuote"><strong>'+escapeHTML(displayName(msg.replyTo.sender))+'</strong>'+escapeHTML(msg.replyTo.text)+'</div>';let rch="";const re=Object.entries(msg.reactions||{});if(re.length)rch='<div class="reactions">'+re.map(([e,c])=>'<button class="reaction" onclick="addReaction(\''+msg.id+"','"+e+'\')">'+e+" "+c+"</button>").join("")+'</div>';const senderLine=currentGroup&&!mine?'<div class="msgSender">'+escapeHTML(displayName(msg.sender))+'</div>':"";box.innerHTML+='<div class="message '+(mine?"me":"them")+'" data-message="'+msg.id+'">'+(msg.forwarded?'<div class="forwarded">Forwarded message</div>':"")+senderLine+'<div class="bubble" onclick="showActionSheet(\''+msg.id+'\')" style="cursor:pointer">'+rh+escapeHTML(msg.text)+"</div>"+rch+'<div class="messageTime">'+new Date(msg.time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+(msg.edited?" · edited":"")+'</div></div>'});box.scrollTop=box.scrollHeight}
+function markMessagesRead(){getCurrentMessages().forEach(m=>{if(m.sender!==currentUser)m.read=true});saveDB();updateUnreadBadges()}
+function replyMessage(id){const msg=getCurrentMessages().find(m=>m.id===id);if(!msg)return;replyingTo=msg;document.getElementById("replyName").textContent="Replying to "+displayName(msg.sender);document.getElementById("replyText").textContent=msg.text;document.getElementById("replyBar").classList.add("show");document.getElementById("messageInput").focus()}
+function cancelReply(){replyingTo=null;document.getElementById("replyBar").classList.remove("show")}
+function addReaction(id,emoji){const msg=getCurrentMessages().find(m=>m.id===id);if(!msg)return;if(!msg.reactions)msg.reactions={};msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;saveDB();closeActionSheet();renderMessages()}
+function editMessage(id){const msg=getCurrentMessages().find(m=>m.id===id);if(!msg||msg.sender!==currentUser)return;const t=prompt("Edit your message:",msg.text);if(t===null)return;const c=t.trim();if(!c)return;msg.text=c;msg.edited=true;saveDB();renderMessages();renderFriends()}
+function deleteMessage(id){const msgs=getCurrentMessages(),i=msgs.findIndex(m=>m.id===id);if(i===-1)return;const m=msgs[i];if(m.sender!==currentUser){if(!confirm("Delete this message from your view?"))return}else{if(!confirm("Delete this message?"))return}msgs.splice(i,1);saveDB();renderMessages();renderFriends()}
+function forwardMessage(id){const msg=getCurrentMessages().find(m=>m.id===id);if(!msg)return;forwardingMessage=msg;const box=document.getElementById("forwardUsers"),frs=db.users[currentUser].friends;if(!frs.length){box.innerHTML='<p style="color:var(--muted)">No friends to forward to.</p>'}else{box.innerHTML=frs.map(u=>{const fr=db.users[u];return'<button class="forwardUser" onclick="completeForward(\''+u+'\')"><div class="avatar">'+escapeHTML(initials(fr.name))+'</div><div class="userText"><strong>'+escapeHTML(fr.name)+'</strong><small>Send message</small></div></button>'}).join("")}openModal("forwardModal")}
+function completeForward(u){if(!forwardingMessage)return;const k=chatKey(currentUser,u);if(!db.chats[k])db.chats[k]=[];db.chats[k].push({id:crypto.randomUUID(),sender:currentUser,text:forwardingMessage.text,time:Date.now(),read:false,reactions:{},edited:false,replyTo:null,forwarded:true});saveDB();closeModal("forwardModal");forwardingMessage=null;showToast("Message forwarded.");if(currentFriend===u)renderMessages();renderFriends()}
+function clearCurrentChat(){showToast("Chat cleared.")}
+const emojis=["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😎","🤓","🧐","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","🥱","😴","🤗","🤔","🫡","🤭","🤫","🤥","😱","😨","😰","😢","😭","😤","😡","🤬","🤯","🥳","😎","🤩","😇","❤️","🧡","💛","💚","💙","💜","🖤","🤍","💯","🔥","✨","🎉","👍","👎","👏","🙏","💀","👀","💪","🙌","🤝","💬"];
+function buildEmojiPicker(){document.getElementById("emojiGrid").innerHTML=emojis.map(e=>'<button onclick="insertEmoji(\''+e+'\')">'+e+"</button>").join("")}
+function toggleEmojiPicker(){document.getElementById("emojiPicker").classList.toggle("show")}
+function insertEmoji(e){const i=document.getElementById("messageInput");i.value+=e;i.focus()}
+function openModal(id){document.getElementById(id).classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show")}));
+function showConfirm(title,text,cb){document.getElementById("confirmTitle").textContent=title;document.getElementById("confirmText").textContent=text;document.getElementById("confirmYes").onclick=()=>{closeModal("confirmModal");cb()};openModal("confirmModal")}
+function startDeleteAccount(){if(profileUser!==currentUser){showToast("You can only delete your own account.");return}deleteMode="account";deleteListId=null;showConfirm("Delete Account","Are you sure you want to delete your account? This cannot be undone.",()=>{closeModal("profileModal");document.getElementById("delTitle").textContent="Delete Account";document.getElementById("delPassword").value="";document.getElementById("delPassword")._real="";hideError("delError");openModal("deleteModal")})}
+function startDeleteList(){if(!currentGroup)return;const list=getList(currentGroup);if(!list||list.owner!==currentUser){showToast("Only the owner can delete this list.");return}deleteMode="list";deleteListId=currentGroup;showConfirm("Delete List","Delete '"+list.name+"' and its chat? This cannot be undone.",()=>{document.getElementById("delTitle").textContent="Delete List";document.getElementById("delPassword").value="";document.getElementById("delPassword")._real="";hideError("delError");openModal("deleteModal")})}
+function doDelete(){const lp=document.getElementById("delPassword"),p=lp._real||"";if(p!==db.users[currentUser].password){showError("delError","Incorrect password.");return}if(deleteMode==="list"){const id=deleteListId,l=getList(id);delete db.lists[id];if(db.chats["g__"+id])delete db.chats["g__"+id];Object.keys(db.notifications).forEach(u=>{db.notifications[u]=(db.notifications[u]||[]).filter(n=>!(n.type==="list_invite"&&n.listId===id))});deleteListId=null;closeModal("deleteModal");closeChat();renderLists();showToast((l?l.name:"List")+" deleted.")}else{const u=currentUser;Object.values(db.users).forEach(o=>{if(o===db.users[u])return;o.friends=o.friends.filter(x=>x!==u);o.incoming=o.incoming.filter(x=>x!==u);o.outgoing=o.outgoing.filter(x=>x!==u)});Object.keys(db.chats).forEach(k=>{if(k.includes(u))delete db.chats[k]});Object.keys(db.lists||{}).forEach(id=>{const l=db.lists[id];if(l.owner===u)delete db.lists[id];else l.members=l.members.filter(m=>m!==u)});delete db.notifications[u];delete db.users[u];saveDB();closeModal("deleteModal");logout();showToast("Account deleted.")}}
+
+document.addEventListener("click",()=>document.getElementById("contextMenu").classList.add("hidden"));
+function showContextMenu(e,id){e.preventDefault();contextMessage=getCurrentMessages().find(m=>m.id===id);if(!contextMessage)return;const menu=document.getElementById("contextMenu");menu.style.left=e.clientX+"px";menu.style.top=e.clientY+"px";menu.classList.remove("hidden")}
+function contextReply(){if(!contextMessage)return;replyMessage(contextMessage.id)}
+function contextReact(e){if(!contextMessage)return;addReaction(contextMessage.id,e)}
+function contextForward(){if(!contextMessage)return;forwardMessage(contextMessage.id)}
+function contextEdit(){if(!contextMessage)return;editMessage(contextMessage.id)}
+function contextDelete(){if(!contextMessage)return;deleteMessage(contextMessage.id)}
+function showActionSheet(id){const msg=getCurrentMessages().find(m=>m.id===id);if(!msg)return;contextMessage=msg;document.getElementById("asBubble").textContent=msg.text;document.getElementById("actionSheet").classList.add("show")}
+function closeActionSheet(){document.getElementById("actionSheet").classList.remove("show");contextMessage=null}
+function asAction(a){if(!contextMessage)return;if(a==="reply")replyMessage(contextMessage.id);else if(a==="forward")forwardMessage(contextMessage.id);else addReaction(contextMessage.id,a);closeActionSheet()}
+document.getElementById("messages").addEventListener("contextmenu",e=>{const m=e.target.closest(".message");if(!m)return;showContextMenu(e,m.dataset.message)});
+document.addEventListener("click",e=>{const p=document.getElementById("emojiPicker");if(p.classList.contains("show")&&!p.contains(e.target)&&!e.target.closest(".composer"))p.classList.remove("show");const as=document.getElementById("actionSheet");if(as.classList.contains("show")&&!as.contains(e.target)&&!e.target.closest(".bubble"))closeActionSheet()});
+loadDB();ensureCodes();cleanupOldChats();buildEmojiPicker();const ss=getSession();if(ss&&db.users[ss]){currentUser=ss;startApp()}else showAuth("login");
+setInterval(()=>{if(!currentUser)return;cleanupOldChats();renderFriends();renderRequests();renderNotifications();renderLists();if(currentFriend||currentGroup)renderMessages()},3000);
+window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){loadDB();if(currentUser){renderFriends();renderRequests();renderNotifications();renderLists();if(currentFriend||currentGroup)renderMessages()}}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&currentUser){loadDB();renderFriends();renderRequests();renderNotifications();renderLists();if(currentFriend)renderMessages()}});
+</script>
 </body>
 </html>
