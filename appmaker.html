@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlimited HTML App Ideas Generator</title>
+    <style>
+        :root{--bg:#050706;--bg2:#090d0a;--panel:#0d120f;--panel2:#111812;--panel3:#172019;--border:#223027;--green:#00ff88;--green2:#00d873;--greenSoft:rgba(0,255,136,.12);--text:#f3f7f4;--muted:#87958b;--danger:#ff5268;--warning:#ffc857}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 30px 100px rgba(0,0,0,.6);
+            overflow: hidden;
+        }
+        
+        header {
+            background: radial-gradient(circle at 30% 20%, rgba(0,255,136,.08), transparent 40%), var(--panel);
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: var(--green);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            color: var(--muted);
+        }
+        
+        .filters {
+            padding: 30px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-label {
+            font-weight: bold;
+            color: var(--green);
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: var(--panel2);
+            color: var(--muted);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+        
+        .filter-btn.active {
+            background: var(--greenSoft);
+            color: var(--green);
+            border-color: rgba(0,255,136,.3);
+            font-weight: bold;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .generate-btn {
+            padding: 15px 40px;
+            background: var(--green);
+            color: #001b0e;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .generate-btn:hover {
+            background: #19ff97;
+            transform: translateY(-1px);
+        }
+        
+        .count-selector {
+            padding: 12px 20px;
+            border: 1px solid var(--border);
+            background: var(--panel2);
+            color: var(--text);
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .count-selector:focus {
+            outline: none;
+            border-color: var(--green);
+        }
+        
+        .ideas-container {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-color: var(--green) var(--bg);
+        }
+        
+        .idea-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 4px solid var(--green);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+        
+        .idea-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,.4);
+            border-color: var(--green);
+        }
+        
+        .idea-card:hover .expand-btn {
+            background: var(--green);
+            color: #001b0e;
+        }
+        
+        .idea-card h3 {
+            color: var(--green);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .idea-card p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .idea-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag {
+            background: var(--greenSoft);
+            color: var(--green);
+            border: 1px solid rgba(0,255,136,.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .stats {
+            padding: 20px 30px;
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .stats span {
+            color: var(--green);
+            font-weight: bold;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 1px solid var(--border);
+            background: var(--panel2);
+            color: var(--text);
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--greenSoft);
+        }
+        
+        .search-box::placeholder {
+            color: var(--muted);
+        }
+        
+        .expand-btn {
+            margin-top: 18px;
+            width: 100%;
+            padding: 12px;
+            background: var(--greenSoft);
+            color: var(--green);
+            border: 1px solid rgba(0,255,136,.3);
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            display: block;
+            text-align: center;
+        }
+        
+        .idea-card.modal-open {
+            border-color: var(--green);
+            box-shadow: 0 0 0 2px var(--greenSoft);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,.75);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modalBox {
+            width: 100%;
+            max-width: 580px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 30px 100px rgba(0,0,0,.7);
+            scrollbar-color: var(--green) var(--bg);
+        }
+        
+        .modalHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .modalHeader h2 {
+            color: var(--green);
+            font-size: 1.5em;
+            line-height: 1.2;
+        }
+        
+        .modalClose {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 20px;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            cursor: pointer;
+        }
+        
+        .modalClose:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        
+        .modalInfo {
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .modalInfo p {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .modalInfo p strong {
+            color: var(--text);
+        }
+        
+        .modalTags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        
+        .modalDivider {
+            border: none;
+            border-top: 1px dashed var(--border);
+            margin: 0 0 15px;
+        }
+        
+        .prompt-box {
+            width: 100%;
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        .prompt-box:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--greenSoft);
+        }
+        
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .mini-green {
+            background: var(--greenSoft);
+            color: var(--green);
+            border: 1px solid rgba(0,255,136,.3);
+            padding: 9px 16px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        .mini-green:hover {
+            background: var(--green);
+            color: #001b0e;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="all-projects" title="Back to all projects">ALL PROJECTS</a>
+    <div class="container">
+        <header>
+            <h1>Unlimited HTML App Ideas</h1>
+            <p>Billions of unique ideas, generated instantly</p>
+        </header>
+        
+        <div class="filters">
+            <span class="filter-label">Category:</span>
+            <div class="filter-group" id="categoryFilters">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="fun">Fun</button>
+                <button class="filter-btn" data-category="work">Work</button>
+                <button class="filter-btn" data-category="learning">Learning</button>
+                <button class="filter-btn" data-category="productivity">Productivity</button>
+                <button class="filter-btn" data-category="entertainment">Entertainment</button>
+                <button class="filter-btn" data-category="social">Social</button>
+                <button class="filter-btn" data-category="ecommerce">E-commerce</button>
+                <button class="filter-btn" data-category="health">Health</button>
+                <button class="filter-btn" data-category="finance">Finance</button>
+                <button class="filter-btn" data-category="creative">Creative</button>
+                <button class="filter-btn" data-category="utility">Utility</button>
+            </div>
+            
+            <span class="filter-label">Complexity:</span>
+            <div class="filter-group" id="complexityFilters">
+                <button class="filter-btn active" data-complexity="all">All</button>
+                <button class="filter-btn" data-complexity="beginner">Beginner</button>
+                <button class="filter-btn" data-complexity="intermediate">Intermediate</button>
+                <button class="filter-btn" data-complexity="advanced">Advanced</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="Search ideas...">
+            <select class="count-selector" id="countSelector">
+                <option value="10">10 Ideas</option>
+                <option value="25">25 Ideas</option>
+                <option value="50">50 Ideas</option>
+                <option value="100">100 Ideas</option>
+                <option value="500">500 Ideas</option>
+                <option value="1000">1000 Ideas</option>
+            </select>
+            <button class="generate-btn" onclick="generateIdeas()">Generate Ideas</button>
+        </div>
+        
+        <div class="ideas-container" id="ideasContainer">
+            <!-- Ideas will be generated here -->
+        </div>
+        
+        <div class="stats">
+            <p>Showing <span id="currentCount">0</span> of <span id="totalCount">0</span> ideas</p>
+        </div>
+    </div>
+
+    <div id="ideaModal" class="modal" onclick="if(event.target===this)closeIdeaModal()">
+        <div class="modalBox">
+            <div class="modalHeader">
+                <h2 id="modalTitle"></h2>
+                <button class="modalClose" onclick="closeIdeaModal()">×</button>
+            </div>
+            <div class="modalInfo">
+                <p id="modalBody"></p>
+                <div class="modalTags" id="modalTags"></div>
+            </div>
+            <hr class="modalDivider">
+            <label style="display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Prompt - paste this into your AI to build the app</label>
+            <textarea id="modalPrompt" class="prompt-box" rows="6"></textarea>
+            <div class="detail-actions">
+                <button class="mini-green" onclick="selectPrompt()">Select All</button>
+                <button class="mini-green" id="copyBtn" onclick="copyPrompt()">📋 Copy Prompt</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const appIdeas = [
+            // Fun
+            { title: "Meme Generator", description: "Create and share custom memes with text overlays and filters", category: "fun", complexity: "beginner", tags: ["social", "creative"] },
+            { title: "Quiz Game Platform", description: "Build interactive quizzes with multiple question types and scoring", category: "fun", complexity: "intermediate", tags: ["gaming", "education"] },
+            { title: "Virtual Pet Simulator", description: "Care for a digital pet with feeding, playing, and health stats", category: "fun", complexity: "beginner", tags: ["gaming", "simulation"] },
+            { title: "Music Visualizer", description: "Real-time audio visualization with colorful animations", category: "fun", complexity: "advanced", tags: ["music", "creative"] },
+            { title: "Interactive Story Builder", description: "Create choose-your-own-adventure stories with branching paths", category: "fun", complexity: "intermediate", tags: ["creative", "writing"] },
+            { title: "Retro Game Collection", description: "Classic arcade games like Snake, Tetris, and Pong", category: "fun", complexity: "intermediate", tags: ["gaming", "retro"] },
+            { title: "Emoji Art Creator", description: "Make pixel art using emojis as building blocks", category: "fun", complexity: "beginner", tags: ["creative", "art"] },
+            { title: "Reaction Time Tester", description: "Test and improve your reaction speed with various challenges", category: "fun", complexity: "beginner", tags: ["gaming", "health"] },
+            { title: "Sound Board App", description: "Play sound effects with customizable buttons and mixing", category: "fun", complexity: "intermediate", tags: ["music", "entertainment"] },
+            { title: "Virtual Drum Kit", description: "Play drums with keyboard or mouse clicks, record sessions", category: "fun", complexity: "intermediate", tags: ["music", "creative"] },
+            
+            // Work
+            { title: "Project Management Dashboard", description: "Track tasks, deadlines, and team progress with Kanban boards", category: "work", complexity: "advanced", tags: ["productivity", "collaboration"] },
+            { title: "Invoice Generator", description: "Create professional invoices with PDF export and tracking", category: "work", complexity: "intermediate", tags: ["finance", "business"] },
+            { title: "Time Tracker", description: "Log work hours with project categorization and reporting", category: "work", complexity: "intermediate", tags: ["productivity", "analytics"] },
+            { title: "Resume Builder", description: "Create ATS-friendly resumes with multiple templates", category: "work", complexity: "intermediate", tags: ["career", "documents"] },
+            { title: "Meeting Scheduler", description: "Coordinate meeting times with calendar integration", category: "work", complexity: "advanced", tags: ["productivity", "collaboration"] },
+            { title: "Expense Report Tool", description: "Track and categorize business expenses with receipt scanning", category: "work", complexity: "intermediate", tags: ["finance", "productivity"] },
+            { title: "Employee Directory", description: " searchable database of team members with contact info", category: "work", complexity: "beginner", tags: ["hr", "collaboration"] },
+            { title: "Performance Review System", description: "360-degree feedback collection and reporting", category: "work", complexity: "advanced", tags: ["hr", "analytics"] },
+            { title: "Client CRM", description: "Manage customer relationships with notes and follow-ups", category: "work", complexity: "advanced", tags: ["sales", "productivity"] },
+            { title: "Invoice Payment Tracker", description: "Monitor invoice status and payment history", category: "work", complexity: "intermediate", tags: ["finance", "accounting"] },
+            
+            // Learning
+            { title: "Flashcard System", description: "Create and study flashcards with spaced repetition", category: "learning", complexity: "intermediate", tags: ["education", "memory"] },
+            { title: "Code Playground", description: "Online code editor with live preview for HTML/CSS/JS", category: "learning", complexity: "advanced", tags: ["programming", "education"] },
+            { title: "Language Learning App", description: "Interactive lessons with vocabulary and grammar practice", category: "learning", complexity: "advanced", tags: ["languages", "education"] },
+            { title: "Math Problem Generator", description: "Generate math problems at various difficulty levels", category: "learning", complexity: "intermediate", tags: ["math", "education"] },
+            { title: "Study Group Finder", description: "Connect with other learners for collaborative study", category: "learning", complexity: "intermediate", tags: ["social", "education"] },
+            { title: "Note Taking App", description: "Rich text notes with markdown support and organization", category: "learning", complexity: "intermediate", tags: ["productivity", "education"] },
+            { title: "Progress Tracker", description: "Track learning goals with visual charts and milestones", category: "learning", complexity: "beginner", tags: ["productivity", "education"] },
+            { title: "Video Course Platform", description: "Create and distribute video-based learning content", category: "learning", complexity: "advanced", tags: ["education", "streaming"] },
+            { title: "Interactive Timeline", description: "Visualize historical events with zoomable timeline", category: "learning", complexity: "intermediate", tags: ["history", "visualization"] },
+            { title: "Scientific Calculator", description: "Advanced calculator with formula history and graphing", category: "learning", complexity: "intermediate", tags: ["math", "utility"] },
+            
+            // Productivity
+            { title: "Todo List Manager", description: "Task management with priorities, due dates, and categories", category: "productivity", complexity: "beginner", tags: ["organization", "planning"] },
+            { title: "Calendar App", description: "Visual calendar with event creation and reminders", category: "productivity", complexity: "intermediate", tags: ["scheduling", "planning"] },
+            { title: "Habit Tracker", description: "Build and track daily habits with streaks and statistics", category: "productivity", complexity: "intermediate", tags: ["self-improvement", "tracking"] },
+            { title: "Pomodoro Timer", description: "Focus timer with breaks and productivity tracking", category: "productivity", complexity: "beginner", tags: ["focus", "time-management"] },
+            { title: "Bookmark Manager", description: "Organize and search saved links with tagging", category: "productivity", complexity: "intermediate", tags: ["organization", "research"] },
+            { title: "Password Manager", description: "Secure password storage with generation and auto-fill", category: "productivity", complexity: "advanced", tags: ["security", "utility"] },
+            { title: "Document Organizer", description: "File management system with search and categorization", category: "productivity", complexity: "intermediate", tags: ["organization", "files"] },
+            { title: "Goal Setting Dashboard", description: "Track long-term goals with progress visualization", category: "productivity", complexity: "intermediate", tags: ["planning", "self-improvement"] },
+            { title: "Team Chat App", description: "Real-time messaging for teams with channels and DMs", category: "productivity", complexity: "advanced", tags: ["collaboration", "communication"] },
+            { title: "Data Entry Form", description: "Efficient data input with validation and export", category: "productivity", complexity: "beginner", tags: ["forms", "data"] },
+            
+            // Entertainment
+            { title: "Movie Database", description: "Browse and rate movies with recommendations", category: "entertainment", complexity: "intermediate", tags: ["movies", "reviews"] },
+            { title: "Music Playlist Manager", description: "Create and organize playlists with previews", category: "entertainment", complexity: "intermediate", tags: ["music", "organization"] },
+            { title: "Podcast Player", description: "Audio player with subscriptions and playback controls", category: "entertainment", complexity: "advanced", tags: ["audio", "subscriptions"] },
+            { title: "Book Library", description: "Track reading progress and organize book collections", category: "entertainment", complexity: "intermediate", tags: ["books", "organization"] },
+            { title: "News Aggregator", description: "Customizable news feed from multiple sources", category: "entertainment", complexity: "intermediate", tags: ["news", "customization"] },
+            { title: "Streaming Service Browser", description: "Compare content across Netflix, Hulu, Disney+", category: "entertainment", complexity: "advanced", tags: ["streaming", "comparison"] },
+            { title: "Sports Score Tracker", description: "Live scores and stats for your favorite teams", category: "entertainment", complexity: "intermediate", tags: ["sports", "live-data"] },
+            { title: "Event Ticket Finder", description: "Search and compare concert and event tickets", category: "entertainment", complexity: "advanced", tags: ["events", "tickets"] },
+            { title: "Photo Gallery App", description: "Organize and share photos with albums and filters", category: "entertainment", complexity: "intermediate", tags: ["photos", "sharing"] },
+            { title: "Streaming Queue Manager", description: "Organize what to watch across multiple services", category: "entertainment", complexity: "intermediate", tags: ["streaming", "organization"] },
+            
+            // Social
+            { title: "Social Media Dashboard", description: "Manage multiple social accounts in one place", category: "social", complexity: "advanced", tags: ["management", "analytics"] },
+            { title: "Event Planner", description: "Coordinate events with RSVP and guest management", category: "social", complexity: "intermediate", tags: ["events", "organization"] },
+            { title: "Group Chat Room", description: "Create topic-based chat rooms with moderation", category: "social", complexity: "intermediate", tags: ["communication", "community"] },
+            { title: "Pet Finder", description: "Search adoptable pets by location and preferences", category: "social", complexity: "intermediate", tags: ["pets", "adoption"] },
+            { title: "Volunteer Coordinator", description: "Connect volunteers with opportunities", category: "social", complexity: "intermediate", tags: ["community", "nonprofit"] },
+            { title: "Recipe Sharing Platform", description: "Share and discover recipes with ratings", category: "social", complexity: "intermediate", tags: ["cooking", "community"] },
+            { title: "Travel Buddy Finder", description: "Connect with travelers for shared trips", category: "social", complexity: "advanced", tags: ["travel", "social"] },
+            { title: "Skill Exchange", description: "Trade skills with others in your community", category: "social", complexity: "intermediate", tags: ["learning", "community"] },
+            { title: "Local Events Finder", description: "Discover events happening in your area", category: "social", complexity: "intermediate", tags: ["events", "local"] },
+            { title: "Review Platform", description: "Rate and review local businesses and services", category: "social", complexity: "intermediate", tags: ["reviews", "local"] },
+            
+            // E-commerce
+            { title: "Product Catalog", description: "Browse products with filtering and search", category: "ecommerce", complexity: "intermediate", tags: ["products", "browsing"] },
+            { title: "Price Comparison Tool", description: "Compare prices across multiple retailers", category: "ecommerce", complexity: "advanced", tags: ["shopping", "comparison"] },
+            { title: "Shopping List Manager", description: "Create and share shopping lists", category: "ecommerce", complexity: "beginner", tags: ["shopping", "organization"] },
+            { title: "Coupon Collector", description: "Find and organize discount codes", category: "ecommerce", complexity: "intermediate", tags: ["savings", "shopping"] },
+            { title: "Wishlist Creator", description: "Save products from multiple stores", category: "ecommerce", complexity: "intermediate", tags: ["shopping", "organization"] },
+            { title: "Subscription Box Finder", description: "Discover and compare subscription services", category: "ecommerce", complexity: "intermediate", tags: ["subscriptions", "discovery"] },
+            { title: "Gift Registry", description: "Create and share gift lists for occasions", category: "ecommerce", complexity: "intermediate", tags: ["gifts", "events"] },
+            { title: "Digital Marketplace", description: "Buy and sell digital products", category: "ecommerce", complexity: "advanced", tags: ["digital", "marketplace"] },
+            { title: "Delivery Tracker", description: "Track packages from multiple carriers", category: "ecommerce", complexity: "intermediate", tags: ["shipping", "tracking"] },
+            { title: "Store Locator", description: "Find nearby stores with hours and reviews", category: "ecommerce", complexity: "beginner", tags: ["local", "shopping"] },
+            
+            // Health
+            { title: "Workout Tracker", description: "Log exercises with sets, reps, and progress", category: "health", complexity: "intermediate", tags: ["fitness", "tracking"] },
+            { title: "Calorie Counter", description: "Track food intake with nutritional information", category: "health", complexity: "intermediate", tags: ["nutrition", "tracking"] },
+            { title: "Meditation Timer", description: "Guided meditation with ambient sounds", category: "health", complexity: "beginner", tags: ["wellness", "mindfulness"] },
+            { title: "Sleep Tracker", description: "Monitor sleep patterns and quality", category: "health", complexity: "intermediate", tags: ["sleep", "health"] },
+            { title: "Water Intake Logger", description: "Track daily water consumption", category: "health", complexity: "beginner", tags: ["hydration", "tracking"] },
+            { title: "BMI Calculator", description: "Calculate and track body mass index", category: "health", complexity: "beginner", tags: ["fitness", "health"] },
+            { title: "Medication Reminder", description: "Schedule and track medication doses", category: "health", complexity: "intermediate", tags: ["medication", "reminders"] },
+            { title: "Symptom Checker", description: "Log symptoms and track patterns", category: "health", complexity: "advanced", tags: ["medical", "tracking"] },
+            { title: "Yoga Pose Guide", description: "Interactive guide with pose instructions", category: "health", complexity: "intermediate", tags: ["yoga", "fitness"] },
+            { title: "Mood Journal", description: "Track emotions with notes and trends", category: "health", complexity: "beginner", tags: ["mental-health", "journaling"] },
+            
+            // Finance
+            { title: "Budget Tracker", description: "Monitor income and expenses with categories", category: "finance", complexity: "intermediate", tags: ["budgeting", "tracking"] },
+            { title: "Investment Portfolio", description: "Track stocks, bonds, and crypto holdings", category: "finance", complexity: "advanced", tags: ["investing", "tracking"] },
+            { title: "Bill Splitter", description: "Split expenses with friends and roommates", category: "finance", complexity: "beginner", tags: ["social", "expenses"] },
+            { title: "Savings Goal Tracker", description: "Set and track progress toward savings goals", category: "finance", complexity: "intermediate", tags: ["savings", "goals"] },
+            { title: "Subscription Manager", description: "Track and cancel unused subscriptions", category: "finance", complexity: "intermediate", tags: ["subscriptions", "savings"] },
+            { title: "Tax Calculator", description: "Estimate taxes and deductions", category: "finance", complexity: "intermediate", tags: ["taxes", "planning"] },
+            { title: "Debt Payoff Planner", description: "Create strategies for debt elimination", category: "finance", complexity: "intermediate", tags: ["debt", "planning"] },
+            { title: "Credit Score Monitor", description: "Track credit score changes and factors", category: "finance", complexity: "advanced", tags: ["credit", "monitoring"] },
+            { title: "Receipt Scanner", description: "Digitize receipts with OCR and categorization", category: "finance", complexity: "advanced", tags: ["receipts", "organization"] },
+            { title: "Net Worth Calculator", description: "Calculate and track total net worth", category: "finance", complexity: "intermediate", tags: ["wealth", "tracking"] },
+            
+            // Creative
+            { title: "Image Editor", description: "Basic photo editing with filters and adjustments", category: "creative", complexity: "advanced", tags: ["photos", "editing"] },
+            { title: "Logo Maker", description: "Create logos with templates and customization", category: "creative", complexity: "intermediate", tags: ["design", "branding"] },
+            { title: "Color Palette Generator", description: "Generate harmonious color schemes", category: "creative", complexity: "beginner", tags: ["design", "colors"] },
+            { title: "Font Pairing Tool", description: "Find complementary font combinations", category: "creative", complexity: "beginner", tags: ["design", "typography"] },
+            { title: "Mockup Generator", description: "Create product mockups for presentations", category: "creative", complexity: "intermediate", tags: ["design", "presentations"] },
+            { title: "Storyboard Creator", description: "Plan video or animation sequences", category: "creative", complexity: "intermediate", tags: ["video", "planning"] },
+            { title: "Sound Effect Creator", description: "Generate and mix custom sound effects", category: "creative", complexity: "advanced", tags: ["audio", "creation"] },
+            { title: "Pattern Generator", description: "Create seamless patterns for backgrounds", category: "creative", complexity: "intermediate", tags: ["design", "patterns"] },
+            { title: "Mind Map Tool", description: "Visual brainstorming with connected nodes", category: "creative", complexity: "intermediate", tags: ["brainstorming", "organization"] },
+            { title: "Icon Library", description: "Browse and customize icons for projects", category: "creative", complexity: "intermediate", tags: ["design", "icons"] },
+            
+            // Utility
+            { title: "Unit Converter", description: "Convert between measurement systems", category: "utility", complexity: "beginner", tags: ["conversion", "tools"] },
+            { title: "QR Code Generator", description: "Create QR codes for URLs, text, and contacts", category: "utility", complexity: "beginner", tags: ["codes", "sharing"] },
+            { title: "Markdown Editor", description: "Write and preview markdown documents", category: "utility", complexity: "intermediate", tags: ["writing", "formatting"] },
+            { title: "JSON Formatter", description: "Format and validate JSON data", category: "utility", complexity: "beginner", tags: ["development", "tools"] },
+            { title: "Regex Tester", description: "Test and debug regular expressions", category: "utility", complexity: "intermediate", tags: ["development", "testing"] },
+            { title: "Hash Generator", description: "Generate MD5, SHA1, SHA256 hashes", category: "utility", complexity: "beginner", tags: ["security", "tools"] },
+            { title: "Color Picker", description: "Pick colors from screen and convert formats", category: "utility", complexity: "beginner", tags: ["design", "tools"] },
+            { title: "Text Diff Tool", description: "Compare text differences side by side", category: "utility", complexity: "intermediate", tags: ["comparison", "tools"] },
+            { title: "Base64 Encoder", description: "Encode and decode Base64 strings", category: "utility", complexity: "beginner", tags: ["encoding", "tools"] },
+            { title: "Lorem Ipsum Generator", description: "Generate placeholder text for designs", category: "utility", complexity: "beginner", tags: ["design", "text"] },
+            
+            // Advanced/Unique Ideas
+            { title: "AI Chatbot Builder", description: "Create custom chatbots with conversation flows", category: "productivity", complexity: "advanced", tags: ["ai", "automation"] },
+            { title: "Blockchain Explorer", description: "Browse transactions on blockchain networks", category: "finance", complexity: "advanced", tags: ["crypto", "blockchain"] },
+            { title: "AR Camera App", description: "Augmented reality effects using webcam", category: "fun", complexity: "advanced", tags: ["ar", "camera"] },
+            { title: "Real-time Collaboration Editor", description: "Google Docs-like collaborative editing", category: "work", complexity: "advanced", tags: ["collaboration", "editing"] },
+            { title: "Voice Command Interface", description: "Control app with voice recognition", category: "utility", complexity: "advanced", tags: ["voice", "accessibility"] },
+            { title: "Data Visualization Dashboard", description: "Interactive charts and graphs from CSV/JSON", category: "work", complexity: "advanced", tags: ["data", "visualization"] },
+            { title: "WebSocket Chat Application", description: "Real-time messaging with WebSockets", category: "social", complexity: "advanced", tags: ["real-time", "chat"] },
+            { title: "Offline-First Web App", description: "Progressive web app with service workers", category: "utility", complexity: "advanced", tags: ["pwa", "offline"] },
+            { title: "Drag-and-Drop Form Builder", description: "Create custom forms visually", category: "productivity", complexity: "advanced", tags: ["forms", "builder"] },
+            { title: "Multiplayer Game Engine", description: "Build browser-based multiplayer games", category: "fun", complexity: "advanced", tags: ["gaming", "multiplayer"] },
+            { title: "E-commerce Storefront", description: "Full online store with cart and checkout", category: "ecommerce", complexity: "advanced", tags: ["store", "payments"] },
+            { title: "Social Network Clone", description: "Build a mini social network with profiles", category: "social", complexity: "advanced", tags: ["social", "profiles"] },
+            { title: "Video Streaming Platform", description: "Upload and stream videos with player", category: "entertainment", complexity: "advanced", tags: ["video", "streaming"] },
+            { title: "Project Portfolio Showcase", description: "Display your work with case studies", category: "work", complexity: "intermediate", tags: ["portfolio", "showcase"] },
+            { title: "Blog with Comments", description: "Full blog platform with user comments", category: "social", complexity: "advanced", tags: ["blogging", "community"] },
+            { title: "Recipe Management System", description: "Organize recipes with meal planning", category: "utility", complexity: "intermediate", tags: ["cooking", "planning"] },
+            { title: "Ticketing System", description: "Support ticket management with priorities", category: "work", complexity: "advanced", tags: ["support", "management"] },
+            { title: "Inventory Management", description: "Track products with stock levels", category: "ecommerce", complexity: "advanced", tags: ["inventory", "tracking"] },
+            { title: "Learning Management System", description: "Course creation and student tracking", category: "learning", complexity: "advanced", tags: ["education", "courses"] },
+            { title: "Booking System", description: "Appointment scheduling with calendar sync", category: "work", complexity: "advanced", tags: ["scheduling", "appointments"] },
+            
+            // More Fun/Games
+            { title: "Word Search Puzzle", description: "Generate word search puzzles with custom words", category: "fun", complexity: "intermediate", tags: ["puzzles", "words"] },
+            { title: "Memory Card Game", description: "Classic matching game with various themes", category: "fun", complexity: "beginner", tags: ["gaming", "memory"] },
+            { title: "Sudoku Solver", description: "Solve and generate Sudoku puzzles", category: "fun", complexity: "intermediate", tags: ["puzzles", "logic"] },
+            { title: "Battleship Game", description: "Classic naval combat strategy game", category: "fun", complexity: "intermediate", tags: ["gaming", "strategy"] },
+            { title: "Dice Roller Simulator", description: "Roll virtual dice with statistics tracking", category: "fun", complexity: "beginner", tags: ["gaming", "random"] },
+            { title: "Simon Says Game", description: "Memory challenge with color sequences", category: "fun", complexity: "beginner", tags: ["gaming", "memory"] },
+            { title: "Typing Speed Test", description: "Measure words per minute with accuracy", category: "fun", complexity: "beginner", tags: ["typing", "skills"] },
+            { title: "Number Guessing Game", description: "Guess numbers with hints and statistics", category: "fun", complexity: "beginner", tags: ["gaming", "logic"] },
+            { title: "Rock Paper Scissors", description: "Play against computer with score tracking", category: "fun", complexity: "beginner", tags: ["gaming", "simple"] },
+            { title: "Tic Tac Toe", description: "Classic game with AI opponent", category: "fun", complexity: "beginner", tags: ["gaming", "strategy"] },
+            
+            // More Work Tools
+            { title: "Gantt Chart Creator", description: "Visual project timeline with dependencies", category: "work", complexity: "advanced", tags: ["project-management", "visualization"] },
+            { title: "OKR Tracker", description: "Track Objectives and Key Results", category: "work", complexity: "intermediate", tags: ["goals", "management"] },
+            { title: "Client Portal", description: "Secure area for client documents and updates", category: "work", complexity: "advanced", tags: ["clients", "portal"] },
+            { title: "Proposal Generator", description: "Create professional business proposals", category: "work", complexity: "intermediate", tags: ["sales", "documents"] },
+            { title: "Employee Onboarding", description: "Streamline new hire documentation", category: "work", complexity: "intermediate", tags: ["hr", "process"] },
+            { title: "Inventory Tracker", description: "Track stock levels with alerts", category: "work", complexity: "intermediate", tags: ["inventory", "management"] },
+            { title: "CRM Dashboard", description: "Customer relationship management", category: "work", complexity: "advanced", tags: ["sales", "customers"] },
+            { title: "Meeting Minutes Tool", description: "Document meeting notes with action items", category: "work", complexity: "beginner", tags: ["meetings", "documentation"] },
+            { title: "Expense Tracker", description: "Track business expenses by category", category: "work", complexity: "intermediate", tags: ["finance", "expenses"] },
+            { title: "Task Automation Builder", description: "Create workflows to automate repetitive tasks", category: "work", complexity: "advanced", tags: ["automation", "productivity"] },
+            
+            // Health & Wellness
+            { title: "Yoga Flow Builder", description: "Create custom yoga sequences", category: "health", complexity: "intermediate", tags: ["yoga", "fitness"] },
+            { title: "Running Tracker", description: "Log runs with GPS and statistics", category: "health", complexity: "intermediate", tags: ["running", "fitness"] },
+            { title: "Meal Planner", description: "Plan weekly meals with recipes", category: "health", complexity: "intermediate", tags: ["nutrition", "planning"] },
+            { title: "Body Measurement Log", description: "Track body measurements over time", category: "health", complexity: "beginner", tags: ["fitness", "tracking"] },
+            { title: "Gratitude Journal", description: "Daily gratitude entries with reminders", category: "health", complexity: "beginner", tags: ["wellness", "journaling"] },
+            { title: "Breathing Exercise App", description: "Guided breathing techniques for relaxation", category: "health", complexity: "beginner", tags: ["meditation", "breathing"] },
+            { title: "Habit Formation Tracker", description: "Build habits with streak tracking", category: "health", complexity: "intermediate", tags: ["habits", "self-improvement"] },
+            { title: "Fitness Challenge App", description: "30-day challenges with progress tracking", category: "health", complexity: "intermediate", tags: ["fitness", "challenges"] },
+            { title: "Symptom Journal", description: "Track health symptoms and patterns", category: "health", complexity: "intermediate", tags: ["health", "tracking"] },
+            { title: "Wellness Dashboard", description: "Holistic health overview with goals", category: "health", complexity: "advanced", tags: ["wellness", "dashboard"] }
+        ];
+
+        // ---- Unlimited combinatorial generator ----
+        const WORDS = {
+            subject: ["memes", "workouts", "recipes", "study notes", "playlists", "expenses", "budgets", "houseplants", "pets", "travel plans", "grocery lists", "movie nights", "gift ideas", "homework", "passwords", "bookmarks", "daily habits", "photos", "video clips", "team tasks", "invoices", "event invites", "music", "podcasts", "coding projects", "job applications", "water intake", "sleep patterns", "moods", "reading logs", "budget spreadsheets", "language practice", "chess matches", "bike routes", "wine collections", "coffee brewing", "DIY projects", "holiday decor", "bucket lists", "family traditions", "school clubs", "pub trivia", "road trips"],
+            audience: ["students", "gamers", "dog owners", "busy parents", "fitness fans", "artists", "teachers", "freelancers", "small businesses", "travelers", "home cooks", "programmers", "musicians", "photographers", "gardeners", "runners", "remote workers", "podcasters", "startups", "retirees", "night owls", "early risers", "minimalists", "commuters", "gaming streamers", "home renovators", "yoga lovers", "foodies", "film buffs", "bookworms", "bargain hunters", "procrastinators"],
+            feature: ["streak tracking", "dark mode", "offline mode", "voice control", "one-click sharing", "AI suggestions", "smart reminders", "charts and graphs", "drag-and-drop", "keyboard shortcuts", "PDF export", "cloud sync", "password protection", "emoji reactions", "custom themes", "templates", "progress bars", "badges and rewards", "instant search", "advanced filters", "sound effects", "smooth animations", "collaborative editing", "version history", "randomize button", "batch import", "live preview", "responsive layout", "data backup", "privacy mode", "beginner tutorial", "location tagging", "color coding", "folding menu", "print view", "calendar view"],
+            perk: ["instant export", "quiz mode", "practice mode", "gamified points", "leaderboards", "daily challenges", "smart tagging", "auto-summarize", "offline archive", "shareable links", "custom avatars", "achievement badges", "weekly reports", "smart search", "quick actions", "favorites folder", "history log", "screenshot capture", "batch editing", "drag sorting", "bulk actions", "pattern detections", "goal milestones", "focus mode", "vacation mode", "guest access", "wizard setup", "keyboard-first controls"],
+            interaction: ["works in one click", "runs completely offline", "requires no signup", "saves everything locally", "is fully keyboard-driven", "updates in real time", "breaks big tasks into steps", "turns data into stories", "makes tracking fun", "learns your preferences", "fits on any screen", "feels instant", "protects your privacy", "scales from small to huge", "adapts to your pace", "guards against mistakes", "celebrates small wins", "cuts out the busywork", "surfaces what matters", "keeps you in the flow"],
+            theme: ["retro", "neo-noir", "cozy cottage", "cyberpunk", "pastel", "minimal", "brutalist", "deep space", "underwater", "sunset", "forest", "monochrome", "glassmorphism", "comic book", "steampunk", "claymorphism", "gradient", "editorial", "warm analog", "crisp modern"]
+        };
+
+        const CAT_FORMATS = {
+            fun: ["Generator", "Simulator", "Mini-Game", "Explorer", "Challenge", "Adventure", "Quiz", "Studio"],
+            work: ["Manager", "Dashboard", "Tracker", "Automator", "Scheduler", "Reporter", "Organizer", "CRM"],
+            learning: ["Flashcard System", "Tutor", "Course", "Workbook", "Coach", "Guide", "Practice Lab", "Encyclopedia"],
+            productivity: ["Manager", "Planner", "Tracker", "Timer", "Organizer", "Dashboard", "Automator", "Scheduler"],
+            entertainment: ["Player", "Browser", "Library", "Hub", "Station", "Theater", "Showcase", "Streamer"],
+            social: ["Network", "Hub", "Planner", "Matchmaker", "Community Board", "Roundup", "Messenger", "Showcase"],
+            ecommerce: ["Storefront", "Finder", "Tracker", "Catalog", "Comparator", "Registrar", "Checkout", "Marketplace"],
+            health: ["Coach", "Logger", "Tracker", "Routine Builder", "Planner", "Journal", "Challenge", "Assistant"],
+            finance: ["Tracker", "Planner", "Calculator", "Analyzer", "Dashboard", "Manager", "Wizard", "Logger"],
+            creative: ["Studio", "Editor", "Moodboard", "Palette", "Sketchpad", "Composer", "Gallery", "Blueprint"],
+            utility: ["Toolbox", "Converter", "Helper", "Checker", "Wizard", "Shortcut", "Formatter", "Lens"]
+        };
+
+        const CATEGORIES = Object.keys(CAT_FORMATS);
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+        const pickN = (arr, n) => {
+            const shuffled = [...arr].sort(() => Math.random() - 0.5);
+            return Array.from({ length: n }, (_, i) => shuffled[i % shuffled.length]);
+        };
+
+        function buildGeneratedIdea(category, complexity) {
+            const cat = category || pick(CATEGORIES);
+            const format = pick(CAT_FORMATS[cat]);
+            const subject = pick(WORDS.subject);
+            const audience = pick(WORDS.audience);
+            const feature = pick(WORDS.feature);
+            const perk = pick(WORDS.perk);
+            const interaction = pick(WORDS.interaction);
+            const theme = pick(WORDS.theme);
+
+            const pattern = Math.random();
+            let title, description;
+            if (pattern < 0.4) {
+                title = `${cap(subject)} ${format} for ${audience}`;
+                description = `A ${theme} ${format.toLowerCase()} that ${interaction}. Built around ${subject} for ${audience}, with ${feature}, ${perk}, and more.`;
+            } else if (pattern < 0.7) {
+                title = `${cap(theme)} ${format} for ${audience}`;
+                description = `A polished ${theme} ${format.toLowerCase()} that ${interaction}. Focused on ${subject}, with ${feature} plus ${perk}.`;
+            } else {
+                title = `${cap(subject)} ${format} (${cap(theme)})`;
+                description = `A ${theme} take on ${subject}: a ${format.toLowerCase()} for ${audience} that ${interaction}. Ships with ${feature} and ${perk}.`;
+            }
+
+            return {
+                title,
+                description,
+                category: cat,
+                complexity: complexity || pickN(["beginner", "intermediate", "advanced"], 1)[0],
+                tags: [audience.replace(/s$/, ""), theme, perk.split(" ").pop()]
+            };
+        }
+
+        function cap(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function totalCombinations() {
+            const perCategory = (WORDS.subject.length * WORDS.audience.length * WORDS.feature.length * WORDS.perk.length * WORDS.interaction.length * WORDS.theme.length * Math.max(...Object.values(CAT_FORMATS).map(a => a.length)));
+            return perCategory * CATEGORIES.length;
+        }
+
+        let selectedCategories = ['all'];
+        let selectedComplexities = ['all'];
+        let filteredIdeas = [...appIdeas];
+
+        // Filter button click handlers
+        document.querySelectorAll('#categoryFilters .filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.dataset.category;
+                
+                if (category === 'all') {
+                    selectedCategories = ['all'];
+                    document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    document.querySelector('#categoryFilters .filter-btn[data-category="all"]').classList.remove('active');
+                    selectedCategories = selectedCategories.filter(c => c !== 'all');
+                    
+                    if (btn.classList.contains('active')) {
+                        btn.classList.remove('active');
+                        selectedCategories = selectedCategories.filter(c => c !== category);
+                        if (selectedCategories.length === 0) {
+                            selectedCategories = ['all'];
+                            document.querySelector('#categoryFilters .filter-btn[data-category="all"]').classList.add('active');
+                        }
+                    } else {
+                        btn.classList.add('active');
+                        selectedCategories.push(category);
+                    }
+                }
+                
+                filterIdeas();
+            });
+        });
+
+        document.querySelectorAll('#complexityFilters .filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const complexity = btn.dataset.complexity;
+                
+                if (complexity === 'all') {
+                    selectedComplexities = ['all'];
+                    document.querySelectorAll('#complexityFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    document.querySelector('#complexityFilters .filter-btn[data-complexity="all"]').classList.remove('active');
+                    selectedComplexities = selectedComplexities.filter(c => c !== 'all');
+                    
+                    if (btn.classList.contains('active')) {
+                        btn.classList.remove('active');
+                        selectedComplexities = selectedComplexities.filter(c => c !== complexity);
+                        if (selectedComplexities.length === 0) {
+                            selectedComplexities = ['all'];
+                            document.querySelector('#complexityFilters .filter-btn[data-complexity="all"]').classList.add('active');
+                        }
+                    } else {
+                        btn.classList.add('active');
+                        selectedComplexities.push(complexity);
+                    }
+                }
+                
+                filterIdeas();
+            });
+        });
+
+        document.getElementById('searchBox').addEventListener('input', filterIdeas);
+
+        function filterIdeas() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            filteredIdeas = appIdeas.filter(idea => {
+                const categoryMatch = selectedCategories.includes('all') || selectedCategories.includes(idea.category);
+                const complexityMatch = selectedComplexities.includes('all') || selectedComplexities.includes(idea.complexity);
+                const searchMatch = idea.title.toLowerCase().includes(searchTerm) || 
+                                   idea.description.toLowerCase().includes(searchTerm) ||
+                                   idea.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                
+                return categoryMatch && complexityMatch && searchMatch;
+            });
+            
+            generateIdeas();
+        }
+
+        const esc = t => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+
+        const buildPrompt = idea => [
+            `Build me a single-file HTML app: ${idea.title}.`,
+            ``,
+            `What it does: ${idea.description}`,
+            ``,
+            `Details:`,
+            `- Category: ${idea.category}`,
+            `- Complexity: ${idea.complexity}`,
+            `- Style: dark theme with green accents (#00ff88 on near-black panels)`,
+            `- Single index.html with embedded CSS and JS, no external dependencies`,
+            `- Mobile responsive, clean modern UI`,
+            `- No code comments`,
+            ``,
+            `Features to include: ${idea.tags.join(', ')}`,
+            ``,
+            `Make it complete and working out of the box.`
+        ].join('\n');
+
+        function generateIdeas() {
+            const count = parseInt(document.getElementById('countSelector').value);
+            const container = document.getElementById('ideasContainer');
+
+            const cats = selectedCategories.includes('all') ? CATEGORIES.slice() : selectedCategories.slice();
+            const complexities = selectedComplexities.includes('all') ? ["beginner", "intermediate", "advanced"] : selectedComplexities.slice();
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            const matchesSearch = idea =>
+                !searchTerm ||
+                idea.title.toLowerCase().includes(searchTerm) ||
+                idea.description.toLowerCase().includes(searchTerm) ||
+                idea.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+            
+            // Start with hand-picked ideas that match the filters
+            let ideasToShow = [...filteredIdeas].sort(() => Math.random() - 0.5).map(idea => ({
+                ...idea,
+                uniqueId: Math.random().toString(36).substr(2, 9)
+            }));
+            
+            // Fill the rest with fresh combinations — effectively unlimited
+            const usedTitles = new Set(ideasToShow.map(i => i.title));
+            let attempts = 0;
+            while (ideasToShow.length < count && attempts < 40000) {
+                attempts++;
+                const cat = pick(cats);
+                const cplx = pick(complexities);
+                const idea = buildGeneratedIdea(cat, cplx);
+                if (usedTitles.has(idea.title)) continue;
+                if (!matchesSearch(idea)) continue;
+                usedTitles.add(idea.title);
+                ideasToShow.push({ ...idea, uniqueId: Math.random().toString(36).substr(2, 9) });
+            }
+            
+            if (ideasToShow.length > count) ideasToShow = ideasToShow.slice(0, count);
+            
+            window._ideaPool = {};
+            container.innerHTML = ideasToShow.map(idea => {
+                window._ideaPool[idea.uniqueId] = idea;
+                return `
+                <button class="idea-card" onclick="openIdeaModal('${idea.uniqueId}')">
+                    <h3>${esc(idea.title)}</h3>
+                    <p>${esc(idea.description)}</p>
+                    <div class="idea-tags">
+                        <span class="tag">${esc(idea.category)}</span>
+                        <span class="tag">${esc(idea.complexity)}</span>
+                        ${idea.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}
+                    </div>
+                    <span class="expand-btn">Tap for details &amp; prompt</span>
+                </button>`;
+            }).join('');
+            
+            const possible = filteredIdeas.length + totalCombinations();
+            document.getElementById('currentCount').textContent = ideasToShow.length;
+            document.getElementById('totalCount').textContent = 'out of ~' + possible.toLocaleString() + ' possible ideas';
+        }
+
+        function openIdeaModal(id) {
+            const idea = window._ideaPool && window._ideaPool[id];
+            if (!idea) return;
+            
+            document.getElementById('modalTitle').textContent = idea.title;
+            
+            const body = document.getElementById('modalBody');
+            const detailLine = `${idea.title} is a ${idea.category} app idea for the web. ${idea.description}.`;
+            body.innerHTML = `<strong>${esc(idea.title)}</strong> is a <strong>${esc(idea.category)}</strong> idea — <strong>${esc(idea.complexity)}</strong> difficulty.<br><br>` +
+                `This is a thing that makes ${esc(idea.description.toLowerCase().replace(/\.$/, ''))}. ` +
+                `It's built for <strong>${esc(idea.tags.join(', '))}</strong> and works right in the browser as a single HTML file.`;
+            
+            document.getElementById('modalTags').innerHTML =
+                `<span class="tag">${esc(idea.category)}</span>` +
+                `<span class="tag">${esc(idea.complexity)}</span>` +
+                idea.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
+            
+            document.getElementById('modalPrompt').value = buildPrompt(idea);
+            document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
+            document.getElementById('ideaModal').classList.add('show');
+        }
+
+        function closeIdeaModal() {
+            document.getElementById('ideaModal').classList.remove('show');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeIdeaModal();
+        });
+
+        function selectPrompt() {
+            const ta = document.getElementById('modalPrompt');
+            if (!ta) return;
+            ta.focus();
+            ta.select();
+        }
+
+        function copyPrompt() {
+            const ta = document.getElementById('modalPrompt');
+            const btn = document.getElementById('copyBtn');
+            if (!ta || !btn) return;
+            const done = () => {
+                const old = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = old, 2000);
+            };
+            const legacyCopy = () => {
+                ta.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                done();
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(ta.value).then(done).catch(legacyCopy);
+            } else {
+                legacyCopy();
+            }
+        }
+
+        // Initialize
+        generateIdeas();
+    </script>
+</body>
+</html>
