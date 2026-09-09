@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sound Lab</title>
+<style>
+:root{--bg:#050706;--bg2:#090d0a;--panel:#0d120f;--panel2:#111812;--panel3:#172019;--border:#223027;--green:#00ff88;--greenSoft:rgba(0,255,136,.12);--text:#f3f7f4;--muted:#87958b;--danger:#ff5268}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 20% 10%,rgba(0,255,136,.06),transparent 40%),var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px}
+#allProjectsBtn{position:fixed;top:14px;right:16px;z-index:4000;background:var(--panel);border:1px solid rgba(0,255,136,.35);color:var(--green);font-size:11px;font-weight:bold;letter-spacing:1px;padding:8px 14px;border-radius:20px;text-decoration:none;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#allProjectsBtn:hover{background:var(--green);color:#001b0e}
+header{max-width:1250px;margin:0 auto;padding:35px 20px 15px}
+.brand{display:flex;align-items:center;gap:14px}
+.brandIcon{width:56px;height:56px;border-radius:16px;background:var(--greenSoft);border:1px solid rgba(0,255,136,.3);display:flex;align-items:center;justify-content:center;font-size:28px}
+.brand h1{color:var(--green);font-size:30px;letter-spacing:.5px}
+.brand p{color:var(--muted);font-size:13px;margin-top:4px}
+main{max-width:1250px;margin:0 auto;padding:0 20px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:18px}
+.searchWrap{position:relative}
+.searchWrap input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:13px 16px 13px 40px;border-radius:11px;font-size:15px}
+.searchWrap input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--greenSoft)}
+.searchIcon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
+.cats{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.catBtn{padding:8px 15px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:22px;font-size:13px;cursor:pointer;transition:all .2s}
+.catBtn:hover{color:var(--green);border-color:var(--green)}
+.catBtn.active{background:var(--greenSoft);color:var(--green);border-color:rgba(0,255,136,.35);font-weight:bold}
+.sectionHead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sectionHead h2{font-size:14px;color:var(--green);text-transform:uppercase;letter-spacing:1px}
+.sectionHead .countText{color:var(--muted);font-size:12px}
+.sectionHead .spacer{flex:1}
+.lib{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-color:var(--green) var(--bg)}
+.libRow{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:8px 12px}
+.libRow .li{font-size:24px}
+.libRow .ln{flex:1;min-width:0}
+.libRow .ln strong{display:block;font-size:14px}
+.libRow .ln small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.addBtn{padding:8px 16px;border-radius:9px;border:1px solid rgba(0,255,136,.35);background:var(--greenSoft);color:var(--green);font-weight:bold;font-size:13px;cursor:pointer}
+.addBtn:hover{background:var(--green);color:#001b0e}
+.addBtn.done{background:rgba(255,82,104,.1);border-color:rgba(255,82,104,.3);color:var(--danger)}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.pad{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:var(--text);transition:transform .12s,box-shadow .12s,border-color .12s}
+.pad:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.pad.playing{border-color:var(--green);background:var(--greenSoft);box-shadow:0 0 0 2px var(--green)}
+.pad .pi{font-size:30px;line-height:1}
+.pad .pn{font-size:13px;font-weight:bold;text-align:center;line-height:1.25}
+.pad .pc{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.padRow{display:flex;gap:6px;align-items:center}
+.padBtn{font-size:13px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:8px;padding:5px 10px;cursor:pointer}
+.padBtn:hover{color:var(--green);border-color:var(--green)}
+.padBtn.on{background:var(--green);color:#001b0e;border-color:var(--green)}
+.rmBtn{font-size:15px;border:1px solid rgba(255,82,104,.35);background:rgba(255,82,104,.1);color:var(--danger);border-radius:8px;padding:5px 10px;cursor:pointer}
+.rmBtn:hover{background:var(--danger);color:white}
+.emptyMsg{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:14px;grid-column:1/-1}
+.controlsRow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.control{display:flex;align-items:center;gap:8px}
+.control label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.control input[type=range]{accent-color:var(--green);width:110px}
+.clearAll{padding:9px 16px;background:rgba(255,82,104,.12);color:var(--danger);border:1px solid rgba(255,82,104,.4);border-radius:9px;font-weight:bold;font-size:13px;cursor:pointer}
+.clearAll:hover{background:rgba(255,82,104,.25)}
+.stopAll{padding:9px 16px;background:rgba(255,82,104,.12);color:var(--danger);border:1px solid rgba(255,82,104,.4);border-radius:9px;font-weight:bold;font-size:13px;cursor:pointer}
+.stopAll:hover{background:rgba(255,82,104,.25)}
+.mixerbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--green);box-shadow:0 -15px 50px rgba(0,0,0,.5);z-index:100}
+.mixerHead{max-width:1250px;margin:0 auto;padding:10px 20px 0;display:flex;align-items:center;gap:10px}
+.mixerHead h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.mixerBody{max-width:1250px;margin:0 auto;padding:10px 20px 14px;overflow-x:auto;white-space:nowrap;display:flex;gap:9px}
+.mx{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--border);border-radius:22px;padding:6px 8px 6px 12px}
+.mx .mxi{font-size:16px}
+.mxn{font-size:12px;font-weight:bold;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx input[type=range]{accent-color:var(--green);width:80px}
+.mxstop{width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,82,104,.15);color:var(--danger);font-size:14px;cursor:pointer;line-height:1}
+.mxstop:hover{background:var(--danger);color:white}
+.mxempty{color:var(--muted);font-size:12px;padding:6px 2px}
+.mxbarBtn{padding:7px 14px;background:rgba(255,82,104,.1);color:var(--danger);border:1px solid rgba(255,82,104,.3);border-radius:20px;font-size:11px;font-weight:bold;cursor:pointer}
+.mxbarBtn:hover{background:var(--danger);color:white}
+@media(max-width:560px){.brand h1{font-size:24px}.board{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
+</style>
+</head>
+<body>
+<a href="../index.html" id="allProjectsBtn">ALL PROJECTS</a>
+<header>
+<div class="brand">
+<div class="brandIcon">🔊</div>
+<div><h1>Sound Lab</h1><p>Search the sound library and build your own board</p></div>
+</div>
+</header>
+<main>
+<div class="panel">
+<div class="searchWrap">
+<span class="searchIcon">🔍</span>
+<input id="searchInput" type="text" placeholder="Search sounds... farts, cats, lasers, anything" oninput="renderLibrary()">
+</div>
+<div class="cats" id="cats"></div>
+</div>
+<div class="panel">
+<div class="sectionHead"><h2>Sound Library</h2><span class="countText" id="libCount"></span></div>
+<div class="lib" id="library"></div>
+</div>
+<div class="panel">
+<div class="sectionHead">
+<h2>My Board</h2>
+<span class="countText" id="boardCount"></span>
+<span class="spacer"></span>
+<div class="controlsRow" style="margin:0">
+<div class="control"><label>Pad Vol</label><input type="range" min="0" max="100" value="90" oninput="setPad(this.value)"></div>
+<div class="control"><label>Master</label><input id="masterVol" type="range" min="0" max="100" value="90" oninput="setMaster(this.value)"></div>
+<button class="stopAll" onclick="stopAll()">■ Stop</button>
+<button class="clearAll" onclick="clearBoard()">🗑 Clear</button>
+</div>
+</div>
+<div class="board" id="board"></div>
+</div>
+</main>
+<div class="mixerbar">
+<div class="mixerHead">
+<h2>🎛 Mixer</h2>
+<span style="flex:1"></span>
+<button class="mxbarBtn" onclick="stopAll()">Stop All</button>
+</div>
+<div class="mixerBody" id="mixerBody"></div>
+</div>
+<script>
+var SOUNDS=[
+{id:'fun01',name:'Boing',cat:'Fun',icon:'🤸',fn:function(){return ton({freq:250,dur:.32,glideTo:70,vol:.55,type:'sine',attack:.005,release:.08});}},
+{id:'fun02',name:'Slide Whistle',cat:'Fun',icon:'🎺',fn:function(){var e=0;e=Math.max(e,ton({freq:300,dur:.16,glideTo:1500,vol:.5,type:'sine',attack:.01,release:.04}));e=Math.max(e,ton({freq:1500,dur:.22,glideTo:300,vol:.5,type:'sine',attack:.01,release:.04,when:.16}));return e;}},
+{id:'fun03',name:'Party Horn',cat:'Fun',icon:'🎉',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.1,vol:.5,type:'square'}));e=Math.max(e,ton({freq:659,dur:.12,vol:.5,type:'square',when:.12}));return e;}},
+{id:'fun04',name:'Bubble Pop',cat:'Fun',icon:'🫧',fn:function(){var e=0;e=Math.max(e,ton({freq:500,dur:.07,glideTo:950,vol:.4,type:'sine'}));e=Math.max(e,ton({freq:1400,dur:.03,vol:.25,type:'square',when:.08}));return e;}},
+{id:'fun05',name:'Whoop',cat:'Fun',icon:'🙌',fn:function(){var e=0;e=Math.max(e,ton({freq:280,dur:.2,glideTo:850,vol:.55,type:'sine'}));e=Math.max(e,ton({freq:850,dur:.12,glideTo:1150,vol:.5,type:'sine',when:.2}));return e;}},
+{id:'fun06',name:'Squeaky Toy',cat:'Fun',icon:'🧸',fn:function(){var e=0;e=Math.max(e,ton({freq:800,dur:.08,glideTo:400,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:700,dur:.08,glideTo:350,vol:.5,type:'sine',when:.1}));return e;}},
+{id:'fun07',name:'Cartoon Jump',cat:'Fun',icon:'🦘',fn:function(){return ton({freq:380,dur:.2,glideTo:1300,vol:.5,type:'sine',attack:.01,release:.06});}},
+{id:'fun08',name:'Womp Womp',cat:'Fun',icon:'😞',fn:function(){return ton({freq:220,dur:.4,glideTo:75,vol:.6,type:'sawtooth',attack:.02,release:.15});}},
+{id:'fun09',name:'Clown Horn',cat:'Fun',icon:'🤡',fn:function(){var e=0;e=Math.max(e,ton({freq:660,dur:.22,vol:.5,type:'sawtooth'}));e=Math.max(e,ton({freq:440,dur:.22,vol:.5,type:'sawtooth',when:.24}));return e;}},
+{id:'fun10',name:'Kazoo',cat:'Fun',icon:'🎶',fn:function(){return ton({freq:523,dur:.28,vol:.35,type:'square',attack:.03,release:.1});}},
+{id:'work01',name:'Doorbell',cat:'Work',icon:'🔔',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.3,vol:.55,type:'sine',attack:.01,release:.25}));e=Math.max(e,ton({freq:392,dur:.6,vol:.55,type:'sine',attack:.01,release:.5,when:.32}));return e;}},
+{id:'work02',name:'Phone Ring',cat:'Work',icon:'📞',fn:function(){var e=0;for(var i=0;i<3;i++){e=Math.max(e,ton({freq:1200,dur:.09,vol:.45,type:'sine',when:i*.2}));e=Math.max(e,ton({freq:960,dur:.09,vol:.45,type:'sine',when:i*.2+.1}));}return e;}},
+{id:'work03',name:'Typewriter',cat:'Work',icon:'⌨️',fn:function(){var e=0;for(var i=0;i<5;i++){e=Math.max(e,noz({dur:.04,vol:.35,filter:'highpass',freq:2500,when:i*.07}));e=Math.max(e,ton({freq:1800,dur:.03,vol:.3,type:'square',when:i*.07}));}return e;}},
+{id:'work04',name:'Notification',cat:'Work',icon:'🔊',fn:function(){return ton({freq:1318,dur:.5,vol:.5,type:'sine',attack:.005,release:.4});}},
+{id:'work05',name:'Meeting Chime',cat:'Work',icon:'👥',fn:function(){var e=0;e=Math.max(e,ton({freq:880,dur:.5,vol:.45,type:'sine',release:.4}));e=Math.max(e,ton({freq:660,dur:.6,vol:.35,type:'sine',release:.5,when:.05}));return e;}},
+{id:'work06',name:'Camera',cat:'Work',icon:'📷',fn:function(){var e=0;e=Math.max(e,noz({dur:.03,vol:.5,filter:'highpass',freq:1500}));e=Math.max(e,ton({freq:600,dur:.03,vol:.3,type:'square',when:.03}));return e;}},
+{id:'work07',name:'Paper Rustle',cat:'Work',icon:'📄',fn:function(){return noz({dur:.35,vol:.28,filter:'highpass',freq:1800});}},
+{id:'work08',name:'Stamp',cat:'Work',icon:'🖨️',fn:function(){var e=0;e=Math.max(e,ton({freq:150,dur:.1,vol:.8,type:'sine',attack:.002,release:.05}));e=Math.max(e,noz({dur:.05,vol:.4,filter:'lowpass',freq:900,when:.01}));return e;}},
+{id:'work09',name:'Coffee Gurgle',cat:'Work',icon:'☕',fn:function(){var e=0;for(var i=0;i<4;i++){e=Math.max(e,noz({dur:.06,vol:.35,filter:'lowpass',freq:450,when:i*.09}));}return e;}},
+{id:'work10',name:'Keyboard Click',cat:'Work',icon:'🖱️',fn:function(){return ton({freq:2000,dur:.035,vol:.35,type:'square'});}},
+{id:'learn01',name:'Correct',cat:'Learning',icon:'✅',fn:function(){var e=0;e=Math.max(e,ton({freq:659,dur:.12,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:880,dur:.2,vol:.5,type:'sine',when:.14}));return e;}},
+{id:'learn02',name:'Wrong Buzz',cat:'Learning',icon:'❌',fn:function(){return ton({freq:220,dur:.35,vol:.55,type:'square',attack:.03,release:.15});}},
+{id:'learn03',name:'Tick Tock',cat:'Learning',icon:'⏰',fn:function(){var e=0;e=Math.max(e,ton({freq:1500,dur:.04,vol:.5,type:'square',when:0}));e=Math.max(e,ton({freq:1500,dur:.04,vol:.5,type:'square',when:.5}));return e;}},
+{id:'learn04',name:'Timer Alarm',cat:'Learning',icon:'⏱️',fn:function(){var e=0;for(var i=0;i<4;i++){e=Math.max(e,ton({freq:1100,dur:.09,vol:.5,type:'square',when:i*.2}));e=Math.max(e,ton({freq:900,dur:.09,vol:.5,type:'square',when:i*.2+.1}));}return e;}},
+{id:'learn05',name:'Letter Pop',cat:'Learning',icon:'🔤',fn:function(){return ton({freq:600,dur:.09,glideTo:1200,vol:.45,type:'sine'});}},
+{id:'learn06',name:'Page Turn',cat:'Learning',icon:'📖',fn:function(){return noz({dur:.18,vol:.3,filter:'bandpass',freq:2200});}},
+{id:'learn07',name:'School Bell',cat:'Learning',icon:'🏫',fn:function(){return ton({freq:880,dur:.8,vol:.5,type:'sine',attack:.01,release:.6});}},
+{id:'learn08',name:'Coach Whistle',cat:'Learning',icon:'🎯',fn:function(){return ton({freq:1900,dur:.4,vol:.4,type:'sine',attack:.02,release:.2});}},
+{id:'learn09',name:'High Five',cat:'Learning',icon:'✋',fn:function(){var e=0;e=Math.max(e,noz({dur:.05,vol:.55,filter:'bandpass',freq:1200}));e=Math.max(e,ton({freq:500,dur:.06,vol:.6,type:'sine',when:.01}));return e;}},
+{id:'learn10',name:'Drum Roll',cat:'Learning',icon:'🥁',fn:function(){var e=0;for(var i=0;i<8;i++){e=Math.max(e,noz({dur:.04,vol:.4,filter:'bandpass',freq:900,when:i*.05}));}return e;}},
+{id:'prod01',name:'Focus Chime',cat:'Productivity',icon:'🧘',fn:function(){return ton({freq:1046,dur:.5,vol:.4,type:'sine',attack:.02,release:.4});}},
+{id:'prod02',name:'Complete Task',cat:'Productivity',icon:'✔️',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.1,vol:.5,type:'triangle'}));e=Math.max(e,ton({freq:659,dur:.1,vol:.5,type:'triangle',when:.11}));e=Math.max(e,ton({freq:784,dur:.18,vol:.55,type:'triangle',when:.22}));return e;}},
+{id:'prod03',name:'Checkmark',cat:'Productivity',icon:'☑️',fn:function(){var e=0;e=Math.max(e,ton({freq:659,dur:.1,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:988,dur:.2,vol:.5,type:'sine',when:.12}));return e;}},
+{id:'prod04',name:'Pomodoro End',cat:'Productivity',icon:'🍅',fn:function(){var e=0;for(var i=0;i<3;i++){e=Math.max(e,ton({freq:880,dur:.14,vol:.5,type:'sine',when:i*.25}));}return e;}},
+{id:'prod05',name:'Zen Ping',cat:'Productivity',icon:'🪷',fn:function(){var e=0;e=Math.max(e,ton({freq:528,dur:.7,vol:.4,type:'sine',attack:.02,release:.6}));e=Math.max(e,ton({freq:792,dur:.5,vol:.2,type:'sine',attack:.03,release:.4,when:.1}));return e;}},
+{id:'prod06',name:'Success Fanfare',cat:'Productivity',icon:'🏆',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.12,vol:.5,type:'square'}));e=Math.max(e,ton({freq:659,dur:.12,vol:.5,type:'square',when:.13}));e=Math.max(e,ton({freq:784,dur:.18,vol:.55,type:'square',when:.26}));e=Math.max(e,ton({freq:1046,dur:.3,vol:.55,type:'square',when:.4}));return e;}},
+{id:'prod07',name:'Grid Snap',cat:'Productivity',icon:'🟩',fn:function(){return ton({freq:480,dur:.05,vol:.4,type:'square'});}},
+{id:'prod08',name:'Goal Bell',cat:'Productivity',icon:'🎯',fn:function(){var e=0;e=Math.max(e,ton({freq:1046,dur:.6,vol:.5,type:'sine',release:.5}));e=Math.max(e,ton({freq:1318,dur:.4,vol:.3,type:'sine',release:.3,when:.05}));return e;}},
+{id:'prod09',name:'Step Done',cat:'Productivity',icon:'👟',fn:function(){return ton({freq:470,dur:.13,vol:.45,type:'triangle'});}},
+{id:'ent01',name:'Laser',cat:'Entertainment',icon:'🔫',fn:function(){return ton({freq:1600,dur:.22,glideTo:140,vol:.5,type:'sawtooth',attack:.005,release:.05});}},
+{id:'ent02',name:'Zap',cat:'Entertainment',icon:'⚡',fn:function(){var e=0;e=Math.max(e,ton({freq:1200,dur:.12,glideTo:200,vol:.5,type:'sawtooth'}));e=Math.max(e,noz({dur:.1,vol:.4,filter:'highpass',freq:2000}));return e;}},
+{id:'ent03',name:'Explosion',cat:'Entertainment',icon:'💥',fn:function(){var e=0;e=Math.max(e,noz({dur:.7,vol:.7,filter:'lowpass',freq:800,sweepTo:60}));e=Math.max(e,ton({freq:110,dur:.5,vol:.8,type:'sine',attack:.005,release:.4}));e=Math.max(e,noz({dur:.25,vol:.5,filter:'highpass',freq:2500,when:.02}));return e;}},
+{id:'ent04',name:'Level Up',cat:'Entertainment',icon:'⬆️',fn:function(){var e=0;var n=[523,659,784,1046];for(var i=0;i<n.length;i++){e=Math.max(e,ton({freq:n[i],dur:.1,vol:.5,type:'square',when:i*.12}));}return e;}},
+{id:'ent05',name:'Game Over',cat:'Entertainment',icon:'💀',fn:function(){var e=0;var n=[392,330,262];for(var i=0;i<n.length;i++){e=Math.max(e,ton({freq:n[i],dur:.22,vol:.5,type:'triangle',when:i*.25}));}return e;}},
+{id:'ent06',name:'Power Up',cat:'Entertainment',icon:'🔋',fn:function(){return ton({freq:300,dur:.2,glideTo:900,vol:.5,type:'sine'});}},
+{id:'ent07',name:'Coin',cat:'Entertainment',icon:'🪙',fn:function(){var e=0;e=Math.max(e,ton({freq:988,dur:.08,vol:.5,type:'square'}));e=Math.max(e,ton({freq:1319,dur:.25,vol:.5,type:'square',when:.09}));return e;}},
+{id:'ent08',name:'Jump',cat:'Entertainment',icon:'🦘',fn:function(){return ton({freq:200,dur:.15,glideTo:620,vol:.45,type:'square',attack:.01,release:.05});}},
+{id:'ent09',name:'Whoosh',cat:'Entertainment',icon:'💨',fn:function(){return noz({dur:.4,vol:.5,filter:'bandpass',freq:400,sweepTo:3000});}},
+{id:'ent10',name:'Electric Buzz',cat:'Entertainment',icon:'🔌',fn:function(){var e=0;for(var i=0;i<4;i++){e=Math.max(e,ton({freq:60,dur:.045,vol:.6,type:'sawtooth',when:i*.06}));}return e;}},
+{id:'soc01',name:'Message Pop',cat:'Social',icon:'💬',fn:function(){return ton({freq:700,dur:.06,vol:.5,type:'sine'});}},
+{id:'soc02',name:'Like Pop',cat:'Social',icon:'👍',fn:function(){var e=0;e=Math.max(e,ton({freq:900,dur:.07,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:1400,dur:.09,vol:.4,type:'sine',when:.07}));return e;}},
+{id:'soc03',name:'Follow Horn',cat:'Social',icon:'➕',fn:function(){var e=0;e=Math.max(e,ton({freq:620,dur:.1,vol:.5,type:'triangle'}));e=Math.max(e,ton({freq:830,dur:.1,vol:.5,type:'triangle',when:.12}));e=Math.max(e,ton({freq:1046,dur:.16,vol:.55,type:'triangle',when:.24}));return e;}},
+{id:'soc04',name:'Comment Ding',cat:'Social',icon:'💭',fn:function(){var e=0;e=Math.max(e,ton({freq:700,dur:.1,vol:.45,type:'sine'}));e=Math.max(e,ton({freq:700,dur:.1,vol:.45,type:'sine',when:.16}));return e;}},
+{id:'soc05',name:'Mention Ping',cat:'Social',icon:'@',fn:function(){return ton({freq:1000,dur:.3,vol:.45,type:'sine',attack:.01,release:.2});}},
+{id:'soc06',name:'Nudge',cat:'Social',icon:'👉',fn:function(){var e=0;for(var i=0;i<3;i++){e=Math.max(e,ton({freq:400,dur:.07,vol:.45,type:'square',when:i*.1}));}return e;}},
+{id:'soc07',name:'Hello',cat:'Social',icon:'👋',fn:function(){var e=0;e=Math.max(e,ton({freq:440,dur:.18,vol:.5,type:'triangle'}));e=Math.max(e,ton({freq:660,dur:.2,vol:.5,type:'triangle',when:.2}));return e;}},
+{id:'soc08',name:'Cheer',cat:'Social',icon:'🎊',fn:function(){var e=0;e=Math.max(e,noz({dur:.3,vol:.5,filter:'bandpass',freq:3000}));e=Math.max(e,ton({freq:880,dur:.15,vol:.4,type:'square',when:.05}));e=Math.max(e,ton({freq:1175,dur:.15,vol:.4,type:'square',when:.2}));return e;}},
+{id:'soc09',name:'Heartbeat',cat:'Social',icon:'❤️',fn:function(){var e=0;e=Math.max(e,ton({freq:120,dur:.09,vol:.7,type:'sine',attack:.005,release:.05}));e=Math.max(e,ton({freq:90,dur:.09,vol:.6,type:'sine',attack:.005,release:.05,when:.22}));return e;}},
+{id:'soc10',name:'Clap',cat:'Social',icon:'👏',fn:function(){var e=0;e=Math.max(e,noz({dur:.04,vol:.5,filter:'bandpass',freq:1200}));e=Math.max(e,noz({dur:.04,vol:.4,filter:'bandpass',freq:1200,when:.12}));return e;}},
+{id:'eco01',name:'Cha-ching',cat:'E-commerce',icon:'💰',fn:function(){var e=0;e=Math.max(e,ton({freq:1046,dur:.1,vol:.5,type:'square'}));e=Math.max(e,ton({freq:1318,dur:.25,vol:.5,type:'square',when:.1}));return e;}},
+{id:'eco02',name:'Add to Cart',cat:'E-commerce',icon:'🛒',fn:function(){return ton({freq:600,dur:.08,vol:.5,type:'square'});}},
+{id:'eco03',name:'Barcode Beep',cat:'E-commerce',icon:'🔖',fn:function(){var e=0;for(var i=0;i<6;i++){e=Math.max(e,ton({freq:900,dur:.04,vol:.45,type:'square',when:i*.06}));}return e;}},
+{id:'eco04',name:'Ticket Stamp',cat:'E-commerce',icon:'🎟️',fn:function(){var e=0;e=Math.max(e,ton({freq:880,dur:.12,vol:.5,type:'triangle'}));e=Math.max(e,ton({freq:1175,dur:.14,vol:.5,type:'triangle',when:.13}));return e;}},
+{id:'eco05',name:'Card Swipe',cat:'E-commerce',icon:'💳',fn:function(){return noz({dur:.3,vol:.4,filter:'bandpass',freq:600,sweepTo:2000});}},
+{id:'eco06',name:'Ship Bell',cat:'E-commerce',icon:'📦',fn:function(){return ton({freq:1318,dur:.6,vol:.5,type:'sine',attack:.01,release:.5});}},
+{id:'eco07',name:'Stock Tick',cat:'E-commerce',icon:'📈',fn:function(){var e=0;for(var i=0;i<5;i++){e=Math.max(e,ton({freq:900+Math.random()*300,dur:.04,vol:.45,type:'square',when:i*.07}));}return e;}},
+{id:'eco08',name:'Price Jingle',cat:'E-commerce',icon:'🏷️',fn:function(){var e=0;e=Math.max(e,ton({freq:660,dur:.1,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:830,dur:.1,vol:.5,type:'sine',when:.12}));e=Math.max(e,ton({freq:990,dur:.16,vol:.5,type:'sine',when:.24}));return e;}},
+{id:'eco09',name:'Bag Rustle',cat:'E-commerce',icon:'🛍️',fn:function(){return noz({dur:.3,vol:.3,filter:'highpass',freq:2500});}},
+{id:'eco10',name:'Promo Horn',cat:'E-commerce',icon:'📣',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.12,vol:.5,type:'square'}));e=Math.max(e,ton({freq:659,dur:.12,vol:.5,type:'square',when:.13}));e=Math.max(e,ton({freq:784,dur:.2,vol:.55,type:'square',when:.26}));return e;}},
+{id:'hea01',name:'Heart Beats',cat:'Health',icon:'🫀',fn:function(){var e=0;e=Math.max(e,ton({freq:120,dur:.09,vol:.7,type:'sine',attack:.005,release:.05}));e=Math.max(e,ton({freq:90,dur:.09,vol:.6,type:'sine',attack:.005,release:.05,when:.3}));e=Math.max(e,ton({freq:120,dur:.09,vol:.7,type:'sine',attack:.005,release:.05,when:.6}));e=Math.max(e,ton({freq:90,dur:.09,vol:.6,type:'sine',attack:.005,release:.05,when:.9}));return e;}},
+{id:'hea02',name:'Water Drop',cat:'Health',icon:'💧',fn:function(){return ton({freq:600,dur:.12,glideTo:240,vol:.5,type:'sine'});}},
+{id:'hea03',name:'Breath In',cat:'Health',icon:'🌬️',fn:function(){return noz({dur:.7,vol:.4,filter:'lowpass',freq:300,sweepTo:2000});}},
+{id:'hea04',name:'Breath Out',cat:'Health',icon:'😮💨',fn:function(){return noz({dur:.8,vol:.4,filter:'lowpass',freq:2000,sweepTo:300});}},
+{id:'hea05',name:'Meditation Bowl',cat:'Health',icon:'🛎️',fn:function(){var e=0;e=Math.max(e,ton({freq:220,dur:1.6,vol:.45,type:'sine',attack:.01,release:1.2}));e=Math.max(e,ton({freq:441,dur:1.2,vol:.12,type:'sine',attack:.05,release:1,when:.02}));return e;}},
+{id:'hea06',name:'Spine Crack',cat:'Health',icon:'🦴',fn:function(){var e=0;e=Math.max(e,noz({dur:.05,vol:.5,filter:'bandpass',freq:2500,when:0}));e=Math.max(e,noz({dur:.05,vol:.5,filter:'bandpass',freq:2000,when:.09}));return e;}},
+{id:'hea07',name:'Hydrate Alert',cat:'Health',icon:'🍶',fn:function(){var e=0;e=Math.max(e,ton({freq:700,dur:.1,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:1200,dur:.14,vol:.5,type:'sine',when:.15}));return e;}},
+{id:'hea08',name:'Sunrise Chime',cat:'Health',icon:'🌅',fn:function(){var e=0;e=Math.max(e,ton({freq:392,dur:.16,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:523,dur:.16,vol:.5,type:'sine',when:.18}));e=Math.max(e,ton({freq:659,dur:.24,vol:.55,type:'sine',when:.36}));return e;}},
+{id:'hea09',name:'Ocean Wave',cat:'Health',icon:'🌊',fn:function(){return noz({dur:.9,vol:.5,type:'brown',filter:'lowpass',freq:350});}},
+{id:'hea10',name:'Gentle Rain',cat:'Health',icon:'🌧️',fn:function(){return noz({dur:.9,vol:.4,filter:'highpass',freq:4000});}},
+{id:'fin01',name:'Cash Register',cat:'Finance',icon:'🪙',fn:function(){var e=0;e=Math.max(e,ton({freq:1100,dur:.1,vol:.5,type:'square'}));e=Math.max(e,ton({freq:660,dur:.1,vol:.5,type:'square',when:.11}));e=Math.max(e,ton({freq:1319,dur:.25,vol:.5,type:'square',when:.22}));return e;}},
+{id:'fin02',name:'Coin Drop',cat:'Finance',icon:'🪙',fn:function(){var e=0;e=Math.max(e,ton({freq:988,dur:.07,vol:.5,type:'square'}));e=Math.max(e,ton({freq:1319,dur:.2,vol:.5,type:'square',when:.08}));return e;}},
+{id:'fin03',name:'Stock Up',cat:'Finance',icon:'📈',fn:function(){return ton({freq:400,dur:.18,glideTo:900,vol:.5,type:'sine'});}},
+{id:'fin04',name:'Stock Down',cat:'Finance',icon:'📉',fn:function(){return ton({freq:750,dur:.2,glideTo:180,vol:.5,type:'sine'});}},
+{id:'fin05',name:'Interest Ring',cat:'Finance',icon:'💹',fn:function(){var e=0;e=Math.max(e,ton({freq:784,dur:.15,vol:.5,type:'sine'}));e=Math.max(e,ton({freq:1046,dur:.22,vol:.5,type:'sine',when:.16}));return e;}},
+{id:'fin06',name:'Profit Tune',cat:'Finance',icon:'🏦',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.1,vol:.5,type:'triangle'}));e=Math.max(e,ton({freq:659,dur:.1,vol:.5,type:'triangle',when:.12}));e=Math.max(e,ton({freq:784,dur:.18,vol:.55,type:'triangle',when:.24}));return e;}},
+{id:'fin07',name:'Bill Paid',cat:'Finance',icon:'🧾',fn:function(){var e=0;e=Math.max(e,noz({dur:.15,vol:.3,filter:'highpass',freq:2000}));e=Math.max(e,ton({freq:1046,dur:.3,vol:.5,type:'sine',release:.25,when:.18}));return e;}},
+{id:'fin08',name:'Counting',cat:'Finance',icon:'🧮',fn:function(){var e=0;for(var i=0;i<6;i++){e=Math.max(e,ton({freq:700,dur:.04,vol:.45,type:'square',when:i*.07}));}return e;}},
+{id:'fin09',name:'Budget Ping',cat:'Finance',icon:'📊',fn:function(){return ton({freq:600,dur:.1,vol:.5,type:'sine'});}},
+{id:'fin10',name:'Trade Blip',cat:'Finance',icon:'🔁',fn:function(){return ton({freq:520,dur:.05,vol:.45,type:'square'});}},
+{id:'cre01',name:'Paint Splat',cat:'Creative',icon:'🎨',fn:function(){var e=0;e=Math.max(e,noz({dur:.12,vol:.55,filter:'lowpass',freq:800}));e=Math.max(e,noz({dur:.06,vol:.4,filter:'bandpass',freq:1600,when:.06}));return e;}},
+{id:'cre02',name:'Sketch',cat:'Creative',icon:'✏️',fn:function(){return noz({dur:.16,vol:.35,filter:'highpass',freq:3000});}},
+{id:'cre03',name:'Brush Swish',cat:'Creative',icon:'🖌️',fn:function(){return noz({dur:.45,vol:.4,filter:'bandpass',freq:1400});}},
+{id:'cre04',name:'Paint Drop',cat:'Creative',icon:'🫙',fn:function(){return ton({freq:520,dur:.13,glideTo:200,vol:.5,type:'sine'});}},
+{id:'cre05',name:'Muse Bell',cat:'Creative',icon:'✨',fn:function(){return ton({freq:740,dur:.6,vol:.5,type:'sine',attack:.02,release:.5});}},
+{id:'cre06',name:'Palette Pop',cat:'Creative',icon:'🌈',fn:function(){var e=0;var n=[523,659,784,1046];for(var i=0;i<n.length;i++){e=Math.max(e,ton({freq:n[i],dur:.09,vol:.45,type:'sine',when:i*.09}));}return e;}},
+{id:'cre07',name:'Eraser Rub',cat:'Creative',icon:'🧽',fn:function(){return noz({dur:.2,vol:.3,filter:'highpass',freq:3500});}},
+{id:'cre08',name:'Compose Chord',cat:'Creative',icon:'🎼',fn:function(){var e=0;e=Math.max(e,ton({freq:440,dur:.5,vol:.4,type:'sine',release:.4}));e=Math.max(e,ton({freq:550,dur:.5,vol:.35,type:'sine',release:.4}));e=Math.max(e,ton({freq:660,dur:.5,vol:.3,type:'sine',release:.4}));return e;}},
+{id:'cre09',name:'Sparkle',cat:'Creative',icon:'🌟',fn:function(){var e=0;e=Math.max(e,ton({freq:2093,dur:.2,vol:.3,type:'sine',release:.15}));e=Math.max(e,ton({freq:2794,dur:.25,vol:.25,type:'sine',release:.2,when:.12}));return e;}},
+{id:'utl01',name:'Copy',cat:'Utility',icon:'📋',fn:function(){var e=0;e=Math.max(e,ton({freq:600,dur:.06,vol:.45,type:'square'}));e=Math.max(e,ton({freq:600,dur:.06,vol:.45,type:'square',when:.1}));return e;}},
+{id:'utl02',name:'Paste',cat:'Utility',icon:'📌',fn:function(){var e=0;e=Math.max(e,ton({freq:600,dur:.06,vol:.45,type:'square'}));e=Math.max(e,ton({freq:600,dur:.06,vol:.45,type:'square',when:.09}));e=Math.max(e,ton({freq:600,dur:.06,vol:.45,type:'square',when:.18}));return e;}},
+{id:'utl03',name:'Snip',cat:'Utility',icon:'✂️',fn:function(){return ton({freq:1800,dur:.04,vol:.4,type:'square'});}},
+{id:'utl04',name:'Undo',cat:'Utility',icon:'↩️',fn:function(){return ton({freq:420,dur:.15,glideTo:220,vol:.45,type:'triangle'});}},
+{id:'utl05',name:'Save',cat:'Utility',icon:'💾',fn:function(){return ton({freq:880,dur:.12,vol:.5,type:'sine'});}},
+{id:'utl06',name:'Loading',cat:'Utility',icon:'⏳',fn:function(){var e=0;for(var i=0;i<4;i++){e=Math.max(e,ton({freq:520,dur:.05,vol:.4,type:'square',when:i*.12}));}return e;}},
+{id:'utl07',name:'Drag Snap',cat:'Utility',icon:'↔️',fn:function(){return ton({freq:320,dur:.05,vol:.4,type:'square'});}},
+{id:'utl08',name:'Thump',cat:'Utility',icon:'👊',fn:function(){return ton({freq:150,dur:.08,vol:.7,type:'sine',attack:.004,release:.05});}},
+{id:'utl09',name:'Alert Bleep',cat:'Utility',icon:'🚨',fn:function(){return ton({freq:1200,dur:.2,vol:.5,type:'square',attack:.01,release:.1});}},
+{id:'utl10',name:'Toggle',cat:'Utility',icon:'🔃',fn:function(){return ton({freq:700,dur:.06,glideTo:470,vol:.45,type:'sine'});}},
+{id:'gam01',name:'Retro Blip',cat:'Gaming',icon:'👾',fn:function(){return ton({freq:700,dur:.07,vol:.5,type:'square'});}},
+{id:'gam02',name:'8-bit Jump',cat:'Gaming',icon:'🕹️',fn:function(){return ton({freq:380,dur:.15,glideTo:1200,vol:.5,type:'square',attack:.01,release:.05});}},
+{id:'gam03',name:'Power Down',cat:'Gaming',icon:'🔻',fn:function(){return ton({freq:700,dur:.3,glideTo:150,vol:.5,type:'sawtooth'});}},
+{id:'gam04',name:'Trophy Win',cat:'Gaming',icon:'🏆',fn:function(){var e=0;e=Math.max(e,ton({freq:523,dur:.12,vol:.5,type:'square'}));e=Math.max(e,ton({freq:659,dur:.12,vol:.5,type:'square',when:.13}));e=Math.max(e,ton({freq:784,dur:.2,vol:.55,type:'square',when:.26}));e=Math.max(e,ton({freq:1568,dur:.4,vol:.35,type:'sine',release:.35,when:.4}));return e;}},
+{id:'gam05',name:'Secret Egg',cat:'Gaming',icon:'🥚',fn:function(){var e=0;e=Math.max(e,ton({freq:880,dur:.07,vol:.5,type:'square'}));e=Math.max(e,ton({freq:660,dur:.07,vol:.5,type:'square',when:.1}));e=Math.max(e,ton({freq:1175,dur:.09,vol:.5,type:'square',when:.2}));return e;}},
+{id:'nat01',name:'Bird Chirp',cat:'Nature',icon:'🐦',fn:function(){var e=0;e=Math.max(e,ton({freq:2200,dur:.07,vol:.3,type:'sine'}));e=Math.max(e,ton({freq:2500,dur:.06,vol:.3,type:'sine',when:.1}));return e;}},
+{id:'nat02',name:'Fire Crackle',cat:'Nature',icon:'🔥',fn:function(){var e=0;for(var i=0;i<6;i++){e=Math.max(e,noz({dur:.05,vol:.35,filter:'highpass',freq:2500,when:Math.random()*.4}));}return e;}},
+{id:'nat03',name:'Wind Gust',cat:'Nature',icon:'🍃',fn:function(){return noz({dur:.7,vol:.45,filter:'bandpass',freq:3000,sweepTo:600});}},
+{id:'nat04',name:'Splash',cat:'Nature',icon:'💦',fn:function(){var e=0;e=Math.max(e,noz({dur:.2,vol:.55,filter:'bandpass',freq:2500,sweepTo:400}));e=Math.max(e,noz({dur:.25,vol:.4,filter:'lowpass',freq:600,when:.05}));return e;}},
+{id:'nat05',name:'Leaves Rustle',cat:'Nature',icon:'🍂',fn:function(){return noz({dur:.4,vol:.35,filter:'highpass',freq:3000});}},
+{id:'tech01',name:'Robot Chatter',cat:'Tech',icon:'🤖',fn:function(){var e=0;for(var i=0;i<6;i++){e=Math.max(e,ton({freq:220+Math.random()*160,dur:.06,vol:.4,type:'sawtooth',when:i*.1}));}return e;}},
+{id:'tech02',name:'Boop',cat:'Tech',icon:'🫰',fn:function(){return ton({freq:500,dur:.09,vol:.5,type:'square'});}},
+{id:'tech03',name:'Modem Dial',cat:'Tech',icon:'🖥️',fn:function(){var e=0;for(var i=0;i<4;i++){e=Math.max(e,ton({freq:1200,dur:.07,vol:.4,type:'square',when:i*.16}));e=Math.max(e,ton({freq:800,dur:.07,vol:.4,type:'square',when:i*.16+.08}));}return e;}},
+{id:'tech04',name:'Data Churn',cat:'Tech',icon:'🌐',fn:function(){var e=0;for(var i=0;i<7;i++){e=Math.max(e,ton({freq:500+Math.random()*700,dur:.04,vol:.4,type:'square',when:i*.05}));}return e;}},
+{id:'tech05',name:'System Boot',cat:'Tech',icon:'🖲️',fn:function(){return ton({freq:200,dur:.3,glideTo:800,vol:.5,type:'sawtooth',attack:.02,release:.1});}},
+{id:'mem01',name:'Fart',cat:'Meme',icon:'💨',fn:function(){var e=0;e=Math.max(e,ton({freq:95,dur:.18,vol:.7,type:'sawtooth',attack:.005,release:.1}));e=Math.max(e,noz({dur:.2,vol:.5,filter:'lowpass',freq:130,when:.05}));e=Math.max(e,ton({freq:80,dur:.12,vol:.6,type:'sawtooth',attack:.005,release:.08,when:.3}));return e;}},
+{id:'mem02',name:'Cat Meow',cat:'Meme',icon:'🐱',fn:function(){var e=0;e=Math.max(e,ton({freq:700,dur:.18,glideTo:480,vol:.4,type:'sawtooth',attack:.03,release:.1}));e=Math.max(e,ton({freq:520,dur:.22,glideTo:360,vol:.4,type:'sawtooth',attack:.03,release:.12,when:.2}));return e;}},
+{id:'mem03',name:'Dog Bark',cat:'Meme',icon:'🐶',fn:function(){var e=0;for(var i=0;i<3;i++){e=Math.max(e,ton({freq:210,dur:.09,vol:.6,type:'square',attack:.005,release:.04,when:i*.18}));e=Math.max(e,noz({dur:.08,vol:.3,filter:'lowpass',freq:700,when:i*.18}));}return e;}},
+{id:'mem04',name:'Air Horn',cat:'Meme',icon:'📯',fn:function(){var e=0;for(var i=0;i<2;i++){e=Math.max(e,ton({freq:420,dur:.35,vol:.6,type:'sawtooth',when:i*.45}));e=Math.max(e,ton({freq:378,dur:.35,vol:.5,type:'sawtooth',when:i*.45}));}return e;}},
+{id:'mem05',name:'Burp',cat:'Meme',icon:'🤢',fn:function(){return ton({freq:380,dur:.3,glideTo:120,vol:.5,type:'triangle',attack:.02,release:.12});}},
+{id:'mem06',name:'Boo',cat:'Meme',icon:'👻',fn:function(){var e=0;e=Math.max(e,noz({dur:.3,vol:.4,filter:'bandpass',freq:500}));e=Math.max(e,ton({freq:180,dur:.25,vol:.6,type:'sawtooth',when:.05}));return e;}},
+{id:'mem07',name:'Baby Cry',cat:'Meme',icon:'👶',fn:function(){var e=0;e=Math.max(e,ton({freq:640,dur:.25,glideTo:560,vol:.45,type:'sine',attack:.05,release:.12}));e=Math.max(e,ton({freq:600,dur:.35,glideTo:520,vol:.45,type:'sine',attack:.1,release:.15,when:.35}));return e;}},
+{id:'mem08',name:'Chicken',cat:'Meme',icon:'🐔',fn:function(){var e=0;e=Math.max(e,ton({freq:1400,dur:.05,vol:.35,type:'square'}));e=Math.max(e,ton({freq:1800,dur:.05,vol:.35,type:'square',when:.1}));return e;}},
+{id:'mem09',name:'Sheep',cat:'Meme',icon:'🐑',fn:function(){return ton({freq:420,dur:.22,glideTo:260,vol:.45,type:'triangle',attack:.04,release:.12});}},
+{id:'mem10',name:'Roar',cat:'Meme',icon:'🦁',fn:function(){var e=0;e=Math.max(e,noz({dur:.5,vol:.6,filter:'lowpass',freq:500,sweepTo:100}));e=Math.max(e,ton({freq:160,dur:.4,vol:.6,type:'sawtooth',glideTo:80,when:.02}));return e;}},
+{id:'mem11',name:'Sneeze',cat:'Meme',icon:'🤧',fn:function(){var e=0;e=Math.max(e,noz({dur:.08,vol:.5,filter:'bandpass',freq:2500}));e=Math.max(e,ton({freq:400,dur:.12,glideTo:700,vol:.5,type:'sawtooth',when:.12}));return e;}},
+{id:'mem12',name:'Evil Laugh',cat:'Meme',icon:'😆',fn:function(){var e=0;var n=[500,600,520,700];for(var i=0;i<4;i++){e=Math.max(e,ton({freq:n[i],dur:.1,vol:.45,type:'square',when:i*.14}));}return e;}}
+];
+var CATS=['All','Fun','Work','Learning','Productivity','Entertainment','Social','E-commerce','Health','Finance','Creative','Utility','Gaming','Nature','Tech','Meme'];
+var byId={};
+SOUNDS.forEach(function(s){byId[s.id]=s;});
+var AC=null,master=null,masterVol=.9,padVol=.9,activeCat='All',board=[],seq=0,out=null;
+var STORE_KEY='soundlab_board_v1';
+function audio(){if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();}if(AC.state==='suspended'){AC.resume();}return AC;}
+function getMaster(){if(!master){master=audio().createGain();}master.gain.value=masterVol;master.connect(audio().destination);return master;}
+function toneP(o){var cfg={freq:440,dur:.3,type:'sine',vol:.4,attack:.01,release:.1,glideTo:null,when:0,pan:0};for(var k in o)cfg[k]=o[k];var t=audio().currentTime+cfg.when;var osc=audio().createOscillator();osc.type=cfg.type;osc.frequency.setValueAtTime(Math.max(20,cfg.freq),t);if(cfg.glideTo)osc.frequency.exponentialRampToValueAtTime(Math.max(20,cfg.glideTo),t+cfg.dur);var env=audio().createGain();env.gain.setValueAtTime(.0001,t);env.gain.exponentialRampToValueAtTime(cfg.vol,t+cfg.attack);env.gain.exponentialRampToValueAtTime(.0001,t+cfg.dur+cfg.release);osc.connect(env);var node=env;if(audio().createStereoPanner){var p=audio().createStereoPanner();p.pan.value=cfg.pan;env.connect(p);node=p;}node.connect(cfg.out||out);osc.start(t);osc.stop(t+cfg.dur+cfg.release+.05);return t+cfg.dur+cfg.release;}
+function noiseP(o){var cfg={dur:.5,vol:.5,type:'white',filter:'lowpass',freq:800,sweepTo:null,when:0,q:1,pan:0};for(var k in o)cfg[k]=o[k];var now=audio().currentTime,t=now+cfg.when,n=Math.floor(audio().sampleRate*cfg.dur),buf=audio().createBuffer(1,n,audio().sampleRate),d=buf.getChannelData(0),last=0;for(var i=0;i<n;i++){if(cfg.type==='brown'){last=(last+.04*(Math.random()*2-1))/1.04;d[i]=last*3.5;}else{d[i]=Math.random()*2-1;}}var src=audio().createBufferSource();src.buffer=buf;var f=audio().createBiquadFilter();f.type=cfg.filter;f.Q.value=cfg.q;f.frequency.setValueAtTime(Math.max(40,cfg.freq),t);if(cfg.sweepTo)f.frequency.exponentialRampToValueAtTime(Math.max(40,cfg.sweepTo),t+cfg.dur);var env=audio().createGain();env.gain.setValueAtTime(.0001,t);env.gain.exponentialRampToValueAtTime(cfg.vol,t+cfg.dur*.1);env.gain.exponentialRampToValueAtTime(.0001,t+cfg.dur);src.connect(f);f.connect(env);var node=env;if(audio().createStereoPanner){var p=audio().createStereoPanner();p.pan.value=cfg.pan;env.connect(p);node=p;}node.connect(cfg.out||out);src.start(t);return t+cfg.dur;}
+function ton(o){o.out=out;return toneP(o);}
+function noz(o){o.out=out;return noiseP(o);}
+function findB(bid){for(var i=0;i<board.length;i++)if(board[i].bid===bid)return board[i];return null;}
+function saveBoard(){var data=board.map(function(b){return{id:b.id,name:b.name,icon:b.icon,cat:b.cat,repeat:b.repeat};});try{localStorage.setItem(STORE_KEY,JSON.stringify(data));}catch(e){}}
+function loadBoard(){var raw=null;try{raw=localStorage.getItem(STORE_KEY);}catch(e){return;}if(!raw)return;try{var arr=JSON.parse(raw);arr.forEach(function(d){if(byId[d.id]){board.push({bid:'b'+(++seq),id:d.id,name:d.name,icon:d.icon,cat:d.cat,repeat:!!d.repeat,playing:false,gain:null,stopTimer:null,token:0});}});}catch(e){ }renderBoard();}
+function clearBoard(){board.forEach(function(b){stopPad(b,true);});board=[];saveBoard();renderBoard();renderMixer();}
+function renderCats(){document.getElementById('cats').innerHTML=CATS.map(function(c){return '<button class="catBtn'+(c===activeCat?' active':'')+'" onclick="setCat(\''+c+'\')">'+c+'</button>';}).join('');}
+function setCat(c){activeCat=c;renderCats();renderLibrary();}
+function renderLibrary(){var q=document.getElementById('searchInput').value.toLowerCase();var list=SOUNDS.filter(function(s){return (activeCat==='All'||s.cat===activeCat)&&(!q||s.name.toLowerCase().indexOf(q)>=0);});document.getElementById('library').innerHTML=list.length?list.map(function(s){var on=board.some(function(b){return b.id===s.id;});return '<div class="libRow"><span class="li">'+s.icon+'</span><span class="ln"><strong>'+s.name+'</strong><small>'+s.cat+'</small></span><button class="addBtn'+(on?' done':'')+'" '+(on?'':'onclick="addToBoard(\''+s.id+'\')"')+'>'+(on?'Added ✓':'+ Add')+'</button></div>';}).join(''):'<div class="emptyMsg">No sounds found. Try another search.</div>';document.getElementById('libCount').textContent=list.length+' in library';}
+function addToBoard(id){var s=byId[id];if(!s||board.some(function(b){return b.id===id;}))return;board.push({bid:'b'+(++seq),id:s.id,name:s.name,icon:s.icon,cat:s.cat,repeat:false,playing:false,gain:null,stopTimer:null,token:0});saveBoard();renderLibrary();renderBoard();}
+function removeFromBoard(bid){var i=-1;for(var k=0;k<board.length;k++)if(board[k].bid===bid){i=k;break;}if(i<0)return;stopPad(board[i],true);board.splice(i,1);saveBoard();renderLibrary();renderBoard();renderMixer();}
+function renderBoard(){var el=document.getElementById('board');if(!board.length){el.innerHTML='<div class="emptyMsg">Your board is empty — search the library above and tap + Add to fill it.</div>';}else{el.innerHTML=board.map(function(b){return '<div class="pad'+(b.playing?' playing':'')+'" onclick="padPlay(\''+b.bid+'\')"><span class="pi">'+b.icon+'</span><span class="pn">'+b.name+'</span><span class="pc">'+b.cat+'</span><span class="padRow"><button class="padBtn'+(b.repeat?' on':'')+'" title="Repeat (loop)" onclick="event.stopPropagation();toggleRepeat(\''+b.bid+'\')">🔁</button><button class="rmBtn" title="Delete" onclick="event.stopPropagation();removeFromBoard(\''+b.bid+'\')">×</button></span></div>';}).join('');}document.getElementById('boardCount').textContent=board.length+' sound'+(board.length===1?'':'s');}
+function padPlay(bid){var b=findB(bid);if(!b)return;if(b.playing){stopPad(b);return;}startPad(b);}
+function startPad(b){audio();b.playing=true;b.token++;var s=byId[b.id];var g=audio().createGain();g.gain.value=padVol;g.connect(getMaster());b.gain=g;var tok=b.token;out=g;var end=playOnce(s);var now=audio().currentTime;if(!end||end<=now)end=now+.5;b.endTime=end;if(b.repeat){scheduleNext(b,s,tok);}else{b.stopTimer=setTimeout(function(){if(b.token===tok){stopPad(b,true);}},Math.max(60,(end-now)*1000+80));}renderBoard();renderMixer();}
+function playOnce(s){var e;try{e=s.fn();}catch(err){e=null;}if(!e||e<=audio().currentTime)e=audio().currentTime+.5;return e;}
+function scheduleNext(b,s,tok){var ms=Math.max(60,(b.endTime-audio().currentTime)*1000+40);setTimeout(function(){if(b.token!==tok||!b.playing)return;if(!b.repeat){stopPad(b,true);return;}out=b.gain;b.endTime=playOnce(s);scheduleNext(b,s,tok);},ms);}
+function toggleRepeat(bid){var b=findB(bid);if(!b)return;b.repeat=!b.repeat;if(b.repeat&&b.playing){if(b.stopTimer){clearTimeout(b.stopTimer);b.stopTimer=null;}out=b.gain;var s=byId[b.id];scheduleNext(b,s,b.token);}saveBoard();renderBoard();}
+function stopPad(b,auto){b.playing=false;b.token++;if(b.stopTimer){clearTimeout(b.stopTimer);b.stopTimer=null;}try{if(b.gain){var ctx=b.gain.context;var nw=ctx.currentTime;b.gain.gain.cancelScheduledValues(nw);b.gain.gain.setValueAtTime(b.gain.gain.value,nw);b.gain.gain.linearRampToValueAtTime(0,nw+.05);setTimeout(function(){try{b.gain.disconnect();}catch(e){}},80);}}catch(e){}b.gain=null;if(!auto){renderBoard();}renderMixer();}
+function stopAll(){board.forEach(function(b){stopPad(b,true);});renderBoard();renderMixer();}
+function renderMixer(){var pb=board.filter(function(b){return b.playing;});var el=document.getElementById('mixerBody');el.innerHTML=pb.length?pb.map(function(b){return '<div class="mx"><span class="mxi">'+b.icon+'</span><span class="mxn">'+b.name+'</span><input type="range" min="0" max="100" value="'+Math.round((b.gain?b.gain.gain.value:padVol)*100)+'" oninput="mixVol(\''+b.bid+'\',this.value)"><button class="mxstop" onclick="stopPad(findB(\''+b.bid+'\'))">×</button></div>';}).join(''):'<span class="mxempty">Nothing playing</span>';}
+function mixVol(bid,v){var b=findB(bid);if(b&&b.gain){b.gain.gain.value=v/100;}}
+function setMaster(v){masterVol=v/100;if(master)master.gain.value=masterVol;}
+function setPad(v){padVol=v/100;}
+renderCats();
+renderLibrary();
+renderBoard();
+loadBoard();
+</script>
+</body>
+</html>%
