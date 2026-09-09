@@ -221,7 +221,7 @@ function persist(){return saveStore()}
 function clearStore(){localStorage.removeItem(LS_PER+me)}
 
 /* ---------- connection status ---------- */
-function setConn(stateStr,txt){var dot=$("connDot");dot.className="statusDot"+(stateStr?"":(stateStr===false?" err":""));if(stateStr===true){dot.classList.add("on");dot.classList.remove("err")}$("connText").textContent=txt;var myStatus=$("myStatus");if(myStatus){myStatus.textContent=connected?"Online":"Offline"}}
+function setConn(stateStr,txt){connected=(stateStr===true);var dot=$("connDot");dot.className="statusDot"+(connected?"":(stateStr===false?" err":""));if(connected){dot.classList.add("on");dot.classList.remove("err")}$("connText").textContent=txt;var myStatus=$("myStatus");if(myStatus){myStatus.textContent=connected?"Online":(txt||"Offline")}}
 
 /* ---------- peer engine (friends on any device, anywhere) ---------- */
 function isOnline(u){var c=conns[u];return !!(c&&!c.destroyed&&c.open)}
@@ -243,26 +243,33 @@ function targets(){var s={};for(var f in state.friends)s[f]=1;for(var i=0;i<stat
 function tick(){if(!me||!peer||peer.destroyed)return;var ts=targets();for(var i=0;i<ts.length;i++)if(!isOnline(ts[i]))connectTo(ts[i])}
 function ensureUser(u,name,code){if(!state.users[u])state.users[u]={name:name||slugIt(u),code:code||codeOf(slugIt(u)),online:false};else{if(name)state.users[u].name=name;if(code)state.users[u].code=code}if(u.charCodeAt){}}
 function rebuildUsers(){if(!me)return;ensureUser(me,myName(),codeOf(me));state.users[me].online=true;for(var f in state.friends){ensureUser(f,null,null);state.users[f].online=!!state.friends[f]}}
-var peerAttempts=0;
+var claimTimer=null;
+function cancelClaimWait(){if(claimTimer){clearTimeout(claimTimer);claimTimer=null}}
+function peerOptions(){
+ return {pingInterval:5000,timeout:20000};
+}
 function startPeer(){
  if(typeof Peer==="undefined"){setConn(false,"Offline");showToast("Could not load the online engine. Check your connection.");return}
  if(peer){try{peer.destroy()}catch(e){}}
- conns={};
- peer=new Peer(peerIdOf(me));
- peer.on("open",function(){peerAttempts=0;setConn(true,"Online");tick();renderAll()});
+ peer=null;conns={};
+ peer=new Peer(peerIdOf(me),peerOptions());
+ peer.on("open",function(){cancelClaimWait();setConn(true,"Online");tick();renderAll()});
  peer.on("connection",function(c){var f=slugFrom(c.peer);ensureUser(f,null,null);attachConn(c,f)});
- peer.on("disconnected",function(){setConn(false,"Reconnecting…");try{peer.reconnect()}catch(e){}});
+ peer.on("disconnected",function(){try{peer.reconnect()}catch(e){scheduleClaimRetry()}});
  peer.on("error",function(e){
-  if(e&&e.type==="unavailable-id"){
-   peerAttempts++;
-   if(peerAttempts>=3){nameBusy()}
-   else{setConn(false,"Retrying…");try{peer.destroy()}catch(x){}
-    setTimeout(function(){if(me)startPeer()},2500)}
+  var t=e&&e.type||"";
+  if(t==="unavailable-id"){
+   setConn(false,"That name is online elsewhere — you\u2019ll connect automatically…");
+  }else{
+   setConn(false,"Connecting…");
   }
+  if(peer){try{peer.destroy()}catch(x){}}
+  peer=null;conns={};
+  scheduleClaimRetry();
  });
 }
-function stopPeer(){if(peer){try{peer.destroy()}catch(e){}}peer=null;conns={}}
-function nameBusy(){var nm=me;stopPeer();localStorage.removeItem("gc_me");me=null;currentFriend=null;currentGroup=null;cancelReply();state={users:{},friends:{},incoming:[],outgoing:[],lists:[],notifications:[],chats:{}};setConn(false,"Offline");$("app").classList.add("hidden");$("authScreen").classList.remove("hidden");showAuth("login");renderEmptyChat()}
+function scheduleClaimRetry(){cancelClaimWait();claimTimer=setTimeout(function(){claimTimer=null;if(me)startPeer()},3000)}
+function stopPeer(){cancelClaimWait();if(peer){try{peer.destroy()}catch(e){}}peer=null;conns={}}
 function flushReq(u){if(pendingReq[u]){pendingReq[u]=false;sendData(u,{t:"friend_req",from:me})}}
 function qCtrl(u,obj){pendingCtrl[u]=pendingCtrl[u]||[];pendingCtrl[u].push(obj)}
 function flushCtrl(u){var a=pendingCtrl[u];if(!a||!a.length)return;for(var i=0;i<a.length;i++)sendData(u,a[i]);delete pendingCtrl[u]}
@@ -411,6 +418,8 @@ document.addEventListener("click",function(e){if(!e.target.closest(".search")&&e
 document.querySelectorAll(".modal").forEach(function(m){m.addEventListener("click",function(e){if(e.target===m)m.classList.remove("show")})});
 $("messages").addEventListener("contextmenu",function(e){var b=e.target.closest(".bubble");if(!b)return;var msgEl=b.closest(".message");if(msgEl)showContextMenu(e,msgEl.getAttribute("data-msgid"))});
 var addr=$("addrInfo");if(addr){addr.remove()}
+window.addEventListener("beforeunload",function(){if(peer){try{peer.destroy()}catch(e){}}});
+window.addEventListener("pagehide",function(){if(peer){try{peer.destroy()}catch(e){}}});
 if(me&&getAcc()[me]){enterApp()}else{showAuthScreen();showAuth("login")}
 </script>
 </body>
