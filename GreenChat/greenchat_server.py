@@ -1,3 +1,70 @@
+jake@Jakes-MacBook-Air-M2 something % ls
+cloudflared		greenchat_server.py	index.html		soundlab.html
+greenchat_db.json	GreenChat.html		logs			start_public.sh
+jake@Jakes-MacBook-Air-M2 something % clear
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+jake@Jakes-MacBook-Air-M2 something % cat greenchat_server.py 
+"""GreenChat server. Run:  python3 greenchat_server.py
+Then open http://<this-mac-ip>:8123 in a browser on any device on the same network.
+"""
+
 import asyncio
 import base64
 import hashlib
@@ -40,6 +107,43 @@ def dirty():
 
 
 conns = {}
+
+PBKDF2_ITERS = 200000
+_attempts = {}
+
+
+def password_entry(password):
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt), PBKDF2_ITERS).hex()
+    return {"salt": salt, "hash": digest}
+
+
+def check_password(stored, password):
+    try:
+        if isinstance(stored, dict):
+            salt = stored.get("salt", "")
+            digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt), PBKDF2_ITERS).hex()
+            return secrets.compare_digest(digest, stored.get("hash", ""))
+        return secrets.compare_digest(str(stored or ""), password)
+    except Exception:
+        return False
+
+
+def rate_limited(ip):
+    cutoff = time.time() - 120
+    fresh = {}
+    for k, v in list(_attempts.items()):
+        kept = [t for t in v if t > cutoff]
+        if kept:
+            fresh[k] = kept
+    _attempts.clear()
+    _attempts.update(fresh)
+    recent = [t for t in _attempts.get(ip, []) if t > cutoff]
+    if len(recent) >= 15:
+        return True
+    recent.append(time.time())
+    _attempts[ip] = recent
+    return False
 
 
 def build_frame(opcode, payload=b""):
@@ -205,6 +309,8 @@ async def on_message(ws, text):
     user = ws.user
 
     if t == "signup":
+        if rate_limited(ws.ip):
+            return await send(ws, {"t": "err", "msg": "Too many attempts. Try again in a couple of minutes."})
         name = (m.get("name") or "").strip()
         password = m.get("password") or ""
         if len(name) < 2:
@@ -216,16 +322,22 @@ async def on_message(ws, text):
         key = name.lower()
         if key in db["users"]:
             return await send(ws, {"t": "err", "msg": "That name is already taken."})
-        db["users"][key] = {"name": name, "password": password, "friendCode": make_code(), "friends": [], "incoming": [], "outgoing": [], "created": now()}
+        db["users"][key] = {"name": name, "password": password_entry(password), "friendCode": make_code(), "friends": [], "incoming": [], "outgoing": [], "created": now()}
         db.setdefault("notifications", {})[key] = []
         dirty()
         return await login_ws(ws, key)
 
     if t == "login":
+        if rate_limited(ws.ip):
+            return await send(ws, {"t": "err", "msg": "Too many attempts. Try again in a couple of minutes."})
         key = (m.get("name") or "").strip().lower()
         u = db["users"].get(key)
-        if not u or u["password"] != (m.get("password") or ""):
+        attempt = m.get("password") or ""
+        if not u or not check_password(u.get("password"), attempt):
             return await send(ws, {"t": "err", "msg": "Wrong name or password."})
+        if not isinstance(u.get("password"), dict):
+            u["password"] = password_entry(attempt)
+            dirty()
         return await login_ws(ws, key)
 
     if t == "resume":
@@ -391,7 +503,7 @@ async def on_message(ws, text):
 
     if t == "delete_account":
         u = db["users"].get(user)
-        if not u or u["password"] != (m.get("password") or ""):
+        if not u or not check_password(u.get("password"), (m.get("password") or "")):
             return await send(ws, {"t": "err", "msg": "Wrong password."})
         old_friends = list(u.get("friends", []))
         for k, v in list(db["users"].items()):
@@ -609,6 +721,10 @@ async def handle_client(reader, writer):
         ws.reader = reader
         ws.writer = writer
         ws.user = None
+        try:
+            ws.ip = writer.get_extra_info("peername", ("?",))[0]
+        except Exception:
+            ws.ip = "?"
         await ws_loop(ws)
         return
 
@@ -641,4 +757,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())%
+    asyncio.run(main())                                 
