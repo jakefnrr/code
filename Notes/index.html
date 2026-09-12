@@ -394,6 +394,41 @@ h1 {
 }
 
 /* ================================= */
+/* TITLE INPUT */
+/* ================================= */
+
+.editor-title-input {
+    flex: 0 1 auto;
+
+    width: 240px;
+    min-width: 130px;
+    height: 58px;
+
+    padding: 0 16px;
+
+    background: #0a0a0a;
+    color: cyan;
+
+    border: 2px solid #008f9c;
+    border-radius: 12px;
+
+    font-size: 17px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+
+    outline: none;
+}
+
+.editor-title-input::placeholder {
+    color: #555;
+}
+
+.editor-title-input:focus {
+    border-color: cyan;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+}
+
+/* ================================= */
 /* TOOLBAR */
 /* ================================= */
 
@@ -451,6 +486,12 @@ h1 {
     color: black;
 
     transform: scale(0.93);
+}
+
+.tool-button.bold-on {
+    background: cyan;
+
+    color: black;
 }
 
 /* ================================= */
@@ -565,7 +606,7 @@ h1 {
 /* ================================= */
 
 .note-editor-line {
-    font-size: 18px;
+    font-size: inherit;
 
     font-weight: normal;
 
@@ -612,13 +653,13 @@ h1 {
 .check-circle {
     flex: 0 0 auto;
 
-    width: 24px;
-    height: 24px;
+    width: 1.35em;
+    height: 1.35em;
 
-    margin-top: 5px;
-    margin-right: 10px;
+    margin-top: 0.3em;
+    margin-right: 0.55em;
 
-    border: 2px solid white;
+    border: 0.12em solid white;
 
     border-radius: 50%;
 
@@ -631,7 +672,7 @@ h1 {
 
     color: transparent;
 
-    font-size: 15px;
+    font-size: inherit;
 
     font-weight: bold;
 
@@ -648,6 +689,10 @@ h1 {
 
 .check-circle.checked::after {
     content: "✓";
+
+    font-size: 0.82em;
+
+    line-height: 1;
 }
 
 .check-circle.checked + .list-content {
@@ -663,22 +708,87 @@ h1 {
 .bullet-circle {
     flex: 0 0 auto;
 
-    width: 12px;
-    height: 12px;
+    width: 0.72em;
+    height: 0.72em;
 
-    margin-top: 9px;
+    margin-top: 0.5em;
 
-    margin-left: 6px;
-    margin-right: 16px;
+    margin-left: 0.33em;
+    margin-right: 0.88em;
 
-    border: 2px solid white;
+    border: 0.13em solid white;
 
     border-radius: 50%;
 
     background: transparent;
 
+    font-size: inherit;
+
     pointer-events: none;
 }
+
+/* ================================= */
+/* MEDIUM SCREENS */
+/* ================================= */
+
+@media (max-width: 1200px) {
+
+    .editor-title-input {
+        width: 200px;
+    }
+
+    .tool-button,
+    .back-button {
+        width: 52px;
+        height: 52px;
+    }
+
+    .editor-top {
+        gap: 7px;
+    }
+
+}
+
+@media (max-width: 900px) {
+
+    .editor-title-input {
+        width: 165px;
+
+        font-size: 15px;
+    }
+
+    .tool-button,
+    .back-button {
+        width: 47px;
+        height: 47px;
+
+        font-size: 21px;
+    }
+
+    .editor-top {
+        gap: 6px;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .editor-title-input {
+        width: 130px;
+
+        font-size: 14px;
+    }
+
+    .tool-button,
+    .back-button {
+        width: 44px;
+        height: 44px;
+
+        font-size: 20px;
+    }
+
+}
+
 
 /* ================================= */
 /* MOBILE */
@@ -713,17 +823,28 @@ h1 {
     .editor-top {
         padding: 8px;
 
-        gap: 7px;
+        gap: 6px;
+    }
+
+    .editor-title-input {
+        width: 110px;
+        height: 44px;
+
+        font-size: 13px;
     }
 
     .tool-button {
-        width: 55px;
-        height: 55px;
+        width: 44px;
+        height: 44px;
+
+        font-size: 20px;
     }
 
     .back-button {
-        width: 58px;
-        height: 55px;
+        width: 44px;
+        height: 44px;
+
+        font-size: 20px;
     }
 
     #noteEditor {
@@ -732,12 +853,12 @@ h1 {
         padding: 15px;
     }
 
-    .note-editor-title {
-        font-size: 28px;
+    .note-editor-line {
+        font-size: inherit;
     }
 
-    .note-editor-line {
-        font-size: 17px;
+    .note-editor-title {
+        font-size: 28px;
     }
 }
 
@@ -846,6 +967,15 @@ h1 {
     <div class="editor-top">
 
 
+        <input
+            type="text"
+            id="editorTitleInput"
+            class="editor-title-input"
+            placeholder="Note title"
+            maxlength="100"
+            autocomplete="off">
+
+
         <div class="editor-toolbar">
 
 
@@ -901,6 +1031,49 @@ h1 {
             </button>
 
 
+            <!-- BOLD -->
+
+            <button
+                type="button"
+                class="tool-button"
+                id="boldButton"
+                onclick="toggleBold(); return false;"
+                onmousedown="return false;"
+                aria-label="Bold">
+
+                B
+
+            </button>
+
+
+            <!-- INCREASE TEXT -->
+
+            <button
+                type="button"
+                class="tool-button"
+                onclick="increaseText(); return false;"
+                onmousedown="return false;"
+                aria-label="Increase text size">
+
+                +
+
+            </button>
+
+
+            <!-- DECREASE TEXT -->
+
+            <button
+                type="button"
+                class="tool-button"
+                onclick="decreaseText(); return false;"
+                onmousedown="return false;"
+                aria-label="Decrease text size">
+
+                −
+
+            </button>
+
+
         </div>
 
 
@@ -912,7 +1085,7 @@ h1 {
             onclick="closeEditor(); return false;"
             aria-label="Close note">
 
-            ←
+            ✕
 
         </button>
 
@@ -991,6 +1164,56 @@ function saveNotes() {
 /* PLAIN TEXT */
 /* ================================= */
 
+/*
+    Pull text out of element children,
+    turning <br> into line breaks.
+*/
+
+function extractText(node) {
+
+    let text = "";
+
+    node.childNodes.forEach(
+        function(child) {
+
+            if (
+                child.nodeType === 3
+            ) {
+
+                text += child.nodeValue;
+
+                return;
+
+            }
+
+            if (
+                child.nodeType !== 1
+            ) {
+
+                return;
+
+            }
+
+            if (
+                child.tagName === "BR"
+            ) {
+
+                text += "\n";
+
+                return;
+
+            }
+
+            text += extractText(child);
+
+        }
+    );
+
+    return text;
+
+}
+
+
 function getPlainText(html) {
 
     if (!html) {
@@ -1006,11 +1229,98 @@ function getPlainText(html) {
     temp.innerHTML = html;
 
 
-    return (
-        temp.innerText ||
-        temp.textContent ||
-        ""
-    );
+    const blocks = [];
+
+    let node = null;
+
+    const walker =
+        document.createTreeWalker(
+            temp,
+            NodeFilter.SHOW_ELEMENT
+        );
+
+    while ((node = walker.nextNode())) {
+
+        if (
+            node.classList.contains(
+                "note-editor-line"
+            ) ||
+            node.classList.contains(
+                "checklist-line"
+            ) ||
+            node.classList.contains(
+                "bullet-line"
+            )
+        ) {
+
+            blocks.push(node);
+
+        }
+
+    }
+
+
+    const lines =
+        blocks.map(function(block) {
+
+            if (
+                block.classList.contains(
+                    "checklist-line"
+                )
+            ) {
+
+                const circle =
+                    block.querySelector(
+                        ".check-circle"
+                    );
+
+                const content =
+                    block.querySelector(
+                        ".list-content"
+                    ) || block;
+
+                const prefix =
+                    circle &&
+                    circle.classList.contains(
+                        "checked"
+                    )
+                        ? "☑ "
+                        : "☐ ";
+
+                return (
+                    prefix +
+                    extractText(content)
+                );
+
+            }
+
+            if (
+                block.classList.contains(
+                    "bullet-line"
+                )
+            ) {
+
+                const content =
+                    block.querySelector(
+                        ".list-content"
+                    ) || block;
+
+                return (
+                    "• " +
+                    extractText(content)
+                );
+
+            }
+
+            return extractText(block);
+
+        });
+
+
+    return lines
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(/\s+$/g, "");
 
 }
 
@@ -1082,11 +1392,17 @@ function renderNotes() {
         }
 
 
-        if (previewText.length > 140) {
+        const previewLines =
+            previewText.split("\n");
+
+
+        if (previewLines.length > 10) {
 
             previewText =
-                previewText.substring(0, 140)
-                + "...";
+                previewLines
+                    .slice(0, 10)
+                    .join("\n")
+                + "\n...";
 
         }
 
@@ -1172,7 +1488,6 @@ function createNote() {
         name: "",
 
         content:
-            '<div class="note-editor-title"></div>' +
             '<div class="note-editor-line"><br></div>'
 
     };
@@ -1293,6 +1608,16 @@ function openEditor(
         );
 
 
+    const titleInput =
+        document.getElementById(
+            "editorTitleInput"
+        );
+
+
+    titleInput.value =
+        note.name || "";
+
+
     if (note.content) {
 
         editor.innerHTML =
@@ -1303,8 +1628,33 @@ function openEditor(
     else {
 
         editor.innerHTML =
-            '<div class="note-editor-title"></div>' +
             '<div class="note-editor-line"><br></div>';
+
+    }
+
+
+    /*
+        Backward compat: if the content
+        still has an old embedded title div,
+        extract it into the input.
+    */
+
+    const oldTitle =
+        editor.querySelector(
+            ".note-editor-title"
+        );
+
+
+    if (oldTitle) {
+
+        if (!titleInput.value) {
+
+            titleInput.value =
+                oldTitle.innerText.trim();
+
+        }
+
+        oldTitle.remove();
 
     }
 
@@ -1335,15 +1685,7 @@ function openEditor(
 
         setTimeout(function() {
 
-            const title =
-                editor.querySelector(
-                    ".note-editor-title"
-                );
-
-
-            placeCursorAtStart(
-                title
-            );
+            titleInput.focus();
 
         }, 50);
 
@@ -1379,7 +1721,6 @@ function normalizeEditor() {
     if (!editor.firstElementChild) {
 
         editor.innerHTML =
-            '<div class="note-editor-title"></div>' +
             '<div class="note-editor-line"><br></div>';
 
         return;
@@ -1387,27 +1728,135 @@ function normalizeEditor() {
     }
 
 
+    /*
+        Remove any leftover title divs.
+    */
+
+    const oldTitle =
+        editor.querySelector(
+            ".note-editor-title"
+        );
+
+
+    if (oldTitle) {
+
+        const titleInput =
+            document.getElementById(
+                "editorTitleInput"
+            );
+
+
+        if (!titleInput.value) {
+
+            titleInput.value =
+                oldTitle.innerText.trim();
+
+        }
+
+        oldTitle.remove();
+
+    }
+
+
+    /*
+        Repair list lines that got wrapped
+        inside font-size spans, so the
+        bullet/check circles are never stuck
+        inside a foreign span.
+    */
+
+    const stuckLines =
+        editor.querySelectorAll(
+            "span .checklist-line," +
+            "span .bullet-line," +
+            "span > .note-editor-line"
+        );
+
+
+    stuckLines.forEach(function(line) {
+
+        const span =
+            line.parentNode;
+
+        const holder =
+            span.parentNode;
+
+        if (!holder) {
+
+            return;
+
+        }
+
+        holder.insertBefore(
+            line,
+            span
+        );
+
+        if (
+            !span.firstChild
+        ) {
+
+            span.remove();
+
+        }
+
+    });
+
+
+    /*
+        Ensure first child is always
+        a normal line.
+    */
+
     const first =
         editor.firstElementChild;
 
 
-    first.classList.add(
+    first.classList.remove(
         "note-editor-title"
     );
-
 
     first.classList.remove(
         "note-editor-line"
     );
 
+    first.classList.add(
+        "note-editor-line"
+    );
+
 
     /*
-        Make sure the title is always
-        the first line.
+        Safety net: any bare <div> the
+        browser created (e.g. from Enter)
+        must get the line class, otherwise
+        multi-line selection won't find it.
     */
 
-    first.style.fontWeight =
-        "bold";
+    const bare =
+        editor.querySelectorAll(
+            ":scope > div"
+        );
+
+    bare.forEach(function(div) {
+
+        if (
+            div.classList.contains(
+                "checklist-line"
+            ) ||
+            div.classList.contains(
+                "bullet-line"
+            )
+        ) {
+
+            return;
+
+        }
+
+        div.classList.add(
+            "note-editor-line"
+        );
+
+    });
 
 }
 
@@ -1448,17 +1897,17 @@ function saveCurrentNote() {
         );
 
 
+    const titleInput =
+        document.getElementById(
+            "editorTitleInput"
+        );
+
+
     normalizeEditor();
 
 
-    const title =
-        editor.firstElementChild;
-
-
     note.name =
-        title
-            ? title.innerText.trim()
-            : "";
+        titleInput.value.trim();
 
 
     note.content =
@@ -1832,6 +2281,53 @@ document
 
 
 /* ================================= */
+/* TITLE INPUT */
+/* ================================= */
+
+document
+    .getElementById("editorTitleInput")
+    .addEventListener(
+        "input",
+        function() {
+
+            saveCurrentNote();
+
+            recordEdit();
+
+        }
+    );
+
+
+document
+    .getElementById("editorTitleInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+
+                const editor =
+                    document.getElementById(
+                        "noteEditor"
+                    );
+
+
+                placeCursorAtStart(
+                    editor
+                );
+
+            }
+
+        }
+    );
+
+
+/* ================================= */
 /* ENTER KEY */
 /* ================================= */
 
@@ -1950,54 +2446,14 @@ function handleEnter(event) {
     }
 
 
+    /* NORMAL LINE */
+
     /*
-        If the title is active, Enter
-        creates a normal text line.
+        Let the browser split the line
+        natively (creates a sibling <div>).
+        normalizeEditor then classes it in
+        the input handler.
     */
-
-    if (
-        line.classList.contains(
-            "note-editor-title"
-        )
-    ) {
-
-        setTimeout(function() {
-
-            const editor =
-                document.getElementById(
-                    "noteEditor"
-                );
-
-
-            const first =
-                editor.firstElementChild;
-
-
-            /*
-                The browser creates the
-                next line. Make it normal.
-            */
-
-            if (
-                first &&
-                first.nextElementSibling
-            ) {
-
-                first.nextElementSibling.className =
-                    "note-editor-line";
-
-            }
-
-
-            normalizeEditor();
-
-            saveCurrentNote();
-
-            saveHistoryState();
-
-        }, 0);
-
-    }
 
 }
 
@@ -2081,7 +2537,6 @@ function getCurrentLine() {
 
 
     return node.closest(
-        ".note-editor-title," +
         ".note-editor-line," +
         ".checklist-line," +
         ".bullet-line"
@@ -2350,6 +2805,577 @@ function toggleBullets() {
     convertLineToBullet(
         line
     );
+
+}
+
+
+/* ================================= */
+/* BOLD TOOL */
+/* ================================= */
+
+function toggleBold() {
+
+    document.execCommand(
+        "bold", false, null
+    );
+
+
+    const btn =
+        document.getElementById(
+            "boldButton"
+        );
+
+
+    const active =
+        document.queryCommandState(
+            "bold"
+        );
+
+
+    if (active) {
+
+        btn.classList.add(
+            "bold-on"
+        );
+
+    }
+
+    else {
+
+        btn.classList.remove(
+            "bold-on"
+        );
+
+    }
+
+
+    document.getElementById(
+        "noteEditor"
+    ).focus();
+
+}
+
+
+/* ================================= */
+/* TEXT SIZE HELPERS */
+/* ================================= */
+
+function clampFontSize(size) {
+
+    if (size < 10) {
+
+        return 10;
+
+    }
+
+    if (size > 48) {
+
+        return 48;
+
+    }
+
+    return size;
+
+}
+
+
+function getFontSize(el) {
+
+    if (!el) {
+
+        return null;
+
+    }
+
+
+    const inline =
+        parseFloat(el.style.fontSize);
+
+    if (inline) {
+
+        return inline;
+
+    }
+
+
+    const computed =
+        window.getComputedStyle(el).fontSize;
+
+    return (
+        parseFloat(computed) || null
+    );
+
+}
+
+
+/* ================================= */
+/* LINE BLOCK */
+/* ================================= */
+
+function getLineBlock(node) {
+
+    const el =
+        node && node.nodeType === 3
+            ? node.parentElement
+            : node;
+
+    return el
+        ? el.closest(
+            ".note-editor-line," +
+            ".list-content"
+        )
+        : null;
+
+}
+
+
+/* ================================= */
+/* RANGE INTERSECTION */
+/* ================================= */
+
+function rangeTouches(range, node) {
+
+    try {
+
+        if (
+            typeof range.intersectsNode
+                === "function"
+        ) {
+
+            return (
+                range.intersectsNode(node)
+            );
+
+        }
+
+    }
+
+    catch (err) {
+
+        /* fall through */
+
+    }
+
+
+    try {
+
+        const nodeRange =
+            document.createRange();
+
+        nodeRange.selectNode(node);
+
+        if (
+            nodeRange.compareBoundaryPoints(
+                Range.END_TO_START,
+                range
+            ) <= 0
+        ) {
+
+            return false;
+
+        }
+
+        if (
+            nodeRange.compareBoundaryPoints(
+                Range.START_TO_END,
+                range
+            ) >= 0
+        ) {
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+    catch (err) {
+
+        return false;
+
+    }
+
+}
+
+
+/* ================================= */
+/* SELECTED TEXT SIZE */
+/* ================================= */
+
+function changeSelectedFontSize(delta) {
+
+    const editor =
+        document.getElementById(
+            "noteEditor"
+        );
+
+
+    const sel =
+        window.getSelection();
+
+
+    if (
+        !sel.rangeCount ||
+        sel.isCollapsed
+    ) {
+
+        editor.focus();
+
+        changeAllFontSize(delta);
+
+        return;
+
+    }
+
+
+    const range =
+        sel.getRangeAt(0);
+
+
+    if (!range.toString().trim()) {
+
+        editor.focus();
+
+        changeAllFontSize(delta);
+
+        return;
+
+    }
+
+
+    const startBlock =
+        getLineBlock(
+            range.startContainer
+        );
+
+    const endBlock =
+        getLineBlock(
+            range.endContainer
+        );
+
+
+    /* SINGLE LINE */
+
+    if (
+        startBlock &&
+        endBlock &&
+        startBlock === endBlock
+    ) {
+
+        let node =
+            range.commonAncestorContainer;
+
+        let el =
+            node.nodeType === 3
+                ? node.parentElement
+                : node;
+
+
+        let current =
+            getFontSize(el);
+
+        if (
+            current === null
+        ) {
+
+            current =
+                getFontSize(editor);
+
+        }
+
+        if (
+            current === null
+        ) {
+
+            current = 18;
+
+        }
+
+
+        const size =
+            clampFontSize(
+                current + delta
+            );
+
+
+        const sizeSpan =
+            document.createElement(
+                "span"
+            );
+
+        sizeSpan.style.fontSize =
+            size + "px";
+
+
+        const fragment =
+            range.extractContents();
+
+        sizeSpan.appendChild(
+            fragment
+        );
+
+        range.insertNode(
+            sizeSpan
+        );
+
+
+        const after =
+            window.getSelection();
+
+        const keep =
+            document.createRange();
+
+        keep.selectNodeContents(
+            sizeSpan
+        );
+
+        after.removeAllRanges();
+
+        after.addRange(keep);
+
+
+        saveCurrentNote();
+
+        recordEdit();
+
+        return;
+
+    }
+
+
+    /* MULTIPLE LINES */
+
+    const blocks =
+        editor.querySelectorAll(
+            ".note-editor-line," +
+            ".list-content"
+        );
+
+
+    /*
+        Collect every touched line FIRST,
+        before changing anything. Mutating
+        mid-loop can invalidate the range.
+    */
+
+    const touched = [];
+
+    blocks.forEach(function(block) {
+
+        if (
+            rangeTouches(
+                range,
+                block
+            )
+        ) {
+
+            touched.push(block);
+
+        }
+
+    });
+
+
+    const resizedSpans = [];
+
+
+    touched.forEach(function(block) {
+
+        let cur =
+            getFontSize(block);
+
+        if (
+            cur === null
+        ) {
+
+            cur = getFontSize(editor);
+
+        }
+
+        if (
+            cur === null
+        ) {
+
+            cur = 18;
+
+        }
+
+
+        const size =
+            clampFontSize(
+                cur + delta
+            );
+
+
+        /*
+            Wrap ONLY the block's contents,
+            never the block itself, so the
+            bullet/check circles stay put.
+        */
+
+        const wrap =
+            document.createElement(
+                "span"
+            );
+
+        wrap.style.fontSize =
+            size + "px";
+
+
+        while (block.firstChild) {
+
+            wrap.appendChild(
+                block.firstChild
+            );
+
+        }
+
+        block.appendChild(wrap);
+
+        resizedSpans.push(wrap);
+
+    });
+
+
+    /*
+        Keep the highlight across all the
+        resized lines.
+    */
+
+    if (resizedSpans.length) {
+
+        const keep =
+            document.createRange();
+
+        keep.selectNodeContents(
+            resizedSpans[0]
+        );
+
+
+        const last =
+            document.createRange();
+
+        last.selectNodeContents(
+            resizedSpans[
+                resizedSpans.length - 1
+            ]
+        );
+
+        keep.setEnd(
+            last.endContainer,
+            last.endOffset
+        );
+
+
+        const after =
+            window.getSelection();
+
+        after.removeAllRanges();
+
+        after.addRange(keep);
+
+    }
+
+
+    saveCurrentNote();
+
+    recordEdit();
+
+}
+
+
+/* ================================= */
+/* ALL TEXT SIZE */
+/* ================================= */
+
+function changeAllFontSize(delta) {
+
+    const editor =
+        document.getElementById(
+            "noteEditor"
+        );
+
+
+    /*
+        Shift the base editor font size by
+        delta. Regular text inherits this.
+    */
+
+    let current =
+        getFontSize(editor);
+
+    if (
+        current === null
+    ) {
+
+        current = 18;
+
+    }
+
+
+    editor.style.fontSize =
+        clampFontSize(
+            current + delta
+        ) + "px";
+
+
+    /*
+        Shift each individually-sized span by
+        the same delta, so big text stays
+        bigger, small text stays smaller.
+    */
+
+    const sized =
+        editor.querySelectorAll(
+            "[style*='font-size']"
+        );
+
+
+    sized.forEach(function(el) {
+
+        const elSize =
+            parseFloat(el.style.fontSize);
+
+        if (!elSize) {
+
+            return;
+
+        }
+
+        el.style.fontSize =
+            clampFontSize(
+                elSize + delta
+            ) + "px";
+
+    });
+
+
+    saveCurrentNote();
+
+    recordEdit();
+
+}
+
+
+/* ================================= */
+/* INCREASE TEXT */
+/* ================================= */
+
+function increaseText() {
+
+    changeSelectedFontSize(2);
+
+}
+
+
+/* ================================= */
+/* DECREASE TEXT */
+/* ================================= */
+
+function decreaseText() {
+
+    changeSelectedFontSize(-2);
 
 }
 
@@ -2743,6 +3769,211 @@ document
             if (content) {
 
                 content.focus();
+
+            }
+
+        }
+    );
+
+
+/* ================================= */
+/* COPY WITH MARKERS */
+/* ================================= */
+
+/*
+    When copying selection that includes
+    checklist or bullet lines, include the
+    ☐/☑/• markers in the copied text.
+*/
+
+document
+    .getElementById("noteEditor")
+    .addEventListener(
+        "copy",
+        function(event) {
+
+            const selection =
+                window.getSelection();
+
+            if (
+                !selection.rangeCount ||
+                selection.isCollapsed
+            ) {
+
+                return;
+
+            }
+
+
+            const range =
+                selection.getRangeAt(0);
+
+
+            const editor =
+                document.getElementById(
+                    "noteEditor"
+                );
+
+
+            const lines =
+                editor.querySelectorAll(
+                    ".note-editor-line," +
+                    ".checklist-line," +
+                    ".bullet-line"
+                );
+
+
+            const pieces = [];
+
+            let hasList = false;
+
+
+            lines.forEach(function(line) {
+
+                if (
+                    !rangeTouches(
+                        range,
+                        line
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                let prefix = "";
+
+
+                if (
+                    line.classList.contains(
+                        "checklist-line"
+                    )
+                ) {
+
+                    hasList = true;
+
+
+                    const circle =
+                        line.querySelector(
+                            ".check-circle"
+                        );
+
+
+                    const checked =
+                        circle &&
+                        circle.classList.contains(
+                            "checked"
+                        );
+
+
+                    prefix =
+                        checked
+                            ? "☑ "
+                            : "☐ ";
+
+                }
+
+                else if (
+                    line.classList.contains(
+                        "bullet-line"
+                    )
+                ) {
+
+                    hasList = true;
+
+                    prefix =
+                        "• ";
+
+                }
+
+
+                const contentEl =
+                    line.querySelector(
+                        ".list-content"
+                    ) || line;
+
+
+                pieces.push(
+                    prefix +
+                    contentEl.innerText
+                );
+
+            });
+
+
+            if (
+                !hasList ||
+                pieces.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            event.preventDefault();
+
+            event.clipboardData.setData(
+                "text/plain",
+                pieces.join("\n")
+            );
+
+        }
+    );
+
+
+/* ================================= */
+/* BOLD BUTTON STATE */
+/* ================================= */
+
+document
+    .addEventListener(
+        "selectionchange",
+        function() {
+
+            const editor =
+                document.getElementById(
+                    "noteEditor"
+                );
+
+
+            if (
+                !editor ||
+                document.activeElement
+                    !== editor
+            ) {
+
+                return;
+
+            }
+
+
+            const btn =
+                document.getElementById(
+                    "boldButton"
+                );
+
+
+            const active =
+                document.queryCommandState(
+                    "bold"
+                );
+
+
+            if (active) {
+
+                btn.classList.add(
+                    "bold-on"
+                );
+
+            }
+
+            else {
+
+                btn.classList.remove(
+                    "bold-on"
+                );
 
             }
 
