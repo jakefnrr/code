@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unlimited HTML App Ideas Generator</title>
     <style>
-        :root{--bg:#050706;--bg2:#090d0a;--panel:#0d120f;--panel2:#111812;--panel3:#172019;--border:#223027;--green:#00ff88;--green2:#00d873;--greenSoft:rgba(0,255,136,.12);--text:#f3f7f4;--muted:#87958b;--danger:#ff5268;--warning:#ffc857}
+        :root{--bg:#050706;--bg2:#090d0a;--panel:#0d120f;--panel2:#111812;--panel3:#172019;--border:#223027;--green:#00ff88;--green2:#00d873;--greenSoft:rgba(0,255,136,.12);--text:#f3f7f4;--muted:#87958b;--danger:#ff5268;--warning:#ffc857;--purple:#a855f7;--purpleSoft:rgba(168,85,247,.12);--orange:#fb923c;--orangeSoft:rgba(251,146,60,.12)}
         * {
             margin: 0;
             padding: 0;
@@ -28,6 +28,58 @@
             border-radius: 20px;
             box-shadow: 0 30px 100px rgba(0,0,0,.6);
             overflow: hidden;
+        }
+        
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        
+        .tab-nav button {
+            flex: 1;
+            padding: 18px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--muted);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .tab-nav button:hover {
+            color: var(--text);
+            background: rgba(255,255,255,.03);
+        }
+        
+        .tab-nav button.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+        }
+        
+        .tab-nav button.tab-fortnite.active {
+            color: var(--purple);
+            border-bottom-color: var(--purple);
+        }
+        
+        .tab-nav button.tab-rocketleague.active {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
         }
         
         header {
@@ -72,6 +124,14 @@
             font-size: 11px;
         }
         
+        .panel-fortnite .filter-label {
+            color: var(--purple);
+        }
+        
+        .panel-rocketleague .filter-label {
+            color: var(--orange);
+        }
+        
         .filter-btn {
             padding: 10px 20px;
             border: 1px solid var(--border);
@@ -88,11 +148,33 @@
             color: var(--green);
         }
         
+        .panel-fortnite .filter-btn:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+        
+        .panel-rocketleague .filter-btn:hover {
+            border-color: var(--orange);
+            color: var(--orange);
+        }
+        
         .filter-btn.active {
             background: var(--greenSoft);
             color: var(--green);
             border-color: rgba(0,255,136,.3);
             font-weight: bold;
+        }
+        
+        .panel-fortnite .filter-btn.active {
+            background: var(--purpleSoft);
+            color: var(--purple);
+            border-color: rgba(168,85,247,.3);
+        }
+        
+        .panel-rocketleague .filter-btn.active {
+            background: var(--orangeSoft);
+            color: var(--orange);
+            border-color: rgba(251,146,60,.3);
         }
         
         .controls {
@@ -121,6 +203,22 @@
             transform: translateY(-1px);
         }
         
+        .panel-fortnite .generate-btn {
+            background: var(--purple);
+        }
+        
+        .panel-fortnite .generate-btn:hover {
+            background: #b06bff;
+        }
+        
+        .panel-rocketleague .generate-btn {
+            background: var(--orange);
+        }
+        
+        .panel-rocketleague .generate-btn:hover {
+            background: #ffab63;
+        }
+        
         .count-selector {
             padding: 12px 20px;
             border: 1px solid var(--border);
@@ -145,6 +243,14 @@
             scrollbar-color: var(--green) var(--bg);
         }
         
+        .panel-fortnite .ideas-container {
+            scrollbar-color: var(--purple) var(--bg);
+        }
+        
+        .panel-rocketleague .ideas-container {
+            scrollbar-color: var(--orange) var(--bg);
+        }
+        
         .idea-card {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -160,10 +266,26 @@
             cursor: pointer;
         }
         
+        .panel-fortnite .idea-card {
+            border-left-color: var(--purple);
+        }
+        
+        .panel-rocketleague .idea-card {
+            border-left-color: var(--orange);
+        }
+        
         .idea-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 40px rgba(0,0,0,.4);
             border-color: var(--green);
+        }
+        
+        .panel-fortnite .idea-card:hover {
+            border-color: var(--purple);
+        }
+        
+        .panel-rocketleague .idea-card:hover {
+            border-color: var(--orange);
         }
         
         .idea-card:hover .expand-btn {
@@ -171,10 +293,26 @@
             color: #001b0e;
         }
         
+        .panel-fortnite .idea-card:hover .expand-btn {
+            background: var(--purple);
+        }
+        
+        .panel-rocketleague .idea-card:hover .expand-btn {
+            background: var(--orange);
+        }
+        
         .idea-card h3 {
             color: var(--green);
             margin-bottom: 15px;
             font-size: 1.3em;
+        }
+        
+        .panel-fortnite .idea-card h3 {
+            color: var(--purple);
+        }
+        
+        .panel-rocketleague .idea-card h3 {
+            color: var(--orange);
         }
         
         .idea-card p {
@@ -199,6 +337,18 @@
             font-weight: bold;
         }
         
+        .panel-fortnite .tag {
+            background: var(--purpleSoft);
+            color: var(--purple);
+            border-color: rgba(168,85,247,.2);
+        }
+        
+        .panel-rocketleague .tag {
+            background: var(--orangeSoft);
+            color: var(--orange);
+            border-color: rgba(251,146,60,.2);
+        }
+        
         .stats {
             padding: 20px 30px;
             background: var(--panel);
@@ -211,6 +361,14 @@
         .stats span {
             color: var(--green);
             font-weight: bold;
+        }
+        
+        .panel-fortnite .stats span {
+            color: var(--purple);
+        }
+        
+        .panel-rocketleague .stats span {
+            color: var(--orange);
         }
         
         .search-box {
@@ -386,6 +544,31 @@
             background: var(--green);
             color: #001b0e;
         }
+
+        .all-projects {
+            position: fixed;
+            top: 6px;
+            right: 7px;
+            z-index: 50;
+            padding: 8px 14px;
+            border-radius: 7px;
+            background: rgba(3,8,18,.9);
+            border: 1px solid rgba(0,255,136,.25);
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 900;
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all .2s;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .all-projects:hover {
+            color: white;
+            border-color: var(--green);
+            box-shadow: 0 0 15px rgba(0,255,136,.25);
+        }
     </style>
 </head>
 <body>
@@ -396,51 +579,154 @@
             <p>Billions of unique ideas, generated instantly</p>
         </header>
         
-        <div class="filters">
-            <span class="filter-label">Category:</span>
-            <div class="filter-group" id="categoryFilters">
-                <button class="filter-btn active" data-category="all">All</button>
-                <button class="filter-btn" data-category="fun">Fun</button>
-                <button class="filter-btn" data-category="work">Work</button>
-                <button class="filter-btn" data-category="learning">Learning</button>
-                <button class="filter-btn" data-category="productivity">Productivity</button>
-                <button class="filter-btn" data-category="entertainment">Entertainment</button>
-                <button class="filter-btn" data-category="social">Social</button>
-                <button class="filter-btn" data-category="ecommerce">E-commerce</button>
-                <button class="filter-btn" data-category="health">Health</button>
-                <button class="filter-btn" data-category="finance">Finance</button>
-                <button class="filter-btn" data-category="creative">Creative</button>
-                <button class="filter-btn" data-category="utility">Utility</button>
+        <nav class="tab-nav">
+            <button class="active" data-tab="main">Main</button>
+            <button class="tab-fortnite" data-tab="fortnite">Fortnite</button>
+            <button class="tab-rocketleague" data-tab="rocketleague">Rocket League</button>
+        </nav>
+
+        <div class="tab-panel active" id="panel-main">
+            <div class="filters">
+                <span class="filter-label">Category:</span>
+                <div class="filter-group" id="categoryFilters-main">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="fun">Fun</button>
+                    <button class="filter-btn" data-category="work">Work</button>
+                    <button class="filter-btn" data-category="learning">Learning</button>
+                    <button class="filter-btn" data-category="productivity">Productivity</button>
+                    <button class="filter-btn" data-category="entertainment">Entertainment</button>
+                    <button class="filter-btn" data-category="social">Social</button>
+
+                    <button class="filter-btn" data-category="health">Health</button>
+                    <button class="filter-btn" data-category="finance">Finance</button>
+                    <button class="filter-btn" data-category="creative">Creative</button>
+                    <button class="filter-btn" data-category="utility">Utility</button>
+                </div>
+                
+                <span class="filter-label">Complexity:</span>
+                <div class="filter-group" id="complexityFilters-main">
+                    <button class="filter-btn active" data-complexity="all">All</button>
+                    <button class="filter-btn" data-complexity="beginner">Beginner</button>
+                    <button class="filter-btn" data-complexity="intermediate">Intermediate</button>
+                    <button class="filter-btn" data-complexity="advanced">Advanced</button>
+                </div>
             </div>
             
-            <span class="filter-label">Complexity:</span>
-            <div class="filter-group" id="complexityFilters">
-                <button class="filter-btn active" data-complexity="all">All</button>
-                <button class="filter-btn" data-complexity="beginner">Beginner</button>
-                <button class="filter-btn" data-complexity="intermediate">Intermediate</button>
-                <button class="filter-btn" data-complexity="advanced">Advanced</button>
+            <div class="controls">
+                <input type="text" class="search-box" id="searchBox-main" placeholder="Search ideas...">
+                <select class="count-selector" id="countSelector-main">
+                    <option value="10">10 Ideas</option>
+                    <option value="25">25 Ideas</option>
+                    <option value="50">50 Ideas</option>
+                    <option value="100">100 Ideas</option>
+                    <option value="500">500 Ideas</option>
+                    <option value="1000">1000 Ideas</option>
+                </select>
+                <button class="generate-btn" onclick="generateIdeas('main')">Generate Ideas</button>
+            </div>
+            
+            <div class="ideas-container" id="ideasContainer-main">
+            </div>
+            
+            <div class="stats">
+                <p>Showing <span id="currentCount-main">0</span> of <span id="totalCount-main">0</span> ideas</p>
             </div>
         </div>
-        
-        <div class="controls">
-            <input type="text" class="search-box" id="searchBox" placeholder="Search ideas...">
-            <select class="count-selector" id="countSelector">
-                <option value="10">10 Ideas</option>
-                <option value="25">25 Ideas</option>
-                <option value="50">50 Ideas</option>
-                <option value="100">100 Ideas</option>
-                <option value="500">500 Ideas</option>
-                <option value="1000">1000 Ideas</option>
-            </select>
-            <button class="generate-btn" onclick="generateIdeas()">Generate Ideas</button>
+
+        <div class="tab-panel panel-fortnite" id="panel-fortnite">
+            <div class="filters">
+                <span class="filter-label">Category:</span>
+                <div class="filter-group" id="categoryFilters-fortnite">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="fun">Fun</button>
+                    <button class="filter-btn" data-category="work">Work</button>
+                    <button class="filter-btn" data-category="learning">Learning</button>
+                    <button class="filter-btn" data-category="productivity">Productivity</button>
+                    <button class="filter-btn" data-category="entertainment">Entertainment</button>
+                    <button class="filter-btn" data-category="social">Social</button>
+
+                    <button class="filter-btn" data-category="health">Health</button>
+                    <button class="filter-btn" data-category="finance">Finance</button>
+                    <button class="filter-btn" data-category="creative">Creative</button>
+                    <button class="filter-btn" data-category="utility">Utility</button>
+                </div>
+                
+                <span class="filter-label">Complexity:</span>
+                <div class="filter-group" id="complexityFilters-fortnite">
+                    <button class="filter-btn active" data-complexity="all">All</button>
+                    <button class="filter-btn" data-complexity="beginner">Beginner</button>
+                    <button class="filter-btn" data-complexity="intermediate">Intermediate</button>
+                    <button class="filter-btn" data-complexity="advanced">Advanced</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <input type="text" class="search-box" id="searchBox-fortnite" placeholder="Search Fortnite ideas...">
+                <select class="count-selector" id="countSelector-fortnite">
+                    <option value="10">10 Ideas</option>
+                    <option value="25">25 Ideas</option>
+                    <option value="50">50 Ideas</option>
+                    <option value="100">100 Ideas</option>
+                    <option value="500">500 Ideas</option>
+                    <option value="1000">1000 Ideas</option>
+                </select>
+                <button class="generate-btn" onclick="generateIdeas('fortnite')">Generate Ideas</button>
+            </div>
+            
+            <div class="ideas-container" id="ideasContainer-fortnite">
+            </div>
+            
+            <div class="stats">
+                <p>Showing <span id="currentCount-fortnite">0</span> of <span id="totalCount-fortnite">0</span> ideas</p>
+            </div>
         </div>
-        
-        <div class="ideas-container" id="ideasContainer">
-            <!-- Ideas will be generated here -->
-        </div>
-        
-        <div class="stats">
-            <p>Showing <span id="currentCount">0</span> of <span id="totalCount">0</span> ideas</p>
+
+        <div class="tab-panel panel-rocketleague" id="panel-rocketleague">
+            <div class="filters">
+                <span class="filter-label">Category:</span>
+                <div class="filter-group" id="categoryFilters-rocketleague">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="fun">Fun</button>
+                    <button class="filter-btn" data-category="work">Work</button>
+                    <button class="filter-btn" data-category="learning">Learning</button>
+                    <button class="filter-btn" data-category="productivity">Productivity</button>
+                    <button class="filter-btn" data-category="entertainment">Entertainment</button>
+                    <button class="filter-btn" data-category="social">Social</button>
+
+                    <button class="filter-btn" data-category="health">Health</button>
+                    <button class="filter-btn" data-category="finance">Finance</button>
+                    <button class="filter-btn" data-category="creative">Creative</button>
+                    <button class="filter-btn" data-category="utility">Utility</button>
+                </div>
+                
+                <span class="filter-label">Complexity:</span>
+                <div class="filter-group" id="complexityFilters-rocketleague">
+                    <button class="filter-btn active" data-complexity="all">All</button>
+                    <button class="filter-btn" data-complexity="beginner">Beginner</button>
+                    <button class="filter-btn" data-complexity="intermediate">Intermediate</button>
+                    <button class="filter-btn" data-complexity="advanced">Advanced</button>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <input type="text" class="search-box" id="searchBox-rocketleague" placeholder="Search Rocket League ideas...">
+                <select class="count-selector" id="countSelector-rocketleague">
+                    <option value="10">10 Ideas</option>
+                    <option value="25">25 Ideas</option>
+                    <option value="50">50 Ideas</option>
+                    <option value="100">100 Ideas</option>
+                    <option value="500">500 Ideas</option>
+                    <option value="1000">1000 Ideas</option>
+                </select>
+                <button class="generate-btn" onclick="generateIdeas('rocketleague')">Generate Ideas</button>
+            </div>
+            
+            <div class="ideas-container" id="ideasContainer-rocketleague">
+            </div>
+            
+            <div class="stats">
+                <p>Showing <span id="currentCount-rocketleague">0</span> of <span id="totalCount-rocketleague">0</span> ideas</p>
+            </div>
         </div>
     </div>
 
@@ -465,8 +751,8 @@
     </div>
 
     <script>
-        const appIdeas = [
-            // Fun
+        // ---- Hand-picked idea packs per tab ----
+        const MAIN_IDEAS = [
             { title: "Meme Generator", description: "Create and share custom memes with text overlays and filters", category: "fun", complexity: "beginner", tags: ["social", "creative"] },
             { title: "Quiz Game Platform", description: "Build interactive quizzes with multiple question types and scoring", category: "fun", complexity: "intermediate", tags: ["gaming", "education"] },
             { title: "Virtual Pet Simulator", description: "Care for a digital pet with feeding, playing, and health stats", category: "fun", complexity: "beginner", tags: ["gaming", "simulation"] },
@@ -478,19 +764,17 @@
             { title: "Sound Board App", description: "Play sound effects with customizable buttons and mixing", category: "fun", complexity: "intermediate", tags: ["music", "entertainment"] },
             { title: "Virtual Drum Kit", description: "Play drums with keyboard or mouse clicks, record sessions", category: "fun", complexity: "intermediate", tags: ["music", "creative"] },
             
-            // Work
             { title: "Project Management Dashboard", description: "Track tasks, deadlines, and team progress with Kanban boards", category: "work", complexity: "advanced", tags: ["productivity", "collaboration"] },
             { title: "Invoice Generator", description: "Create professional invoices with PDF export and tracking", category: "work", complexity: "intermediate", tags: ["finance", "business"] },
             { title: "Time Tracker", description: "Log work hours with project categorization and reporting", category: "work", complexity: "intermediate", tags: ["productivity", "analytics"] },
             { title: "Resume Builder", description: "Create ATS-friendly resumes with multiple templates", category: "work", complexity: "intermediate", tags: ["career", "documents"] },
             { title: "Meeting Scheduler", description: "Coordinate meeting times with calendar integration", category: "work", complexity: "advanced", tags: ["productivity", "collaboration"] },
             { title: "Expense Report Tool", description: "Track and categorize business expenses with receipt scanning", category: "work", complexity: "intermediate", tags: ["finance", "productivity"] },
-            { title: "Employee Directory", description: " searchable database of team members with contact info", category: "work", complexity: "beginner", tags: ["hr", "collaboration"] },
+            { title: "Employee Directory", description: "Searchable database of team members with contact info", category: "work", complexity: "beginner", tags: ["hr", "collaboration"] },
             { title: "Performance Review System", description: "360-degree feedback collection and reporting", category: "work", complexity: "advanced", tags: ["hr", "analytics"] },
             { title: "Client CRM", description: "Manage customer relationships with notes and follow-ups", category: "work", complexity: "advanced", tags: ["sales", "productivity"] },
             { title: "Invoice Payment Tracker", description: "Monitor invoice status and payment history", category: "work", complexity: "intermediate", tags: ["finance", "accounting"] },
             
-            // Learning
             { title: "Flashcard System", description: "Create and study flashcards with spaced repetition", category: "learning", complexity: "intermediate", tags: ["education", "memory"] },
             { title: "Code Playground", description: "Online code editor with live preview for HTML/CSS/JS", category: "learning", complexity: "advanced", tags: ["programming", "education"] },
             { title: "Language Learning App", description: "Interactive lessons with vocabulary and grammar practice", category: "learning", complexity: "advanced", tags: ["languages", "education"] },
@@ -502,7 +786,6 @@
             { title: "Interactive Timeline", description: "Visualize historical events with zoomable timeline", category: "learning", complexity: "intermediate", tags: ["history", "visualization"] },
             { title: "Scientific Calculator", description: "Advanced calculator with formula history and graphing", category: "learning", complexity: "intermediate", tags: ["math", "utility"] },
             
-            // Productivity
             { title: "Todo List Manager", description: "Task management with priorities, due dates, and categories", category: "productivity", complexity: "beginner", tags: ["organization", "planning"] },
             { title: "Calendar App", description: "Visual calendar with event creation and reminders", category: "productivity", complexity: "intermediate", tags: ["scheduling", "planning"] },
             { title: "Habit Tracker", description: "Build and track daily habits with streaks and statistics", category: "productivity", complexity: "intermediate", tags: ["self-improvement", "tracking"] },
@@ -514,7 +797,6 @@
             { title: "Team Chat App", description: "Real-time messaging for teams with channels and DMs", category: "productivity", complexity: "advanced", tags: ["collaboration", "communication"] },
             { title: "Data Entry Form", description: "Efficient data input with validation and export", category: "productivity", complexity: "beginner", tags: ["forms", "data"] },
             
-            // Entertainment
             { title: "Movie Database", description: "Browse and rate movies with recommendations", category: "entertainment", complexity: "intermediate", tags: ["movies", "reviews"] },
             { title: "Music Playlist Manager", description: "Create and organize playlists with previews", category: "entertainment", complexity: "intermediate", tags: ["music", "organization"] },
             { title: "Podcast Player", description: "Audio player with subscriptions and playback controls", category: "entertainment", complexity: "advanced", tags: ["audio", "subscriptions"] },
@@ -526,7 +808,6 @@
             { title: "Photo Gallery App", description: "Organize and share photos with albums and filters", category: "entertainment", complexity: "intermediate", tags: ["photos", "sharing"] },
             { title: "Streaming Queue Manager", description: "Organize what to watch across multiple services", category: "entertainment", complexity: "intermediate", tags: ["streaming", "organization"] },
             
-            // Social
             { title: "Social Media Dashboard", description: "Manage multiple social accounts in one place", category: "social", complexity: "advanced", tags: ["management", "analytics"] },
             { title: "Event Planner", description: "Coordinate events with RSVP and guest management", category: "social", complexity: "intermediate", tags: ["events", "organization"] },
             { title: "Group Chat Room", description: "Create topic-based chat rooms with moderation", category: "social", complexity: "intermediate", tags: ["communication", "community"] },
@@ -538,7 +819,6 @@
             { title: "Local Events Finder", description: "Discover events happening in your area", category: "social", complexity: "intermediate", tags: ["events", "local"] },
             { title: "Review Platform", description: "Rate and review local businesses and services", category: "social", complexity: "intermediate", tags: ["reviews", "local"] },
             
-            // E-commerce
             { title: "Product Catalog", description: "Browse products with filtering and search", category: "ecommerce", complexity: "intermediate", tags: ["products", "browsing"] },
             { title: "Price Comparison Tool", description: "Compare prices across multiple retailers", category: "ecommerce", complexity: "advanced", tags: ["shopping", "comparison"] },
             { title: "Shopping List Manager", description: "Create and share shopping lists", category: "ecommerce", complexity: "beginner", tags: ["shopping", "organization"] },
@@ -550,7 +830,6 @@
             { title: "Delivery Tracker", description: "Track packages from multiple carriers", category: "ecommerce", complexity: "intermediate", tags: ["shipping", "tracking"] },
             { title: "Store Locator", description: "Find nearby stores with hours and reviews", category: "ecommerce", complexity: "beginner", tags: ["local", "shopping"] },
             
-            // Health
             { title: "Workout Tracker", description: "Log exercises with sets, reps, and progress", category: "health", complexity: "intermediate", tags: ["fitness", "tracking"] },
             { title: "Calorie Counter", description: "Track food intake with nutritional information", category: "health", complexity: "intermediate", tags: ["nutrition", "tracking"] },
             { title: "Meditation Timer", description: "Guided meditation with ambient sounds", category: "health", complexity: "beginner", tags: ["wellness", "mindfulness"] },
@@ -562,7 +841,6 @@
             { title: "Yoga Pose Guide", description: "Interactive guide with pose instructions", category: "health", complexity: "intermediate", tags: ["yoga", "fitness"] },
             { title: "Mood Journal", description: "Track emotions with notes and trends", category: "health", complexity: "beginner", tags: ["mental-health", "journaling"] },
             
-            // Finance
             { title: "Budget Tracker", description: "Monitor income and expenses with categories", category: "finance", complexity: "intermediate", tags: ["budgeting", "tracking"] },
             { title: "Investment Portfolio", description: "Track stocks, bonds, and crypto holdings", category: "finance", complexity: "advanced", tags: ["investing", "tracking"] },
             { title: "Bill Splitter", description: "Split expenses with friends and roommates", category: "finance", complexity: "beginner", tags: ["social", "expenses"] },
@@ -574,7 +852,6 @@
             { title: "Receipt Scanner", description: "Digitize receipts with OCR and categorization", category: "finance", complexity: "advanced", tags: ["receipts", "organization"] },
             { title: "Net Worth Calculator", description: "Calculate and track total net worth", category: "finance", complexity: "intermediate", tags: ["wealth", "tracking"] },
             
-            // Creative
             { title: "Image Editor", description: "Basic photo editing with filters and adjustments", category: "creative", complexity: "advanced", tags: ["photos", "editing"] },
             { title: "Logo Maker", description: "Create logos with templates and customization", category: "creative", complexity: "intermediate", tags: ["design", "branding"] },
             { title: "Color Palette Generator", description: "Generate harmonious color schemes", category: "creative", complexity: "beginner", tags: ["design", "colors"] },
@@ -586,7 +863,6 @@
             { title: "Mind Map Tool", description: "Visual brainstorming with connected nodes", category: "creative", complexity: "intermediate", tags: ["brainstorming", "organization"] },
             { title: "Icon Library", description: "Browse and customize icons for projects", category: "creative", complexity: "intermediate", tags: ["design", "icons"] },
             
-            // Utility
             { title: "Unit Converter", description: "Convert between measurement systems", category: "utility", complexity: "beginner", tags: ["conversion", "tools"] },
             { title: "QR Code Generator", description: "Create QR codes for URLs, text, and contacts", category: "utility", complexity: "beginner", tags: ["codes", "sharing"] },
             { title: "Markdown Editor", description: "Write and preview markdown documents", category: "utility", complexity: "intermediate", tags: ["writing", "formatting"] },
@@ -598,7 +874,6 @@
             { title: "Base64 Encoder", description: "Encode and decode Base64 strings", category: "utility", complexity: "beginner", tags: ["encoding", "tools"] },
             { title: "Lorem Ipsum Generator", description: "Generate placeholder text for designs", category: "utility", complexity: "beginner", tags: ["design", "text"] },
             
-            // Advanced/Unique Ideas
             { title: "AI Chatbot Builder", description: "Create custom chatbots with conversation flows", category: "productivity", complexity: "advanced", tags: ["ai", "automation"] },
             { title: "Blockchain Explorer", description: "Browse transactions on blockchain networks", category: "finance", complexity: "advanced", tags: ["crypto", "blockchain"] },
             { title: "AR Camera App", description: "Augmented reality effects using webcam", category: "fun", complexity: "advanced", tags: ["ar", "camera"] },
@@ -620,7 +895,6 @@
             { title: "Learning Management System", description: "Course creation and student tracking", category: "learning", complexity: "advanced", tags: ["education", "courses"] },
             { title: "Booking System", description: "Appointment scheduling with calendar sync", category: "work", complexity: "advanced", tags: ["scheduling", "appointments"] },
             
-            // More Fun/Games
             { title: "Word Search Puzzle", description: "Generate word search puzzles with custom words", category: "fun", complexity: "intermediate", tags: ["puzzles", "words"] },
             { title: "Memory Card Game", description: "Classic matching game with various themes", category: "fun", complexity: "beginner", tags: ["gaming", "memory"] },
             { title: "Sudoku Solver", description: "Solve and generate Sudoku puzzles", category: "fun", complexity: "intermediate", tags: ["puzzles", "logic"] },
@@ -632,7 +906,6 @@
             { title: "Rock Paper Scissors", description: "Play against computer with score tracking", category: "fun", complexity: "beginner", tags: ["gaming", "simple"] },
             { title: "Tic Tac Toe", description: "Classic game with AI opponent", category: "fun", complexity: "beginner", tags: ["gaming", "strategy"] },
             
-            // More Work Tools
             { title: "Gantt Chart Creator", description: "Visual project timeline with dependencies", category: "work", complexity: "advanced", tags: ["project-management", "visualization"] },
             { title: "OKR Tracker", description: "Track Objectives and Key Results", category: "work", complexity: "intermediate", tags: ["goals", "management"] },
             { title: "Client Portal", description: "Secure area for client documents and updates", category: "work", complexity: "advanced", tags: ["clients", "portal"] },
@@ -644,7 +917,6 @@
             { title: "Expense Tracker", description: "Track business expenses by category", category: "work", complexity: "intermediate", tags: ["finance", "expenses"] },
             { title: "Task Automation Builder", description: "Create workflows to automate repetitive tasks", category: "work", complexity: "advanced", tags: ["automation", "productivity"] },
             
-            // Health & Wellness
             { title: "Yoga Flow Builder", description: "Create custom yoga sequences", category: "health", complexity: "intermediate", tags: ["yoga", "fitness"] },
             { title: "Running Tracker", description: "Log runs with GPS and statistics", category: "health", complexity: "intermediate", tags: ["running", "fitness"] },
             { title: "Meal Planner", description: "Plan weekly meals with recipes", category: "health", complexity: "intermediate", tags: ["nutrition", "planning"] },
@@ -657,14 +929,50 @@
             { title: "Wellness Dashboard", description: "Holistic health overview with goals", category: "health", complexity: "advanced", tags: ["wellness", "dashboard"] }
         ];
 
-        // ---- Unlimited combinatorial generator ----
-        const WORDS = {
+        const FORTNITE_IDEAS = [
+            { title: "Victory Royale Progress Tracker", description: "Log every win, crown, and elimination streak across your Fortnite matches", category: "fun", complexity: "beginner", tags: ["gaming", "tracking"] },
+            { title: "Build Battle Trainer", description: "Practice edit courses with timing drills and combo chains", category: "learning", complexity: "intermediate", tags: ["gaming", "practice"] },
+            { title: "Drop Spot Randomizer", description: "Spin a random landing spot with loot-tier notes for each", category: "fun", complexity: "beginner", tags: ["gaming", "random"] },
+            { title: "Battle Pass Level Planner", description: "Map out your XP quests to max the pass before the season ends", category: "productivity", complexity: "intermediate", tags: ["gaming", "planning"] },
+            { title: "Item Shop Watchlist", description: "Track which skins and emotes you want back in rotation", category: "utility", complexity: "beginner", tags: ["gaming", "wishlist"] },
+            { title: "Squad Comms Coach", description: "Rehearse callouts, rotations, and reboot timing with your squad", category: "social", complexity: "intermediate", tags: ["gaming", "communication"] }
+        ];
+
+        const ROCKETLEAGUE_IDEAS = [
+            { title: "Aerial Training Pack Curator", description: "Organize boost recovery and aerial drills into daily routines", category: "learning", complexity: "intermediate", tags: ["gaming", "practice"] },
+            { title: "Replay Breakdown Journal", description: "Annotate your replays with rotation and boost mistakes", category: "learning", complexity: "intermediate", tags: ["gaming", "reviews"] },
+            { title: "Rank Climber Tracker", description: "Chart MMR swings and set weekly rank-up goals", category: "productivity", complexity: "beginner", tags: ["gaming", "tracking"] },
+            { title: "Inventory Trade Valuer", description: "Compare credit values for your favorite items and blueprints", category: "finance", complexity: "intermediate", tags: ["gaming", "trading"] },
+            { title: "Boost Management Drill", description: "Practice boost pad routes and boost-saving mechanics", category: "learning", complexity: "beginner", tags: ["gaming", "practice"] },
+            { title: "Tournament Rotation Coach", description: "Plan team rotations and demo moments for tournament night", category: "social", complexity: "intermediate", tags: ["gaming", "teamwork"] }
+        ];
+
+        // ---- Per-tab word banks ----
+        const BASE_WORDS = {
             subject: ["memes", "workouts", "recipes", "study notes", "playlists", "expenses", "budgets", "houseplants", "pets", "travel plans", "grocery lists", "movie nights", "gift ideas", "homework", "passwords", "bookmarks", "daily habits", "photos", "video clips", "team tasks", "invoices", "event invites", "music", "podcasts", "coding projects", "job applications", "water intake", "sleep patterns", "moods", "reading logs", "budget spreadsheets", "language practice", "chess matches", "bike routes", "wine collections", "coffee brewing", "DIY projects", "holiday decor", "bucket lists", "family traditions", "school clubs", "pub trivia", "road trips"],
             audience: ["students", "gamers", "dog owners", "busy parents", "fitness fans", "artists", "teachers", "freelancers", "small businesses", "travelers", "home cooks", "programmers", "musicians", "photographers", "gardeners", "runners", "remote workers", "podcasters", "startups", "retirees", "night owls", "early risers", "minimalists", "commuters", "gaming streamers", "home renovators", "yoga lovers", "foodies", "film buffs", "bookworms", "bargain hunters", "procrastinators"],
             feature: ["streak tracking", "dark mode", "offline mode", "voice control", "one-click sharing", "AI suggestions", "smart reminders", "charts and graphs", "drag-and-drop", "keyboard shortcuts", "PDF export", "cloud sync", "password protection", "emoji reactions", "custom themes", "templates", "progress bars", "badges and rewards", "instant search", "advanced filters", "sound effects", "smooth animations", "collaborative editing", "version history", "randomize button", "batch import", "live preview", "responsive layout", "data backup", "privacy mode", "beginner tutorial", "location tagging", "color coding", "folding menu", "print view", "calendar view"],
             perk: ["instant export", "quiz mode", "practice mode", "gamified points", "leaderboards", "daily challenges", "smart tagging", "auto-summarize", "offline archive", "shareable links", "custom avatars", "achievement badges", "weekly reports", "smart search", "quick actions", "favorites folder", "history log", "screenshot capture", "batch editing", "drag sorting", "bulk actions", "pattern detections", "goal milestones", "focus mode", "vacation mode", "guest access", "wizard setup", "keyboard-first controls"],
             interaction: ["works in one click", "runs completely offline", "requires no signup", "saves everything locally", "is fully keyboard-driven", "updates in real time", "breaks big tasks into steps", "turns data into stories", "makes tracking fun", "learns your preferences", "fits on any screen", "feels instant", "protects your privacy", "scales from small to huge", "adapts to your pace", "guards against mistakes", "celebrates small wins", "cuts out the busywork", "surfaces what matters", "keeps you in the flow"],
             theme: ["retro", "neo-noir", "cozy cottage", "cyberpunk", "pastel", "minimal", "brutalist", "deep space", "underwater", "sunset", "forest", "monochrome", "glassmorphism", "comic book", "steampunk", "claymorphism", "gradient", "editorial", "warm analog", "crisp modern"]
+        };
+
+        const FORTNITE_WORDS = {
+            subject: ["victory royales", "storm circles", "build battles", "edit courses", "emote collections", "battle pass tiers", "supply drop loot", "elimination streaks", "drop spots", "crown wins", "zone rotations", "reboot cards", "fishing spots", "glider descents", "quest checklists", "xp grinds", "vaulted items", "season rotations", "loadout presets", "creative map hubs"],
+            audience: ["solo grinders", "squad fillers", "creative builders", "zero-build mains", "crown chasers", "item shop hunters", "chapter 1 veterans", "xp grinders"],
+            feature: ["storm timer alerts", "loot rarity tracking", "edit course practice", "drop spot randomizer", "quest tick lists", "xp milepost bars", "loadout deck builder", "match recap journal", "reboot timing helper", "elimination kill counter"],
+            perk: ["battle pass level tracker", "endgame rotation planner", "squad voice cue ringtones", "vaulted-return news feed", "supply drop scout timer", "crown win counter", "zero-build meta picks", "aura rarity detector"],
+            interaction: ["tracks your V-buck balance", "turns matches into highlights", "breaks the grind into daily quests", "syncs with item shop drops", "keeps you calm in the final zone", "adapts to your game sense", "surfaces what matters mid-match", "cuts out the pre-match busywork"],
+            theme: ["stormful purple", "neon chroma", "comic pop", "zero-build minimal", "chapter 1 retro", "item shop neon", "leyline glow", "glimmer gold"]
+        };
+
+        const ROCKETLEAGUE_WORDS = {
+            subject: ["aerial trainings", "replay save files", "car loadouts", "trade inventories", "tournament games", "training packs", "dribble drills", "wall shot routines", "rank climbers", "season rewards", "credit trades", "clutch overtime goals", "ball control drills", "team comms", "car body tiers", "boost inventories", "boost management", "mechanics tier lists", "demo plays", "save streaks"],
+            audience: ["solo queuers", "threes teammates", "freestylers", "diamond climbers", "tournament grinders", "traders", "coached duos", "rookie rollers"],
+            feature: ["boosting drills", "replay breakdown notes", "training pack playlists", "shot timing charts", "rank-up trackers", "car stat calculators", "spin and flick drills", "boost pad maps", "rotation reminders", "demo counter"],
+            perk: ["goal replay editor", "mechanics checklist", "overtime momentum tracker", "trade value scanner", "season milestone log", "dribble practice timer", "aerial accuracy score", "wasted boost alarm"],
+            interaction: ["tracks your MMR movements", "turns replays into lessons", "breaks practice into daily packs", "keeps rotation simple in comms", "celebrates every save streak", "adapts to your skill ceiling", "cuts the grind into weekly challenges", "protects your inventory info"],
+            theme: ["boost orange", "neon pitch", "arena floodlights", "octane clean", "championship gold", "night skyline pitch", "sweat-lobby dark", "esports broadcast"]
         };
 
         const CAT_FORMATS = {
@@ -681,6 +989,12 @@
             utility: ["Toolbox", "Converter", "Helper", "Checker", "Wizard", "Shortcut", "Formatter", "Lens"]
         };
 
+        const GENERATORS = {
+            main: { handpicked: MAIN_IDEAS, words: BASE_WORDS },
+            fortnite: { handpicked: FORTNITE_IDEAS, words: FORTNITE_WORDS },
+            rocketleague: { handpicked: ROCKETLEAGUE_IDEAS, words: ROCKETLEAGUE_WORDS }
+        };
+
         const CATEGORIES = Object.keys(CAT_FORMATS);
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         const pickN = (arr, n) => {
@@ -688,15 +1002,16 @@
             return Array.from({ length: n }, (_, i) => shuffled[i % shuffled.length]);
         };
 
-        function buildGeneratedIdea(category, complexity) {
+        function buildGeneratedIdea(category, complexity, generator) {
+            const W = generator.words;
             const cat = category || pick(CATEGORIES);
             const format = pick(CAT_FORMATS[cat]);
-            const subject = pick(WORDS.subject);
-            const audience = pick(WORDS.audience);
-            const feature = pick(WORDS.feature);
-            const perk = pick(WORDS.perk);
-            const interaction = pick(WORDS.interaction);
-            const theme = pick(WORDS.theme);
+            const subject = pick(W.subject);
+            const audience = pick(W.audience);
+            const feature = pick(W.feature);
+            const perk = pick(W.perk);
+            const interaction = pick(W.interaction);
+            const theme = pick(W.theme);
 
             const pattern = Math.random();
             let title, description;
@@ -724,90 +1039,10 @@
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
-        function totalCombinations() {
-            const perCategory = (WORDS.subject.length * WORDS.audience.length * WORDS.feature.length * WORDS.perk.length * WORDS.interaction.length * WORDS.theme.length * Math.max(...Object.values(CAT_FORMATS).map(a => a.length)));
+        function totalCombinations(generator) {
+            const W = generator.words;
+            const perCategory = (W.subject.length * W.audience.length * W.feature.length * W.perk.length * W.interaction.length * W.theme.length * Math.max(...Object.values(CAT_FORMATS).map(a => a.length)));
             return perCategory * CATEGORIES.length;
-        }
-
-        let selectedCategories = ['all'];
-        let selectedComplexities = ['all'];
-        let filteredIdeas = [...appIdeas];
-
-        // Filter button click handlers
-        document.querySelectorAll('#categoryFilters .filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const category = btn.dataset.category;
-                
-                if (category === 'all') {
-                    selectedCategories = ['all'];
-                    document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                } else {
-                    document.querySelector('#categoryFilters .filter-btn[data-category="all"]').classList.remove('active');
-                    selectedCategories = selectedCategories.filter(c => c !== 'all');
-                    
-                    if (btn.classList.contains('active')) {
-                        btn.classList.remove('active');
-                        selectedCategories = selectedCategories.filter(c => c !== category);
-                        if (selectedCategories.length === 0) {
-                            selectedCategories = ['all'];
-                            document.querySelector('#categoryFilters .filter-btn[data-category="all"]').classList.add('active');
-                        }
-                    } else {
-                        btn.classList.add('active');
-                        selectedCategories.push(category);
-                    }
-                }
-                
-                filterIdeas();
-            });
-        });
-
-        document.querySelectorAll('#complexityFilters .filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const complexity = btn.dataset.complexity;
-                
-                if (complexity === 'all') {
-                    selectedComplexities = ['all'];
-                    document.querySelectorAll('#complexityFilters .filter-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                } else {
-                    document.querySelector('#complexityFilters .filter-btn[data-complexity="all"]').classList.remove('active');
-                    selectedComplexities = selectedComplexities.filter(c => c !== 'all');
-                    
-                    if (btn.classList.contains('active')) {
-                        btn.classList.remove('active');
-                        selectedComplexities = selectedComplexities.filter(c => c !== complexity);
-                        if (selectedComplexities.length === 0) {
-                            selectedComplexities = ['all'];
-                            document.querySelector('#complexityFilters .filter-btn[data-complexity="all"]').classList.add('active');
-                        }
-                    } else {
-                        btn.classList.add('active');
-                        selectedComplexities.push(complexity);
-                    }
-                }
-                
-                filterIdeas();
-            });
-        });
-
-        document.getElementById('searchBox').addEventListener('input', filterIdeas);
-
-        function filterIdeas() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
-            filteredIdeas = appIdeas.filter(idea => {
-                const categoryMatch = selectedCategories.includes('all') || selectedCategories.includes(idea.category);
-                const complexityMatch = selectedComplexities.includes('all') || selectedComplexities.includes(idea.complexity);
-                const searchMatch = idea.title.toLowerCase().includes(searchTerm) || 
-                                   idea.description.toLowerCase().includes(searchTerm) ||
-                                   idea.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-                
-                return categoryMatch && complexityMatch && searchMatch;
-            });
-            
-            generateIdeas();
         }
 
         const esc = t => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -830,47 +1065,107 @@
             `Make it complete and working out of the box.`
         ].join('\n');
 
-        function generateIdeas() {
-            const count = parseInt(document.getElementById('countSelector').value);
-            const container = document.getElementById('ideasContainer');
+        // ---- Tab switching ----
+        document.querySelectorAll('.tab-nav button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                const panel = document.getElementById('panel-' + btn.dataset.tab);
+                if (panel) panel.classList.add('active');
+            });
+        });
 
-            const cats = selectedCategories.includes('all') ? CATEGORIES.slice() : selectedCategories.slice();
-            const complexities = selectedComplexities.includes('all') ? ["beginner", "intermediate", "advanced"] : selectedComplexities.slice();
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
+        // ---- Per-tab state + wiring ----
+        const tabs = ['main', 'fortnite', 'rocketleague'];
+
+        function bindFilterGroup(baseId, kind, state) {
+            const buttons = document.querySelectorAll('#' + baseId + ' .filter-btn');
+            const allBtn = document.querySelector('#' + baseId + ' [data-' + kind + '="all"]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const sel = btn.dataset[kind];
+                    if (sel === 'all') {
+                        state[kind] = ['all'];
+                        buttons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    } else {
+                        allBtn.classList.remove('active');
+                        state[kind] = state[kind].filter(v => v !== 'all');
+                        if (btn.classList.contains('active')) {
+                            btn.classList.remove('active');
+                            state[kind] = state[kind].filter(v => v !== sel);
+                            if (state[kind].length === 0) {
+                                state[kind] = ['all'];
+                                allBtn.classList.add('active');
+                            }
+                        } else {
+                            btn.classList.add('active');
+                            state[kind].push(sel);
+                        }
+                    }
+                    filterIdeas(state);
+                });
+            });
+        }
+
+        window._ideaPool = window._ideaPool || {};
+
+        function filterIdeas(state) {
+            const searchTerm = document.getElementById('searchBox-' + state.tab).value.toLowerCase();
+            state.filteredIdeas = state.generator.handpicked.filter(idea => {
+                const categoryMatch = state.category.includes('all') || state.category.includes(idea.category);
+                const complexityMatch = state.complexity.includes('all') || state.complexity.includes(idea.complexity);
+                const searchMatch = !searchTerm ||
+                    idea.title.toLowerCase().includes(searchTerm) ||
+                    idea.description.toLowerCase().includes(searchTerm) ||
+                    idea.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                return categoryMatch && complexityMatch && searchMatch;
+            });
+            generateIdeas(state.tab);
+        }
+
+        function generateIdeas(tabKey) {
+            const state = tabState[tabKey];
+            const count = parseInt(document.getElementById('countSelector-' + tabKey).value);
+            const container = document.getElementById('ideasContainer-' + tabKey);
+            const generator = state.generator;
+
+            const cats = state.category.includes('all') ? CATEGORIES.slice() : state.category.slice();
+            const complexities = state.complexity.includes('all') ? ["beginner", "intermediate", "advanced"] : state.complexity.slice();
+            const searchTerm = document.getElementById('searchBox-' + tabKey).value.toLowerCase();
+
             const matchesSearch = idea =>
                 !searchTerm ||
                 idea.title.toLowerCase().includes(searchTerm) ||
                 idea.description.toLowerCase().includes(searchTerm) ||
                 idea.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-            
-            // Start with hand-picked ideas that match the filters
-            let ideasToShow = [...filteredIdeas].sort(() => Math.random() - 0.5).map(idea => ({
+
+            let ideasToShow = [...state.filteredIdeas].sort(() => Math.random() - 0.5).map(idea => ({
                 ...idea,
                 uniqueId: Math.random().toString(36).substr(2, 9)
             }));
-            
-            // Fill the rest with fresh combinations — effectively unlimited
+
             const usedTitles = new Set(ideasToShow.map(i => i.title));
             let attempts = 0;
             while (ideasToShow.length < count && attempts < 40000) {
                 attempts++;
                 const cat = pick(cats);
                 const cplx = pick(complexities);
-                const idea = buildGeneratedIdea(cat, cplx);
+                const idea = buildGeneratedIdea(cat, cplx, generator);
                 if (usedTitles.has(idea.title)) continue;
                 if (!matchesSearch(idea)) continue;
                 usedTitles.add(idea.title);
                 ideasToShow.push({ ...idea, uniqueId: Math.random().toString(36).substr(2, 9) });
             }
-            
+
             if (ideasToShow.length > count) ideasToShow = ideasToShow.slice(0, count);
-            
-            window._ideaPool = {};
+
+            const pool = window._ideaPool[tabKey] = {};
             container.innerHTML = ideasToShow.map(idea => {
-                window._ideaPool[idea.uniqueId] = idea;
+                pool[idea.uniqueId] = idea;
                 return `
-                <button class="idea-card" onclick="openIdeaModal('${idea.uniqueId}')">
+                <button class="idea-card" onclick="openIdeaModal('${idea.uniqueId}','${tabKey}')">
                     <h3>${esc(idea.title)}</h3>
                     <p>${esc(idea.description)}</p>
                     <div class="idea-tags">
@@ -881,29 +1176,29 @@
                     <span class="expand-btn">Tap for details &amp; prompt</span>
                 </button>`;
             }).join('');
-            
-            const possible = filteredIdeas.length + totalCombinations();
-            document.getElementById('currentCount').textContent = ideasToShow.length;
-            document.getElementById('totalCount').textContent = 'out of ~' + possible.toLocaleString() + ' possible ideas';
+
+            const possible = state.filteredIdeas.length + totalCombinations(generator);
+            document.getElementById('currentCount-' + tabKey).textContent = ideasToShow.length;
+            document.getElementById('totalCount-' + tabKey).textContent = 'out of ~' + possible.toLocaleString() + ' possible ideas';
         }
 
-        function openIdeaModal(id) {
-            const idea = window._ideaPool && window._ideaPool[id];
+        function openIdeaModal(id, tabKey) {
+            const pool = (window._ideaPool && window._ideaPool[tabKey]) || {};
+            const idea = pool[id];
             if (!idea) return;
-            
+
             document.getElementById('modalTitle').textContent = idea.title;
-            
+
             const body = document.getElementById('modalBody');
-            const detailLine = `${idea.title} is a ${idea.category} app idea for the web. ${idea.description}.`;
             body.innerHTML = `<strong>${esc(idea.title)}</strong> is a <strong>${esc(idea.category)}</strong> idea — <strong>${esc(idea.complexity)}</strong> difficulty.<br><br>` +
                 `This is a thing that makes ${esc(idea.description.toLowerCase().replace(/\.$/, ''))}. ` +
                 `It's built for <strong>${esc(idea.tags.join(', '))}</strong> and works right in the browser as a single HTML file.`;
-            
+
             document.getElementById('modalTags').innerHTML =
                 `<span class="tag">${esc(idea.category)}</span>` +
                 `<span class="tag">${esc(idea.complexity)}</span>` +
                 idea.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
-            
+
             document.getElementById('modalPrompt').value = buildPrompt(idea);
             document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
             document.getElementById('ideaModal').classList.add('show');
@@ -945,8 +1240,21 @@
             }
         }
 
-        // Initialize
-        generateIdeas();
+        // Initialize each tab
+        const tabState = {};
+        tabs.forEach(tabKey => {
+            tabState[tabKey] = {
+                tab: tabKey,
+                generator: GENERATORS[tabKey],
+                category: ['all'],
+                complexity: ['all'],
+                filteredIdeas: [...GENERATORS[tabKey].handpicked]
+            };
+            bindFilterGroup('categoryFilters-' + tabKey, 'category', tabState[tabKey]);
+            bindFilterGroup('complexityFilters-' + tabKey, 'complexity', tabState[tabKey]);
+            document.getElementById('searchBox-' + tabKey).addEventListener('input', () => filterIdeas(tabState[tabKey]));
+            generateIdeas(tabKey);
+        });
     </script>
 </body>
 </html>
