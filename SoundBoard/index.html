@@ -16,6 +16,7 @@
         <button class="tab" data-tab="create">Create</button>
         <button class="tab" data-tab="edit">Edit</button>
         <button class="tab" data-tab="combos">Combos</button>
+        <button class="tab" data-tab="download">Download</button>
     </div>
 
     <div id="tab-main" class="tab-content active">
@@ -120,6 +121,11 @@
         <p id="no-combos" class="no-favs">No combos saved yet. Create one in the Create tab!</p>
     </div>
 
+    <div id="tab-download" class="tab-content">
+        <h2>Download Sounds</h2>
+        <div id="download-grid" class="grid"></div>
+    </div>
+
     <div id="recently-edited" class="recently-edited">
         <h2>Recently Edited</h2>
         <div id="recently-list"></div>
@@ -131,6 +137,7 @@
         <div id="np-list"></div>
     </div>
 
+    <script src="sounds-data.js"></script>
     <script src="index.js"></script>
 </body>
 </html>
