@@ -1877,6 +1877,86 @@ function updateNowPlayingBar() {
     });
 }
 
+// ======================== DOWNLOAD TAB ========================
+function downloadAnchor(filename, href) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.setAttribute("download", filename);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+function cleanFileName(name, key) {
+    const baseName = (SOUNDS[key] && SOUNDS[key].file ? SOUNDS[key].file.split("/").pop() : key + ".mp3");
+    const cleaned = (name.replace(/[^a-z0-9 ]+/gi, "").trim().replace(/\s+/g, "-") || baseName.replace(/\.mp3$/i, "")).toLowerCase();
+    return cleaned + ".mp3";
+}
+
+function soundBlobUrl(key) {
+    const fp = (SOUNDS[key] && SOUNDS[key].file) ? SOUNDS[key].file.split("/").pop() : (key + ".mp3");
+    const b64 = (typeof SOUNDS_DATA !== "undefined") ? SOUNDS_DATA[fp] : null;
+    if (!b64) return null;
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }));
+}
+
+function renderDownloadGrid() {
+    const grid = document.getElementById("download-grid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    Object.keys(SOUNDS).forEach(key => {
+        const s = SOUNDS[key];
+        const a = document.createElement("a");
+        a.className = "card download-card";
+        a.href = s.file;
+        a.draggable = false;
+
+        const durBadge = document.createElement("div");
+        durBadge.className = "duration-indicator";
+        durBadge.textContent = "…";
+        getDuration(key).then(d => { durBadge.textContent = formatTime(d); });
+        a.appendChild(durBadge);
+
+        const emojiEl = document.createElement("div");
+        emojiEl.className = "card-emoji";
+        emojiEl.textContent = s.emoji;
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "card-name";
+        nameEl.textContent = s.name;
+
+        const dlLabel = document.createElement("div");
+        dlLabel.className = "download-label";
+        dlLabel.textContent = "⬇ download";
+
+        a.appendChild(emojiEl);
+        a.appendChild(nameEl);
+        a.appendChild(dlLabel);
+
+        a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const filename = cleanFileName(s.name, key);
+            const url = soundBlobUrl(key);
+            if (!url) {
+                dlLabel.textContent = "not available";
+                setTimeout(() => { dlLabel.textContent = "⬇ download"; }, 1500);
+                return;
+            }
+            dlLabel.textContent = "downloading…";
+            downloadAnchor(filename, url);
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                dlLabel.textContent = "⬇ download";
+            }, 10000);
+        });
+
+        grid.appendChild(a);
+    });
+}
+
 // ======================== INIT ========================
 preloadAll();
 renderMainGrid();
@@ -1886,5 +1966,6 @@ renderCreateItems();
 renderEditGrid();
 renderCombosGrid();
 renderRecentlyEdited();
+renderDownloadGrid();
 setupTimelineDragHandlers();
 updateNowPlayingBar();
