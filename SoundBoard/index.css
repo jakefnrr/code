@@ -736,6 +736,19 @@ p {
     background: #dc2626;
 }
 
+/* DOWNLOAD TAB */
+.download-card {
+    display: block;
+    text-decoration: none;
+}
+
+.download-card .download-label {
+    color: #22c55e;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-top: 0.4rem;
+}
+
 /* RECENTLY EDITED */
 .recently-edited {
     margin-top: 3rem;
