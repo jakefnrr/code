@@ -60,7 +60,11 @@
             margin-bottom: 15px;
         }
 
-        .hero h1 span {
+        .hero h1 .title-my {
+            color: white;
+        }
+
+        .hero h1 .title-green {
             color: #00ff88;
         }
 
@@ -69,11 +73,158 @@
             font-size: 18px;
         }
 
+        /* HEADER LEFT */
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* LANGUAGE DROPDOWN */
+        .lang-select {
+            position: relative;
+        }
+
+        #lang-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 7px 14px;
+
+            background: #111;
+            color: #ccc;
+
+            border: 1px solid #333;
+            border-radius: 8px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        #lang-button:hover {
+            border-color: #00ff88;
+            color: #fff;
+        }
+
+        .lang-arrows {
+            color: #888;
+            font-size: 8px;
+            line-height: 1;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .arrow-up {
+            margin-bottom: 1px;
+        }
+
+        .lang-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+
+            min-width: 190px;
+
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+
+            padding: 6px;
+
+            display: none;
+
+            z-index: 100;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .lang-menu.open {
+            display: block;
+        }
+
+        .lang-option {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #ccc;
+
+            transition: 0.15s;
+        }
+
+        .lang-option:hover {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .lang-option.active {
+            background: #0d2b1f;
+            color: #00ff88;
+        }
+
+        /* TAB BAR (THE LINE ACROSS THE SCREEN) */
+        .tab-bar {
+            width: 100%;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+
+            padding: 12px 20px;
+
+            background: #0d0d0d;
+            border-bottom: 1px solid #292929;
+        }
+
+        .tab-btn {
+            padding: 10px 30px;
+
+            background: transparent;
+            color: #888;
+
+            border: 2px solid #333;
+            border-radius: 10px;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            border-color: #00ff88;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: #00ff88;
+            color: #000;
+            border-color: #00ff88;
+        }
+
         /* PROJECT GRID */
         .projects {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: grid;
         }
 
         .project {
@@ -264,6 +415,22 @@
 
             header {
                 padding: 20px;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .header-left {
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                font-size: 22px;
+            }
+
+            .tab-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+                flex: 1;
             }
 
             .hero h1 {
@@ -292,15 +459,83 @@
     <!-- HEADER -->
     <header>
 
-        <div class="logo">
-            PROJECT HUB
+        <div class="header-left">
+
+            <div class="logo" data-i18n="logo">
+                PROJECT HUB
+            </div>
+
+            <!-- LANGUAGE DROPDOWN -->
+            <div class="lang-select">
+
+                <button
+                    id="lang-button"
+                    type="button"
+                    onclick="toggleLangMenu(event)"
+                >
+
+                    <span id="current-lang">
+                        English
+                    </span>
+
+                    <span class="lang-arrows">
+                        <span class="arrow-up">&#9650;</span>
+                        <span class="arrow-down">&#9660;</span>
+                    </span>
+
+                </button>
+
+                <div id="lang-menu" class="lang-menu">
+
+                    <div class="lang-option active" data-lang="en" onclick="chooseLang('en')">
+                        English
+                    </div>
+
+                    <div class="lang-option" data-lang="th" onclick="chooseLang('th')">
+                        Thai (&#3610;&#3634;&#3625;&#3634;&#3648;&#3627;&#3605;&#3619;)
+                    </div>
+
+                    <div class="lang-option" data-lang="fr" onclick="chooseLang('fr')">
+                        French (Fran&ccedil;ais)
+                    </div>
+
+                    <div class="lang-option" data-lang="es" onclick="chooseLang('es')">
+                        Spanish (Espa&ntilde;ol)
+                    </div>
+
+                    <div class="lang-option" data-lang="ja" onclick="chooseLang('ja')">
+                        Japanese (&#26085;&#26412;&#35486;)
+                    </div>
+
+                    <div class="lang-option" data-lang="zh" onclick="chooseLang('zh')">
+                        Chinese (&#20013;&#25991;)
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="subtitle">
+        <div class="subtitle" data-i18n="subtitle">
             By Jake Scalzo
         </div>
 
     </header>
+
+
+    <!-- THE LINE ACROSS THE SCREEN WITH THE TABS -->
+    <div class="tab-bar">
+
+        <button class="tab-btn active" onclick="switchTab('big', event)" data-i18n="tab-big">
+            Big Projects
+        </button>
+
+        <button class="tab-btn" onclick="switchTab('little', event)" data-i18n="tab-little">
+            Other Projects
+        </button>
+
+    </div>
 
 
     <!-- MAIN -->
@@ -309,18 +544,19 @@
         <section class="hero">
 
             <h1>
-                My <span>Projects</span>
+                <span class="title-my" data-i18n="hero-my">My</span>
+                <span class="title-green" data-i18n="hero-span">Projects</span>
             </h1>
 
-            <p>
+            <p data-i18n="hero-p">
                 A collection of all my coding projects in one place.
             </p>
 
         </section>
 
 
-        <!-- PROJECTS -->
-        <section class="projects">
+        <!-- BIG PROJECTS -->
+        <section class="projects tab-content active" id="tab-big">
 
 
             <!-- ARCADE -->
@@ -332,11 +568,11 @@
                         PROJECT 01
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="arcade-title">
                         Arcade Hub
                     </h2>
 
-                    <p>
+                    <p data-i18n="arcade-desc">
                         A collection of html games
                     </p>
 
@@ -345,6 +581,7 @@
                 <a
                     class="project-button"
                     href="Arcade/index.html"
+                    data-i18n="arcade-btn"
                 >
                     OPEN ARCADE HUB
                 </a>
@@ -361,11 +598,11 @@
                         PROJECT 02
                     </div>
 
-                    <h2 id="grind-title">
+                    <h2 id="grind-title" data-i18n="grind-title">
                         Grind Hub
                     </h2>
 
-                    <p id="grind-description">
+                    <p id="grind-description" data-i18n="grind-desc">
                         Stay organized, track your progress,
                         and keep the grind moving.
                     </p>
@@ -376,6 +613,7 @@
                     id="grind-button"
                     class="project-button"
                     href="GrindHub/index.html"
+                    data-i18n="grind-btn"
                 >
                     OPEN GRIND HUB
                 </a>
@@ -392,11 +630,11 @@
                         PROJECT 03
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="massage-title">
                         Massage
                     </h2>
 
-                    <p>
+                    <p data-i18n="massage-desc">
                         My massage project.
                     </p>
 
@@ -405,6 +643,7 @@
                 <a
                     class="project-button"
                     href="Massage/index.html"
+                    data-i18n="massage-btn"
                 >
                     OPEN MASSAGE
                 </a>
@@ -421,11 +660,11 @@
                         PROJECT 04
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="notes-title">
                         Notes
                     </h2>
 
-                    <p>
+                    <p data-i18n="notes-desc">
                         My notes and information hub.
                     </p>
 
@@ -434,39 +673,12 @@
                 <a
                     class="project-button"
                     href="Notes/index.html"
+                    data-i18n="notes-btn"
                 >
                     OPEN NOTES
                 </a>
 
             </div>
-            <!-- SIAMSMARTHOME -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 05
-                    </div>
-
-                    <h2>
-                        Siam Smart Home
-                    </h2>
-
-                    <p>
-                        Information about Siam Smart home
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="SiamSmartHome/index.html"
-                >
-                    OPEN SIAM SMART HOME
-                </a>
-
-            </div>
-
             <!-- GREENCHAT -->
             <div class="project">
 
@@ -476,11 +688,11 @@
                         PROJECT 06
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="greenchat-title">
                         GreenChat
                     </h2>
 
-                    <p>
+                    <p data-i18n="greenchat-desc">
                         A place to chat with friends
                     </p>
 
@@ -489,6 +701,7 @@
                 <a
                     class="project-button"
                     href="GreenChat/index.html"
+                    data-i18n="greenchat-btn"
                 >
                     OPEN GREENCHAT
                 </a>
@@ -504,11 +717,11 @@
                         PROJECT 07
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="soundboard-title">
                         SoundBoard
                     </h2>
 
-                    <p>
+                    <p data-i18n="soundboard-desc">
                         A Sound Board
                     </p>
 
@@ -517,6 +730,7 @@
                 <a
                     class="project-button"
                     href="SoundBoard/index.html"
+                    data-i18n="soundboard-btn"
                 >
                     OPEN SOUNDBOARD
                 </a>
@@ -532,11 +746,11 @@
                         PROJECT 08
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="appmaker-title">
                         App Maker
                     </h2>
 
-                    <p>
+                    <p data-i18n="appmaker-desc">
                         A App That Gives ideas to make more apps
                     </p>
 
@@ -545,8 +759,44 @@
                 <a
                     class="project-button"
                     href="appmaker.html"
+                    data-i18n="appmaker-btn"
                 >
                     OPEN APPMAKER
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- LITTLE PROJECTS -->
+        <section class="projects tab-content" id="tab-little">
+
+            <!-- SIAMSMARTHOME -->
+            <div class="project">
+
+                <div>
+
+                    <div class="project-number">
+                        PROJECT 01
+                    </div>
+
+                    <h2 data-i18n="siam-title">
+                        Siam Smart Home
+                    </h2>
+
+                    <p data-i18n="siam-desc">
+                        Information about Siam Smart home
+                    </p>
+
+                </div>
+
+                <a
+                    class="project-button"
+                    href="SiamSmartHome/index.html"
+                    data-i18n="siam-btn"
+                >
+                    OPEN SIAM SMART HOME
                 </a>
 
             </div>
@@ -557,14 +807,14 @@
                 <div>
 
                     <div class="project-number">
-                        PROJECT 09
+                        PROJECT 02
                     </div>
 
-                    <h2>
+                    <h2 data-i18n="zoo-title">
                         Zoo
                     </h2>
 
-                    <p>
+                    <p data-i18n="zoo-desc">
                         Pictures of the zoo with fun animal facts
                     </p>
 
@@ -573,6 +823,7 @@
                 <a
                     class="project-button"
                     href="Zoo/index.html"
+                    data-i18n="zoo-btn"
                 >
                     OPEN ZOO
                 </a>
@@ -585,13 +836,13 @@
 
 
     <!-- FOOTER -->
-    <footer>
+    <footer data-i18n="footer">
         My Coding Project Collection
     </footer>
 
 
     <!-- JAKE MODE MESSAGE -->
-    <div id="mode-message">
+    <div id="mode-message" data-i18n="mode-message">
         Entering Jake mode
     </div>
 
@@ -609,6 +860,7 @@
         <button
             id="code-button"
             type="button"
+            data-i18n="enter-btn"
         >
             ENTER
         </button>
@@ -620,12 +872,395 @@
     <button
         id="normal-mode-button"
         type="button"
+        data-i18n="normal-btn"
     >
         BACK TO NORMAL MODE
     </button>
 
 
     <script>
+
+        // ==========================================
+        // TAB SWITCHING
+        // ==========================================
+
+        function switchTab(tabName, ev) {
+
+            const clicked = ev.currentTarget;
+
+            // Remove active from all buttons and tabs
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+
+            // Add active to clicked button and its tab
+            clicked.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+        }
+
+
+        // ==========================================
+        // LANGUAGE
+        // ==========================================
+
+        const langNames = {
+            en: "English",
+            th: "Thai",
+            fr: "French",
+            es: "Spanish",
+            ja: "Japanese",
+            zh: "Chinese"
+        };
+
+        let currentLang = "en";
+
+        const translations = {
+
+            en: {
+                logo: "PROJECT HUB",
+                subtitle: "By Jake Scalzo",
+                "hero-my": "My",
+                "hero-span": "Projects",
+                "hero-p": "A collection of all my coding projects in one place.",
+                "tab-big": "Big Projects",
+                "tab-little": "Other Projects",
+                "arcade-title": "Arcade Hub",
+                "arcade-desc": "A collection of html games",
+                "arcade-btn": "OPEN ARCADE HUB",
+                "grind-title": "Grind Hub",
+                "grind-desc": "Stay organized, track your progress, and keep the grind moving.",
+                "grind-btn": "OPEN GRIND HUB",
+                "massage-title": "Massage",
+                "massage-desc": "My massage project.",
+                "massage-btn": "OPEN MASSAGE",
+                "notes-title": "Notes",
+                "notes-desc": "My notes and information hub.",
+                "notes-btn": "OPEN NOTES",
+                "greenchat-title": "GreenChat",
+                "greenchat-desc": "A place to chat with friends",
+                "greenchat-btn": "OPEN GREENCHAT",
+                "soundboard-title": "SoundBoard",
+                "soundboard-desc": "A Sound Board",
+                "soundboard-btn": "OPEN SOUNDBOARD",
+                "appmaker-title": "App Maker",
+                "appmaker-desc": "An app that gives ideas to make more apps",
+                "appmaker-btn": "OPEN APPMAKER",
+                "siam-title": "Siam Smart Home",
+                "siam-desc": "Information about Siam Smart home",
+                "siam-btn": "OPEN SIAM SMART HOME",
+                "zoo-title": "Zoo",
+                "zoo-desc": "Pictures of the zoo with fun animal facts",
+                "zoo-btn": "OPEN ZOO",
+                footer: "My Coding Project Collection",
+                "enter-placeholder": "Enter code",
+                "enter-btn": "ENTER",
+                "normal-btn": "BACK TO NORMAL MODE",
+                "mode-message": "Entering Jake mode"
+            },
+
+            th: {
+                logo: "ฮับโปรเจกต์",
+                subtitle: "โดย เจค สกัลโซ",
+                "hero-my": "ของฉัน",
+                "hero-span": "โปรเจกต์",
+                "hero-p": "รวมโปรเจกต์เขียนโค้ดทั้งหมดของฉันไว้ในที่เดียว",
+                "tab-big": "โปรเจกต์ใหญ่",
+                "tab-little": "โปรเจกต์อื่นๆ",
+                "arcade-title": "อาร์เคดฮับ",
+                "arcade-desc": "คอลเลกชันเกม HTML",
+                "arcade-btn": "เปิดอาร์เคดฮับ",
+                "grind-title": "กรายด์ฮับ",
+                "grind-desc": "จัดระเบียบ ติดตามความก้าวหน้า และทำกรายด์ต่อไป",
+                "grind-btn": "เปิดกรายด์ฮับ",
+                "massage-title": "แมสเสจ",
+                "massage-desc": "โปรเจกต์แมสเสจของฉัน",
+                "massage-btn": "เปิดแมสเสจ",
+                "notes-title": "โน้ต",
+                "notes-desc": "โน้ตและศูนย์รวมข้อมูลของฉัน",
+                "notes-btn": "เปิดโน้ต",
+                "greenchat-title": "กรีนแชท",
+                "greenchat-desc": "ที่แชทกับเพื่อน",
+                "greenchat-btn": "เปิดกรีนแชท",
+                "soundboard-title": "ซาวด์บอร์ด",
+                "soundboard-desc": "ซาวด์บอร์ด",
+                "soundboard-btn": "เปิดซาวด์บอร์ด",
+                "appmaker-title": "แอปเมกเกอร์",
+                "appmaker-desc": "แอปที่ให้ไอเดียสร้างแอปเพิ่ม",
+                "appmaker-btn": "เปิดแอปเมกเกอร์",
+                "siam-title": "เซียมสมาร์ทโฮม",
+                "siam-desc": "ข้อมูลเกี่ยวกับเซียมสมาร์ทโฮม",
+                "siam-btn": "เปิดเซียมสมาร์ทโฮม",
+                "zoo-title": "สวนสัตว์",
+                "zoo-desc": "รูปภาพจากสวนสัตว์พร้อมข้อเท็จจริงสนุกๆ เกี่ยวกับสัตว์",
+                "zoo-btn": "เปิดสวนสัตว์",
+                footer: "รวมโปรเจกต์เขียนโค้ดของฉัน",
+                "enter-placeholder": "ใส่รหัส",
+                "enter-btn": "เข้า",
+                "normal-btn": "กลับสู่โหมดปกติ",
+                "mode-message": "กำลังเข้าสู่โหมดเจค"
+            },
+
+            fr: {
+                logo: "CENTRE DE PROJETS",
+                subtitle: "Par Jake Scalzo",
+                "hero-my": "Mes",
+                "hero-span": "Projets",
+                "hero-p": "Une collection de tous mes projets de programmation au même endroit.",
+                "tab-big": "Grands Projets",
+                "tab-little": "Autres Projets",
+                "arcade-title": "Arcade Hub",
+                "arcade-desc": "Une collection de jeux HTML",
+                "arcade-btn": "OUVRIR L'ARCADE",
+                "grind-title": "Grind Hub",
+                "grind-desc": "Reste organisé, suis ta progression et continue le grind.",
+                "grind-btn": "OUVRIR GRIND HUB",
+                "massage-title": "Massage",
+                "massage-desc": "Mon projet de massage.",
+                "massage-btn": "OUVRIR MASSAGE",
+                "notes-title": "Notes",
+                "notes-desc": "Mes notes et mon centre d'information.",
+                "notes-btn": "OUVRIR NOTES",
+                "greenchat-title": "GreenChat",
+                "greenchat-desc": "Un endroit pour discuter avec tes amis.",
+                "greenchat-btn": "OUVRIR GREENCHAT",
+                "soundboard-title": "SoundBoard",
+                "soundboard-desc": "Une table de sons.",
+                "soundboard-btn": "OUVRIR SOUNDBOARD",
+                "appmaker-title": "App Maker",
+                "appmaker-desc": "Une app qui donne des idées pour créer d'autres apps.",
+                "appmaker-btn": "OUVRIR APP MAKER",
+                "siam-title": "Siam Smart Home",
+                "siam-desc": "Des informations sur Siam Smart Home.",
+                "siam-btn": "OUVRIR SIAM SMART HOME",
+                "zoo-title": "Zoo",
+                "zoo-desc": "Des photos du zoo avec des infos amusantes sur les animaux.",
+                "zoo-btn": "OUVRIR LE ZOO",
+                footer: "Ma collection de projets de programmation",
+                "enter-placeholder": "Entrer le code",
+                "enter-btn": "ENTRER",
+                "normal-btn": "REVENIR AU MODE NORMAL",
+                "mode-message": "Entrée en mode Jake"
+            },
+
+            es: {
+                logo: "CENTRO DE PROYECTOS",
+                subtitle: "Por Jake Scalzo",
+                "hero-my": "Mis",
+                "hero-span": "Proyectos",
+                "hero-p": "Una colección de todos mis proyectos de programación en un solo lugar.",
+                "tab-big": "Proyectos Grandes",
+                "tab-little": "Otros Proyectos",
+                "arcade-title": "Arcade Hub",
+                "arcade-desc": "Una colección de juegos HTML",
+                "arcade-btn": "ABRIR ARCADE",
+                "grind-title": "Grind Hub",
+                "grind-desc": "Mantente organizado, sigue tu progreso y sigue con el grind.",
+                "grind-btn": "ABRIR GRIND HUB",
+                "massage-title": "Massage",
+                "massage-desc": "Mi proyecto de masajes.",
+                "massage-btn": "ABRIR MASSAGE",
+                "notes-title": "Notes",
+                "notes-desc": "Mis notas y centro de información.",
+                "notes-btn": "ABRIR NOTES",
+                "greenchat-title": "GreenChat",
+                "greenchat-desc": "Un lugar para chatear con amigos.",
+                "greenchat-btn": "ABRIR GREENCHAT",
+                "soundboard-title": "SoundBoard",
+                "soundboard-desc": "Una tabla de sonidos.",
+                "soundboard-btn": "ABRIR SOUNDBOARD",
+                "appmaker-title": "App Maker",
+                "appmaker-desc": "Una aplicación que da ideas para hacer más aplicaciones.",
+                "appmaker-btn": "ABRIR APP MAKER",
+                "siam-title": "Siam Smart Home",
+                "siam-desc": "Información sobre Siam Smart Home.",
+                "siam-btn": "ABRIR SIAM SMART HOME",
+                "zoo-title": "Zoo",
+                "zoo-desc": "Fotos del zoológico con datos divertidos de animales.",
+                "zoo-btn": "ABRIR ZOO",
+                footer: "Mi colección de proyectos de programación",
+                "enter-placeholder": "Ingresar código",
+                "enter-btn": "ENTRAR",
+                "normal-btn": "VOLVER AL MODO NORMAL",
+                "mode-message": "Entrando en modo Jake"
+            },
+
+            ja: {
+                logo: "プロジェクトハブ",
+                subtitle: "Jake Scalzo 作",
+                "hero-my": "私の",
+                "hero-span": "プロジェクト",
+                "hero-p": "私のすべてのコーディングプロジェクトをひとつの場所にまとめました。",
+                "tab-big": "大きなプロジェクト",
+                "tab-little": "その他のプロジェクト",
+                "arcade-title": "アーケードハブ",
+                "arcade-desc": "HTMLゲームのコレクション",
+                "arcade-btn": "アーケードを開く",
+                "grind-title": "グラインドハブ",
+                "grind-desc": "整理整頓して、進捗を記録して、グラインドを続けよう。",
+                "grind-btn": "グラインドハブを開く",
+                "massage-title": "マッサージ",
+                "massage-desc": "マッサージプロジェクト。",
+                "massage-btn": "マッサージを開く",
+                "notes-title": "ノート",
+                "notes-desc": "ノートと情報ハブ。",
+                "notes-btn": "ノートを開く",
+                "greenchat-title": "グリーンチャット",
+                "greenchat-desc": "友達とチャットできる場所。",
+                "greenchat-btn": "グリーンチャットを開く",
+                "soundboard-title": "サウンドボード",
+                "soundboard-desc": "サウンドボード。",
+                "soundboard-btn": "サウンドボードを開く",
+                "appmaker-title": "アプリメーカー",
+                "appmaker-desc": "新しいアプリのアイデアをくれるアプリ。",
+                "appmaker-btn": "アプリメーカーを開く",
+                "siam-title": "サイアムスマートホーム",
+                "siam-desc": "サイアムスマートホームについての情報。",
+                "siam-btn": "サイアムスマートホームを開く",
+                "zoo-title": "動物園",
+                "zoo-desc": "動物園の写真と楽しい動物の豆知識。",
+                "zoo-btn": "動物園を開く",
+                footer: "私のコーディングプロジェクト集",
+                "enter-placeholder": "コードを入力",
+                "enter-btn": "入力",
+                "normal-btn": "通常モードに戻る",
+                "mode-message": "ジェイクモードに入ります"
+            },
+
+            zh: {
+                logo: "项目中心",
+                subtitle: "作者：Jake Scalzo",
+                "hero-my": "我的",
+                "hero-span": "项目",
+                "hero-p": "将我所有的编程项目集中在一个地方。",
+                "tab-big": "大项目",
+                "tab-little": "其他项目",
+                "arcade-title": "街机中心",
+                "arcade-desc": "HTML 游戏集合",
+                "arcade-btn": "打开街机中心",
+                "grind-title": "Grind Hub",
+                "grind-desc": "保持条理，追踪进度，继续努力。",
+                "grind-btn": "打开 Grind Hub",
+                "massage-title": "Massage",
+                "massage-desc": "我的按摩项目。",
+                "massage-btn": "打开 Massage",
+                "notes-title": "Notes",
+                "notes-desc": "我的笔记和信息中心。",
+                "notes-btn": "打开 Notes",
+                "greenchat-title": "GreenChat",
+                "greenchat-desc": "和朋友聊天的地方。",
+                "greenchat-btn": "打开 GreenChat",
+                "soundboard-title": "SoundBoard",
+                "soundboard-desc": "一个音效板。",
+                "soundboard-btn": "打开 SoundBoard",
+                "appmaker-title": "App Maker",
+                "appmaker-desc": "一个能给你做更多应用灵感的应用。",
+                "appmaker-btn": "打开 App Maker",
+                "siam-title": "Siam Smart Home",
+                "siam-desc": "关于 Siam Smart Home 的信息。",
+                "siam-btn": "打开 Siam Smart Home",
+                "zoo-title": "动物园",
+                "zoo-desc": "动物园的照片和有趣的动物小知识。",
+                "zoo-btn": "打开动物园",
+                footer: "我的编程项目集",
+                "enter-placeholder": "输入密码",
+                "enter-btn": "确认",
+                "normal-btn": "返回普通模式",
+                "mode-message": "进入 Jake 模式"
+            }
+
+        };
+
+        function applyLanguage(lang) {
+
+            const dict = translations[lang];
+
+            if (!dict) {
+                return;
+            }
+
+            currentLang = lang;
+
+            // Change every element that has a data-i18n key
+            document.querySelectorAll("[data-i18n]").forEach(function(el) {
+
+                const key = el.getAttribute("data-i18n");
+
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+
+            });
+
+            // Change the secret code placeholder too
+            const secretInput =
+                document.getElementById("secret-code");
+
+            if (secretInput && dict["enter-placeholder"]) {
+                secretInput.placeholder = dict["enter-placeholder"];
+            }
+
+            // Keep Jake mode text if Jake mode is on
+            if (jakeMode) {
+
+                grindButton.href = "MyGrindHub/index.html";
+                grindButton.textContent = "OPEN MY GRIND HUB";
+
+                grindTitle.textContent = "My Grind Hub";
+
+                grindDescription.textContent =
+                    "Jake mode activated. Welcome to your private Grind Hub.";
+
+            }
+
+            // Highlight the chosen option
+            document.querySelectorAll(".lang-option").forEach(function(opt) {
+                opt.classList.toggle(
+                    "active",
+                    opt.getAttribute("data-lang") === lang
+                );
+            });
+
+            // Update the button label
+            document.getElementById("current-lang").textContent =
+                langNames[lang];
+
+            // Remember the choice
+            try {
+                localStorage.setItem("project-hub-lang", lang);
+            } catch (e) {}
+
+        }
+
+        function toggleLangMenu(ev) {
+
+            ev.stopPropagation();
+
+            document.getElementById("lang-menu")
+                .classList.toggle("open");
+
+        }
+
+        function chooseLang(lang) {
+
+            applyLanguage(lang);
+
+            document.getElementById("lang-menu")
+                .classList.remove("open");
+
+        }
+
+        // Close the dropdown when clicking anywhere else
+        document.addEventListener("click", function() {
+
+            document.getElementById("lang-menu")
+                .classList.remove("open");
+
+        });
+
 
         // ==========================================
         // GET ELEMENTS
@@ -655,6 +1290,8 @@
         const grindDescription =
             document.getElementById("grind-description");
 
+        let jakeMode = false;
+
 
         // ==========================================
         // ENTER JAKE MODE
@@ -665,6 +1302,8 @@
             const code = secretCode.value.trim();
 
             if (code === "jjaakkeelol") {
+
+                jakeMode = true;
 
                 // Change Grind Hub into My Grind Hub
                 grindButton.href = "MyGrindHub/index.html";
@@ -752,16 +1391,13 @@
             "click",
             function() {
 
+                jakeMode = false;
+
                 // Change Grind Hub back
                 grindButton.href = "GrindHub/index.html";
-                grindButton.textContent = "OPEN GRIND HUB";
 
-                // Change title back
-                grindTitle.textContent = "Grind Hub";
-
-                // Change description back
-                grindDescription.textContent =
-                    "Stay organized, track your progress, and keep the grind moving.";
+                // Restore text in the current language
+                applyLanguage(currentLang);
 
                 // HIDE NORMAL MODE BUTTON
                 normalModeButton.style.display = "none";
@@ -774,6 +1410,31 @@
 
             }
         );
+
+
+        // ==========================================
+        // START UP
+        // ==========================================
+
+        (function() {
+
+            let savedLang = "fr";
+
+            try {
+                const stored =
+                    localStorage.getItem("project-hub-lang");
+                if (stored) {
+                    savedLang = stored;
+                }
+            } catch (e) {}
+
+            if (!translations[savedLang]) {
+                savedLang = "fr";
+            }
+
+            applyLanguage(savedLang);
+
+        })();
 
     </script>
 
