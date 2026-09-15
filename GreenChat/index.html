@@ -70,6 +70,16 @@ input.pw{ -webkit-text-security:disc }
 .currentUser{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .currentUserInfo{flex:1;min-width:0}.currentUserInfo strong{display:block}.currentUserInfo small{color:var(--green)}
 .logout{width:100%;padding:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:9px;min-height:44px}.logout:hover,.logout:active{color:var(--danger);border-color:var(--danger)}
+.switchBtn{width:100%;padding:12px;background:transparent;border:1px solid var(--border);color:var(--green);border-radius:9px;min-height:44px}.switchBtn:hover,.switchBtn:active{color:var(--green);border-color:var(--green);background:var(--greenSoft)}
+.authBtns{display:flex;gap:8px;margin-bottom:14px}.authBtns .primary{flex:1}
+.deleteBtn{flex:1;padding:12px;border-radius:10px;background:rgba(255,82,104,.08);color:var(--danger);border:1px solid rgba(255,82,104,.35);font-weight:bold;min-height:48px}.deleteBtn.active{background:rgba(255,82,104,.2);border-color:var(--danger)}
+.saTitle{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.saList{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:16px}
+.saRow{display:flex;align-items:center;gap:6px}
+.saGo{flex:1;display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:var(--panel2);border-radius:11px;padding:8px 10px;min-height:56px;color:white;text-align:left}.saGo:hover,.saGo:active{background:var(--panel3);border-color:var(--green)}
+.saGo .userText{flex:1;min-width:0}.saGo small{color:var(--muted);font-size:12px}
+.saChip{color:var(--green);font-size:12px;font-weight:bold;white-space:nowrap}
+.saDel{width:40px;height:40px;min-width:40px;border:1px solid rgba(255,82,104,.4);background:rgba(255,82,104,.12);color:var(--danger);border-radius:11px;font-size:17px;font-weight:bold}.saDel:hover,.saDel:active{background:rgba(255,82,104,.25)}
 .miniBtn{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;line-height:1;font-size:15px;padding:0;cursor:pointer;border:1px solid var(--border)}
 .settingsMini{background:transparent;color:var(--muted)}
 .settingsMini:hover{color:var(--green);border-color:var(--green)}
@@ -148,7 +158,7 @@ input.pw{ -webkit-text-security:disc }
 </head>
 <body>
 <a href="./index.html" id="allProjectsBtn">ALL PROJECTS</a>
-<div id="authScreen"><div class="authBox"><div class="logo"><div class="logoIcon">💬</div><h1>GreenChat</h1><p>Enter your name once — GreenChat remembers you on this device. No password, no login.</p></div><form id="nameForm" class="authForm" autocomplete="off"><input id="loginName" placeholder="Your name" maxlength="24" autocomplete="off"><button class="primary" type="submit" id="loginBtn">Start Chatting</button><div id="loginError" class="authError hidden"></div></form></div></div>
+<div id="authScreen"><div class="authBox"><div class="logo"><div class="logoIcon">💬</div><h1>GreenChat</h1><p>Enter your name once — GreenChat remembers you on this device. No password, no login.</p></div><div id="savedAccounts"></div><div id="accountActions" class="authBtns hidden"><button class="primary" onclick="focusNewAccount()">＋ New Account</button><button id="deleteModeBtn" class="deleteBtn" onclick="toggleDeleteMode()">− Delete</button></div><form id="nameForm" class="authForm" autocomplete="off"><input id="loginName" placeholder="Your name" maxlength="24" autocomplete="off"><button class="primary" type="submit" id="loginBtn">Start Chatting</button><div id="loginError" class="authError hidden"></div></form></div></div>
 <div id="app" class="hidden">
 <aside class="sidebar">
 <div class="sidebarTop"><div class="brand"><div class="brandLeft"><h2>GreenChat</h2></div><span class="statusPill"><span class="statusDot" id="connDot"></span><span id="connText">Connecting…</span></span></div><div class="search"><input id="searchInput" placeholder="Search people to add…" oninput="searchUsers()"><div id="searchResults" class="searchResults"></div></div></div>
@@ -156,7 +166,7 @@ input.pw{ -webkit-text-security:disc }
 <div class="tabHeader" id="friendsHeader"><h2>Friends</h2><button class="miniBtn plusMini" onclick="showNewFriendModal()" title="Add friend">+</button></div>
 <div class="tabHeader hidden" id="listsHeader"><h2>Lists</h2><button class="miniBtn plusMini" onclick="showNewListModal()" title="New list">+</button></div>
 <div id="friendsList" class="list"></div><div id="notificationsList" class="list hidden"></div><div id="listsList" class="list hidden"></div>
-<div class="sidebarBottom"><div class="currentUser" onclick="openProfile()" style="cursor:pointer"><div id="myAvatar" class="avatar">?</div><div class="currentUserInfo"><strong id="myName">User</strong><small id="myStatus">Online</small></div></div></div>
+<div class="sidebarBottom"><div class="currentUser" onclick="openProfile()" style="cursor:pointer"><div id="myAvatar" class="avatar">?</div><div class="currentUserInfo"><strong id="myName">User</strong><small id="myStatus">Online</small></div></div><button class="switchBtn" onclick="switchAccount()">⇄ Switch Account</button></div>
 </aside>
 <main id="chat" class="chat"><header class="chatHeader"><button class="backButton" onclick="closeChat()">←</button><div id="chatAvatar" class="avatar">💬</div><div class="chatUser"><strong id="chatName">Select a friend</strong><small id="chatStatus">Choose someone to start chatting</small></div><div class="chatActions"><button class="iconButton" id="chatProfileBtn" onclick="openProfileOfFriend()" title="Profile">👤</button></div></header>
 <div id="messages" class="messages"><div class="empty"><div><div class="emptyIcon">💬</div><h2>Welcome to GreenChat</h2><p style="margin-top:6px">Select a friend to start chatting.</p></div></div></div>
@@ -167,6 +177,7 @@ input.pw{ -webkit-text-security:disc }
 </div>
 <div id="profileModal" class="modal"><div class="modalBox" onclick="event.stopPropagation()"><div class="modalHeader"><h2>Profile</h2><button class="close" onclick="closeModal('profileModal')">×</button></div><div class="profileLarge"><div id="profileAvatar" class="avatar">?</div><h2 id="profileName">User</h2><p id="profileFriends">0 friends</p><p id="profileStatusText" style="color:var(--green)"></p><div class="friendCodeLabel">Share this friend code</div><div id="profileCode" class="friendCode">---</div><div class="friendCodeLabel">(or your name) to add you</div></div><button id="deleteAcctBtn" class="deleteAccount" onclick="startDeleteAccount()">🗑 Delete Account</button></div></div>
 <div id="confirmModal" class="modal"><div class="modalBox" onclick="event.stopPropagation()"><h2 id="confirmTitle" style="color:var(--green)">Are you sure?</h2><p id="confirmText" style="color:var(--muted);margin-top:8px"></p><div style="display:flex;gap:10px;margin-top:18px"><button class="primary" id="confirmYes" style="flex:1">Yes</button><button class="reject" onclick="closeModal('confirmModal')" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,82,104,.1);color:var(--danger);border:1px solid rgba(255,82,104,.25);min-height:48px">Cancel</button></div></div></div>
+<div id="alertModal" class="modal"><div class="modalBox" onclick="event.stopPropagation()"><div class="modalHeader"><h2 id="alertTitle">GreenChat</h2><button class="close" onclick="closeModal('alertModal')">×</button></div><p id="alertText" style="color:var(--muted);margin-top:8px"></p><div style="display:flex;gap:10px;margin-top:18px"><button class="primary" style="flex:1" onclick="closeModal('alertModal')">OK</button></div></div></div>
 
 <div id="newFriendModal" class="modal"><div class="modalBox" onclick="event.stopPropagation()"><div class="modalHeader"><h2>Add Friend</h2><button class="close" onclick="closeModal('newFriendModal')">×</button></div><p style="color:var(--muted);font-size:12px;margin-bottom:10px">Enter their <b style="color:var(--text)">name</b> or their 3-digit <b style="color:var(--text)">friend code</b>.</p><input id="nfName" class="modalInput" placeholder="Their name" autocomplete="off"><input id="nfCode" class="modalInput" placeholder="Friend code (3 digits)" maxlength="3" inputmode="numeric"><button class="primary" onclick="addFriendByCode()" style="width:100%">Send Request</button><div id="nfError" class="authError hidden"></div></div></div>
 <div id="newListModal" class="modal"><div class="modalBox" onclick="event.stopPropagation()"><div class="modalHeader"><h2>New List</h2><button class="close" onclick="closeModal('newListModal')">×</button></div><input id="nlName" class="modalInput" placeholder="List name"><div id="nlSelected" class="listFriends"></div><div id="nlResults" class="list" style="max-height:36vh;border:1px solid var(--border);border-radius:12px;margin:6px 0"></div><button class="primary" onclick="createList()" style="width:100%">Create List</button></div></div>
@@ -260,6 +271,9 @@ function startPeer(){
   var t=e&&e.type||"";
   if(t==="unavailable-id"){
    setConn(false,"That name is online elsewhere — you\u2019ll connect automatically…");
+   showAlert("Account Already in Use","You cannot use this account. Someone else is already using it.");
+   returnToStart();
+   return;
   }else{
    setConn(false,"Connecting…");
   }
@@ -303,13 +317,20 @@ function renderMessagesIfOpen(k){if(currentChatKey()===k)renderMessages(true);re
 /* ---------- auth (accounts live on this device, forever) ---------- */
 function showError(id,t){var e=$(id);e.textContent=t;e.classList.remove("hidden")}
 function hideError(id){var e=$(id);if(e)e.classList.add("hidden")}
-function showAuthScreen(){$("authScreen").classList.remove("hidden");$("app").classList.add("hidden")}
-function doStart(){var n=$("loginName").value.trim();if(n.length<2||n.length>24){showError("loginError","Name must be 2–24 characters.");return}if(!/^[A-Za-z0-9 _.\\-]+$/.test(n)){showError("loginError","Use letters, numbers, spaces, '.', '_', '-'.");return}var slug=slugIt(n);if(!slug){showError("loginError","That name has no usable characters.");return}var acc=getAcc();if(!acc[slug])acc[slug]={name:n};setAcc(acc);hideError("loginError");me=slug;localStorage.setItem("gc_me",me);enterApp()}
+function showAuthScreen(){$("authScreen").classList.remove("hidden");$("app").classList.add("hidden");renderSavedAccounts()}
+function doStart(){var n=$("loginName").value.trim();if(n.length<2||n.length>24){showError("loginError","Name must be 2–24 characters.");return}if(!/^[A-Za-z0-9 _.\\-]+$/.test(n)){showError("loginError","Use letters, numbers, spaces, '.', '_', '-'.");return}var slug=slugIt(n);if(!slug){showError("loginError","That name has no usable characters.");return}var acc=getAcc();if(acc[slug]){showAlert("Account Already in Use","You cannot use this account. Someone else is already using it.");return}acc[slug]={name:n};setAcc(acc);hideError("loginError");me=slug;localStorage.setItem("gc_me",me);enterApp()}
 function enterApp(){loadStore();$("authScreen").classList.add("hidden");$("app").classList.remove("hidden");updateMyProfile();renderAll();setConn(false,"Connecting…");startPeer();if(!hbT)hbT=setInterval(tick,3800)}
 function loadStore(){state.friends={};state.incoming=[];state.outgoing=[];state.lists=[];state.notifications=[];state.chats={};pendingReq={};pendingMsg={};try{var s=JSON.parse(localStorage.getItem(LS_PER+me)||"{}");state.friends=s.friends||{};state.incoming=s.incoming||[];state.outgoing=s.outgoing||[];state.lists=s.lists||[];state.notifications=s.notifications||[];state.chats=s.chats||{}}catch(e){}rebuildUsers()}
-function returnToStart(msg){stopPeer();localStorage.removeItem("gc_me");me=null;currentFriend=null;currentGroup=null;replyingTo=null;state={users:{},friends:{},incoming:[],outgoing:[],lists:[],notifications:[],chats:{}};setConn(false,"Offline");$("app").classList.add("hidden");$("authScreen").classList.remove("hidden");$("loginName").value="";renderEmptyChat();if(msg)showToast(msg)}
+function returnToStart(msg){stopPeer();localStorage.removeItem("gc_me");me=null;currentFriend=null;currentGroup=null;replyingTo=null;state={users:{},friends:{},incoming:[],outgoing:[],lists:[],notifications:[],chats:{}};setConn(false,"Offline");$("app").classList.add("hidden");$("authScreen").classList.remove("hidden");$("loginName").value="";renderEmptyChat();renderSavedAccounts();if(msg)showToast(msg)}
 function startDeleteAccount(){if(profileUser!==me){showToast("You can only delete your own account.");return}showConfirm("Delete Account","Delete your account? This cannot be undone and removes your chats from this device.",function(){closeModal("profileModal");doDelete()})}
 function doDelete(){var cur=me;if(!cur)return;var a=getAcc();delete a[cur];setAcc(a);clearStore();returnToStart("Account deleted. This device is ready for a new name.")}
+var deleteMode=false;
+function renderSavedAccounts(){var box=$("savedAccounts");if(!box)return;var acc=getAcc(),keys=Object.keys(acc),html="";if(keys.length){html='<div class="saTitle">Saved Accounts</div><div class="saList">';for(var i=0;i<keys.length;i++){var k=keys[i],nm=(acc[k]&&acc[k].name)||slugIt(k);html+='<div class="saRow"><button class="saGo" onclick="loginAccount(\''+k+'\')"><div class="avatar">'+esc(initials(nm))+'</div><div class="userText"><strong>'+esc(nm)+'</strong><small>@'+esc(k)+'</small></div><span class="saChip">Switch →</span></button><button class="saDel'+(deleteMode?'':' hidden')+'" title="Delete account" onclick="deleteAccount(\''+k+'\')">−</button></div>'}html+='</div>'}box.innerHTML=html;var acts=$("accountActions");if(acts)acts.classList.toggle("hidden",keys.length===0);var db=$("deleteModeBtn");if(db)db.classList.toggle("active",deleteMode)}
+function loginAccount(u){var acc=getAcc();if(!acc[u]){showToast("That account no longer exists.");renderSavedAccounts();return}me=u;localStorage.setItem("gc_me",me);deleteMode=false;$("loginName").value=(acc[u]&&acc[u].name)||"";hideError("loginError");enterApp()}
+function toggleDeleteMode(){deleteMode=!deleteMode;renderSavedAccounts()}
+function deleteAccount(u){var acc=getAcc();if(!acc[u])return;var nm=(acc[u]&&acc[u].name)||slugIt(u);showConfirm("Delete Account","Delete \u201c"+nm+"\u201d from this device? Their saved chats will be removed.",function(){var a=getAcc();delete a[u];setAcc(a);localStorage.removeItem(LS_PER+u);if(me===u)clearStore();deleteMode=false;renderSavedAccounts();showToast(nm+" was deleted.")})}
+function focusNewAccount(){deleteMode=false;$("loginName").value="";hideError("loginError");renderSavedAccounts();$("loginName").focus()}
+function switchAccount(){returnToStart()}
 
 /* ---------- rendering ---------- */
 function renderAll(){renderFriends();renderLists();renderNotifications();updateBadges();renderEmptyChat()}
@@ -401,6 +422,7 @@ function openProfileOfFriend(){if(!currentFriend)return;var u=currentFriend;prof
 function openModal(id){$(id).classList.add("show")}
 function closeModal(id){$(id).classList.remove("show")}
 function showConfirm(title,text,cb){$("confirmTitle").textContent=title;$("confirmText").textContent=text;$("confirmYes").onclick=function(){closeModal("confirmModal");cb()};openModal("confirmModal")}
+function showAlert(title,text){$("alertTitle").textContent=title;$("alertText").textContent=text;openModal("alertModal")}
 function showActionSheet(chat,id){var msg=findMsg(id);if(!msg)return;contextMessage={chat:chat,id:id,msg:msg};$("asBubble").textContent=msg.text;$("actionSheet").classList.add("show")}
 function closeActionSheet(){$("actionSheet").classList.remove("show");contextMessage=null}
 function asAction(a){if(!contextMessage)return;var id=contextMessage.id;if(a==="reply")replyMessage(id);else if(a==="forward")forwardMessage(id);else addReaction(contextMessage.chat,id,a);closeActionSheet();renderMessages()}
