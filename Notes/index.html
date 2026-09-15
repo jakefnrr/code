@@ -139,6 +139,8 @@ h1 {
 
     display: grid;
 
+    align-items: start;
+
     grid-template-columns:
         repeat(auto-fill, minmax(280px, 1fr));
 
@@ -161,8 +163,6 @@ h1 {
     border-radius: 12px;
 
     padding: 18px;
-
-    min-height: 180px;
 
     box-shadow:
         0 0 8px rgba(0, 255, 255, 0.25);
@@ -188,6 +188,10 @@ h1 {
     line-height: 1.4;
 
     min-height: 55px;
+
+    max-height: 210px;
+
+    overflow: hidden;
 
     white-space: pre-wrap;
 
@@ -1214,6 +1218,15 @@ function extractText(node) {
 }
 
 
+function cleanLineText(text) {
+
+    return text
+        .replace(/\n$/, "")
+        .replace(/^\n/, "");
+
+}
+
+
 function getPlainText(html) {
 
     if (!html) {
@@ -1289,7 +1302,9 @@ function getPlainText(html) {
 
                 return (
                     prefix +
-                    extractText(content)
+                    cleanLineText(
+                        extractText(content)
+                    )
                 );
 
             }
@@ -1307,20 +1322,22 @@ function getPlainText(html) {
 
                 return (
                     "• " +
-                    extractText(content)
+                    cleanLineText(
+                        extractText(content)
+                    )
                 );
 
             }
 
-            return extractText(block);
+            return cleanLineText(
+                extractText(block)
+            );
 
         });
 
 
     return lines
-        .join("\n")
-        .replace(/\n{3,}/g, "\n\n")
-        .replace(/\s+$/g, "");
+        .join("\n");
 
 }
 
@@ -1402,7 +1419,7 @@ function renderNotes() {
                 previewLines
                     .slice(0, 10)
                     .join("\n")
-                + "\n...";
+                + " …";
 
         }
 
