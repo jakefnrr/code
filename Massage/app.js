@@ -1,9 +1,13 @@
 let users = JSON.parse(localStorage.getItem('massageUsers')) || {};
 let currentUser = null;
-let selectedDuration = 0;
-let timerInterval = null;
-let secondsRemaining = 0;
+let selectedTotalSeconds = 0;
 let sessionFreeMinutes = 0;
+let customActive = false;
+let timerInterval = null;
+let timerEndTime = 0;
+let timerRunning = false;
+let timerMode = null;
+let secondsRemaining = 0;
 
 // LANGUAGE
 let currentLang = localStorage.getItem('massageUILang') || 'en';
@@ -34,6 +38,8 @@ const MESSAGES = {
     'baht-40': { en: '40 Baht', th: '40 บาท' },
     'baht-50': { en: '50 Baht', th: '50 บาท' },
     'baht-60': { en: '60 Baht', th: '60 บาท' },
+    'custom': { en: 'Custom', th: 'กำหนดเอง' },
+    'sec-word': { en: 'sec', th: 'วินาที' },
     'redeem-title': { en: 'Redeem Free Massage', th: 'แลกนวดฟรี' },
     'free-5': { en: '5 min free', th: 'นวดฟรี 5 นาที' },
     'free-10': { en: '10 min free', th: 'นวดฟรี 10 นาที' },
@@ -45,9 +51,14 @@ const MESSAGES = {
     'session-title': { en: 'Massage Session', th: 'เซสชันนวด' },
     'duration-prefix': { en: 'Duration: ', th: 'ระยะเวลา: ' },
     'minutes': { en: 'minutes', th: 'นาที' },
+    'timer-choice': { en: 'Do you want to use your own timer or use the timer on this website?', th: 'คุณต้องการใช้ตัวจับเวลาของตัวเองหรือใช้ตัวจับเวลาของเว็บไซต์นี้?' },
+    'your-timer': { en: 'My Timer', th: 'ตัวจับเวลาของฉัน' },
+    'website-timer': { en: 'Website Timer', th: 'ตัวจับเวลาเว็บ' },
+    'start': { en: 'Start', th: 'เริ่ม' },
     'start-timer': { en: 'Start Timer', th: 'เริ่มจับเวลา' },
     'end-session': { en: 'End Session', th: 'จบเซสชัน' },
     'cancel': { en: 'Cancel', th: 'ยกเลิก' },
+    'enjoy': { en: 'Enjoy your massage!', th: 'เพลิดเพลินกับการนวดของคุณ!' },
     'free-session': { en: 'FREE SESSION', th: 'เซสชันฟรี' },
     'min-word': { en: 'min', th: 'นาที' },
     'payment-title': { en: 'Payment', th: 'ชำระเงิน' },
@@ -55,7 +66,7 @@ const MESSAGES = {
     'baht': { en: 'Baht', th: 'บาท' },
     'you-earned': { en: 'You earned ', th: 'คุณได้รับ ' },
     'points-word': { en: 'points!', th: 'คะแนน!' },
-    'hand-phone': { en: 'Hand the phone to the customer to confirm payment.', th: 'ส่งโทรศัพท์ให้ลูกค้าเพื่อยืนยันการชำระเงิน' },
+    'hand-phone': { en: 'Hand the phone to Jake to confirm the payment.', th: 'ส่งโทรศัพท์ให้ Jake เพื่อยืนยันการชำระเงิน' },
     'enter-pw': { en: 'Enter password to confirm:', th: 'กรอกรหัสผ่านเพื่อยืนยัน:' },
     'enter-pw-ph': { en: 'Enter password', th: 'กรอกรหัสผ่าน' },
     'confirm-payment': { en: 'Confirm Payment', th: 'ยืนยันการชำระเงิน' },
@@ -82,6 +93,9 @@ function applyLanguage() {
     });
     document.getElementById('lang-toggle').textContent = currentLang === 'en' ? 'ไทย' : 'English';
     document.getElementById('lang-toggle-home').textContent = currentLang === 'en' ? 'ไทย' : 'English';
+    const customDisplay = document.getElementById('custom-display');
+    if (customDisplay) customDisplay.textContent = formatDuration(customTotalSeconds());
+    updateCustomBaht();
     if (currentUser) {
         document.getElementById('current-username').textContent = currentUser;
     }
@@ -167,8 +181,10 @@ function showAuthError(msg) {
 
 function handleSignOut() {
     currentUser = null;
-    selectedDuration = 0;
+    selectedTotalSeconds = 0;
     clearInterval(timerInterval);
+    timerRunning = false;
+    document.title = 'Massage App';
     saveUsers();
     showScreen('auth-screen');
     document.getElementById('signin-username').value = '';
@@ -188,9 +204,10 @@ function showHome() {
     document.getElementById('current-username').textContent = currentUser;
     updatePointsDisplay();
     updateRedeemButtons();
-    selectedDuration = 0;
+    selectedTotalSeconds = 0;
+    sessionFreeMinutes = 0;
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById('begin-session-btn').disabled = true;
+    resetCustom();
     showScreen('home-screen');
 }
 
@@ -209,15 +226,101 @@ function updateRedeemButtons() {
 function setDuration(mins, btn) {
     if (btn.classList.contains('selected')) {
         btn.classList.remove('selected');
-        selectedDuration = 0;
+        selectedTotalSeconds = 0;
+        sessionFreeMinutes = 0;
+        customActive = false;
+        document.getElementById('custom-card').classList.remove('selected');
         document.getElementById('begin-session-btn').disabled = true;
         return;
     }
-    selectedDuration = mins;
+    selectedTotalSeconds = mins * 60;
     sessionFreeMinutes = 0;
+    customActive = false;
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
+    document.getElementById('custom-card').classList.remove('selected');
+    document.getElementById('custom-min').value = mins;
+    document.getElementById('custom-sec').value = 0;
+    document.getElementById('custom-slider').value = mins * 60;
+    document.getElementById('custom-display').textContent = formatDuration(mins * 60);
+    updateCustomBaht();
     document.getElementById('begin-session-btn').disabled = false;
+}
+
+// CUSTOM
+function resetCustom() {
+    document.getElementById('custom-min').value = 5;
+    document.getElementById('custom-sec').value = 0;
+    document.getElementById('custom-slider').value = 300;
+    customActive = true;
+    selectedTotalSeconds = 300;
+    sessionFreeMinutes = 0;
+    document.getElementById('custom-display').textContent = formatDuration(customTotalSeconds());
+    updateCustomBaht();
+    document.getElementById('custom-card').classList.add('selected');
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('begin-session-btn').disabled = false;
+}
+
+function selectCustom() {
+    customActive = true;
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('custom-card').classList.add('selected');
+    updateCustomSelection();
+}
+
+function customTotalSeconds() {
+    const min = parseInt(document.getElementById('custom-min').value, 10) || 0;
+    const sec = parseInt(document.getElementById('custom-sec').value, 10) || 0;
+    return Math.min(1800, min * 60 + sec);
+}
+
+function updateCustomBaht() {
+    const el = document.getElementById('custom-baht');
+    if (!el) return;
+    const cost = Math.round((customTotalSeconds() / 60) * 2 * 100) / 100;
+    el.textContent = cost + ' ' + t('baht');
+}
+
+function customMinChanged() {
+    let v = parseInt(document.getElementById('custom-min').value, 10) || 0;
+    if (v > 30) v = 30;
+    if (v < 0) v = 0;
+    document.getElementById('custom-min').value = v;
+    syncSliderFromInputs();
+}
+
+function customSecChanged() {
+    updateCustomSelection();
+}
+
+function customSliderMoved() {
+    const secs = parseInt(document.getElementById('custom-slider').value, 10);
+    document.getElementById('custom-min').value = Math.floor(secs / 60);
+    document.getElementById('custom-sec').value = secs % 60;
+    updateCustomSelection();
+}
+
+function syncSliderFromInputs() {
+    document.getElementById('custom-slider').value = customTotalSeconds();
+    updateCustomSelection();
+}
+
+function updateCustomSelection() {
+    const secs = customTotalSeconds();
+    customActive = secs > 0;
+    selectedTotalSeconds = secs;
+    sessionFreeMinutes = 0;
+    document.getElementById('custom-display').textContent = formatDuration(secs);
+    updateCustomBaht();
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    if (customActive) {
+        document.getElementById('custom-card').classList.add('selected');
+        document.getElementById('begin-session-btn').disabled = false;
+    } else {
+        document.getElementById('custom-card').classList.remove('selected');
+        document.getElementById('begin-session-btn').disabled = true;
+    }
 }
 
 // REDEEM
@@ -225,21 +328,25 @@ function redeemFree(mins, cost) {
     if (users[currentUser].points < cost) return;
     users[currentUser].points -= cost;
     saveUsers();
-    selectedDuration = mins;
+    selectedTotalSeconds = mins * 60;
     sessionFreeMinutes = mins;
+    customActive = false;
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('custom-card').classList.remove('selected');
     document.getElementById('begin-session-btn').disabled = false;
     updatePointsDisplay();
 }
 
 // SESSION
 function beginSession() {
-    if (selectedDuration <= 0) return;
-    secondsRemaining = selectedDuration * 60;
-    document.getElementById('session-duration').textContent = selectedDuration;
-    document.getElementById('timer-display').textContent = formatTime(secondsRemaining);
-    document.getElementById('start-timer-btn').classList.remove('hidden');
-    document.getElementById('end-session-btn').classList.add('hidden');
+    if (selectedTotalSeconds <= 0) return;
+    secondsRemaining = selectedTotalSeconds;
+    timerMode = null;
+    timerRunning = false;
+    clearInterval(timerInterval);
+    timerEndTime = 0;
+    document.title = 'Massage App';
+    document.getElementById('session-duration').textContent = formatDuration(selectedTotalSeconds);
 
     const freeLabel = document.getElementById('session-free-label');
     if (sessionFreeMinutes > 0) {
@@ -250,7 +357,39 @@ function beginSession() {
         freeLabel.classList.add('hidden');
     }
 
+    document.getElementById('timer-choice').classList.remove('hidden');
+    document.getElementById('timer-display').classList.add('hidden');
+    document.getElementById('timer-display').textContent = formatTime(secondsRemaining);
+    document.getElementById('enjoy-msg').classList.add('hidden');
+    const startBtn = document.getElementById('start-timer-btn');
+    startBtn.textContent = t('start-timer');
+    startBtn.classList.add('hidden');
+    document.getElementById('end-session-btn').classList.add('hidden');
+
     showScreen('session-screen');
+}
+
+function chooseTimerMode(mode) {
+    timerMode = mode;
+    document.getElementById('timer-choice').classList.add('hidden');
+    const startBtn = document.getElementById('start-timer-btn');
+    if (mode === 'my') {
+        document.getElementById('timer-display').classList.add('hidden');
+        startBtn.textContent = t('start');
+    } else {
+        document.getElementById('timer-display').classList.remove('hidden');
+        document.getElementById('timer-display').textContent = formatTime(secondsRemaining);
+        startBtn.textContent = t('start-timer');
+    }
+    startBtn.classList.remove('hidden');
+}
+
+function formatDuration(totalSeconds) {
+    if (totalSeconds <= 0) return '0 ' + t('min-word');
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    if (secs === 0) return mins + ' ' + t('min-word');
+    return mins + ' ' + t('min-word') + ' ' + secs + ' ' + t('sec-word');
 }
 
 function formatTime(totalSeconds) {
@@ -260,24 +399,44 @@ function formatTime(totalSeconds) {
 }
 
 function startTimer() {
+    if (timerMode === null) return;
     document.getElementById('start-timer-btn').classList.add('hidden');
     document.getElementById('end-session-btn').classList.remove('hidden');
+    document.getElementById('enjoy-msg').classList.remove('hidden');
 
-    timerInterval = setInterval(function () {
-        secondsRemaining--;
-        document.getElementById('timer-display').textContent = formatTime(secondsRemaining);
+    if (timerMode === 'web') {
+        timerEndTime = Date.now() + secondsRemaining * 1000;
+        timerRunning = true;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(timerTick, 250);
+        timerTick();
+    }
+}
 
-        if (secondsRemaining <= 0) {
-            clearInterval(timerInterval);
-            endSession();
-        }
-    }, 1000);
+function timerTick() {
+    if (!timerRunning) return;
+    const remainMs = timerEndTime - Date.now();
+    secondsRemaining = Math.max(0, Math.ceil(remainMs / 1000));
+    const display = formatTime(secondsRemaining);
+    document.getElementById('timer-display').textContent = display;
+    document.title = display + ' - Massage App';
+    if (secondsRemaining <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerRunning = false;
+        endSession();
+    }
 }
 
 function endSession() {
     clearInterval(timerInterval);
-    const total = selectedDuration * 2;
-    const earned = selectedDuration;
+    timerInterval = null;
+    timerRunning = false;
+    timerEndTime = 0;
+    document.title = 'Massage App';
+    const mins = selectedTotalSeconds / 60;
+    const total = Math.round(mins * 2 * 100) / 100;
+    const earned = Math.round(mins * 100) / 100;
 
     document.getElementById('payment-total').textContent = sessionFreeMinutes > 0 ? 0 : total;
     document.getElementById('points-earned').textContent = earned;
@@ -287,7 +446,7 @@ function endSession() {
     if (sessionFreeMinutes > 0) {
         users[currentUser].points += earned;
         saveUsers();
-        showScreen('home-screen');
+        showHome();
         updatePointsDisplay();
         updateRedeemButtons();
         alert(t('free-done') + earned + t('points-after'));
@@ -299,6 +458,10 @@ function endSession() {
 
 function cancelSession() {
     clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+    timerEndTime = 0;
+    document.title = 'Massage App';
     showHome();
 }
 
@@ -306,7 +469,7 @@ function cancelSession() {
 function confirmPayment() {
     const pw = document.getElementById('payment-password').value;
     if (pw === 'jjaakkeelol') {
-        const earned = selectedDuration;
+        const earned = Math.round((selectedTotalSeconds / 60) * 100) / 100;
         users[currentUser].points += earned;
         saveUsers();
         alert(t('pay-confirmed') + earned + t('points-after'));
@@ -316,6 +479,14 @@ function confirmPayment() {
         document.getElementById('payment-error').classList.remove('hidden');
     }
 }
+
+// Keep the countdown accurate even when the tab or app is backgrounded
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && timerRunning) timerTick();
+});
+window.addEventListener('focus', function () {
+    if (timerRunning) timerTick();
+});
 
 // Pressing Enter in an auth field logs in / signs up, without a real <form>
 document.getElementById('signin-username').addEventListener('keydown', authEnterKey);
