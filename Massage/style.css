@@ -438,3 +438,129 @@ body {
 .payment-confirm input:focus {
     border-color: #e94560;
 }
+
+/* CUSTOM */
+.custom-card {
+    margin-top: 15px;
+    padding: 18px;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    background: #16213e;
+    transition: all 0.2s;
+}
+
+.custom-card.selected {
+    border-color: #e94560;
+}
+
+.custom-label {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #e94560;
+    margin-bottom: 10px;
+}
+
+.custom-display {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4ecca3;
+    text-align: center;
+    margin-bottom: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.custom-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.custom-controls input,
+.custom-controls select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid #0f3460;
+    background: #1a1a2e;
+    color: #eee;
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+}
+
+.custom-controls input {
+    width: 90px;
+}
+
+.custom-controls select {
+    width: 80px;
+    cursor: pointer;
+}
+
+.custom-baht {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4ecca3;
+    background: #1a1a2e;
+    border: 2px solid #0f3460;
+    border-radius: 10px;
+}
+
+.custom-controls input:focus,
+.custom-controls select:focus {
+    border-color: #e94560;
+}
+
+.custom-slider {
+    width: 100%;
+    accent-color: #4ecca3;
+    cursor: pointer;
+}
+
+.custom-markers {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+    padding: 0 2px;
+}
+
+/* SESSION TIMER CHOICE */
+.timer-choice {
+    background: #16213e;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.timer-choice p {
+    margin-bottom: 15px;
+    color: #ccc;
+    font-size: 15px;
+}
+
+.timer-choice-btns {
+    display: flex;
+    gap: 10px;
+}
+
+.timer-choice-btns .btn-secondary,
+.timer-choice-btns .btn-primary {
+    flex: 1;
+    padding: 12px;
+}
+
+.enjoy-msg {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4ecca3;
+    margin: 0 0 20px;
+}
