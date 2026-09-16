@@ -60,6 +60,21 @@
                     <button class="duration-btn" onclick="setDuration(25, this)"><span data-lang="dur-25">25 min</span><br><small data-lang="baht-50">50 Baht</small></button>
                     <button class="duration-btn" onclick="setDuration(30, this)"><span data-lang="dur-30">30 min</span><br><small data-lang="baht-60">60 Baht</small></button>
                 </div>
+
+                <div class="custom-card" id="custom-card" onclick="selectCustom()">
+                    <span class="custom-label" data-lang="custom">Custom</span>
+                    <div class="custom-display" id="custom-display"></div>
+                    <div class="custom-controls">
+                        <input type="number" id="custom-min" inputmode="numeric" min="0" max="30" value="5" oninput="customMinChanged()">
+                        <select id="custom-sec" onchange="customSecChanged()">
+                            <option value="0">00</option>
+                            <option value="30">30</option>
+                        </select>
+                        <span class="custom-baht" id="custom-baht">10 Baht</span>
+                    </div>
+                    <input type="range" class="custom-slider" id="custom-slider" min="0" max="1800" step="30" value="300" oninput="customSliderMoved()">
+                    <div class="custom-markers"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div>
+                </div>
             </div>
 
             <div class="section">
@@ -87,13 +102,22 @@
     <div id="session-screen" class="screen">
         <div class="session-container">
             <h1 data-lang="session-title">Massage Session</h1>
-            <p class="session-info"><span data-lang="duration-prefix">Duration: </span><strong id="session-duration"></strong> <span data-lang="minutes">minutes</span></p>
+            <p class="session-info"><span data-lang="duration-prefix">Duration: </span><strong id="session-duration"></strong></p>
             <p class="session-info hidden" id="session-free-label"></p>
 
-            <div class="timer-display" id="timer-display">00:00</div>
+            <div id="timer-choice" class="timer-choice">
+                <p data-lang="timer-choice">Do you want to use your own timer or use the timer on this website?</p>
+                <div class="timer-choice-btns">
+                    <button class="btn-secondary" data-lang="your-timer" onclick="chooseTimerMode('my')">My Timer</button>
+                    <button class="btn-primary" data-lang="website-timer" onclick="chooseTimerMode('web')">Website Timer</button>
+                </div>
+            </div>
+
+            <div class="timer-display hidden" id="timer-display">00:00</div>
+            <p class="enjoy-msg hidden" id="enjoy-msg" data-lang="enjoy">Enjoy your massage!</p>
 
             <div class="session-actions">
-                <button class="btn-primary btn-large" data-lang="start-timer" id="start-timer-btn" onclick="startTimer()">Start Timer</button>
+                <button class="btn-primary btn-large hidden" data-lang="start-timer" id="start-timer-btn" onclick="startTimer()">Start Timer</button>
                 <button class="btn-danger btn-large hidden" data-lang="end-session" id="end-session-btn" onclick="endSession()">End Session</button>
             </div>
 
@@ -109,7 +133,7 @@
             <p class="payment-points-earned"><span data-lang="you-earned">You earned </span><strong id="points-earned">0</strong> <span data-lang="points-word">points!</span></p>
 
             <div class="payment-confirm">
-                <p data-lang="hand-phone">Hand the phone to the customer to confirm payment.</p>
+                <p data-lang="hand-phone">Hand the phone to Jake to confirm the payment.</p>
                 <p data-lang="enter-pw">Enter password to confirm:</p>
                 <input type="text" id="payment-password" class="no-save-password" placeholder="Enter password" data-lang="enter-pw-ph" autocomplete="off">
                 <button class="btn-primary" data-lang="confirm-payment" onclick="confirmPayment()">Confirm Payment</button>
