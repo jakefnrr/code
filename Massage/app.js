@@ -14,7 +14,7 @@ let currentLang = localStorage.getItem('massageUILang') || 'en';
 
 const MESSAGES = {
     'app-title': { en: 'Massage App', th: 'แอปนวด' },
-    'sign-in': { en: 'Sign In', th: 'เข้าสู่ระบบ' },
+    'sign-in': { en: 'Log In', th: 'เข้าสู่ระบบ' },
     'sign-up': { en: 'Sign Up', th: 'สมัครสมาชิก' },
     'username': { en: 'Username', th: 'ชื่อผู้ใช้' },
     'password': { en: 'Password', th: 'รหัสผ่าน' },
@@ -145,6 +145,11 @@ function handleSignUp() {
     }
 
     if (users[username]) {
+        if (users[username].password === password) {
+            currentUser = username;
+            showHome();
+            return;
+        }
         showAuthError(t('exists-err'));
         return;
     }
