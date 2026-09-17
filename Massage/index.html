@@ -1,147 +1,566 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Massage App</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="screen active">
-        <a href="../index.html" class="all-projects-btn">ALL PROJECTS</a>
-        <button class="lang-toggle-btn" id="lang-toggle" onclick="toggleLanguage()">ไทย</button>
-        <div class="auth-container">
-            <h1 data-lang="app-title">Massage App</h1>
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-lang="sign-in" onclick="showAuthTab('signin')">Log In</button>
-                <button class="auth-tab" data-lang="sign-up" onclick="showAuthTab('signup')">Sign Up</button>
-            </div>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+}
 
-            <div id="signin-form" class="auth-form">
-                <input type="text" id="signin-username" placeholder="Username" data-lang="username" autocomplete="off" required>
-                <input type="text" id="signin-password" class="no-save-password" placeholder="Password" data-lang="password" autocomplete="off" required>
-                <button type="button" class="btn-primary" data-lang="sign-in" onclick="handleSignIn()">Log In</button>
-            </div>
+.screen {
+    display: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 20px;
+}
 
-            <div id="signup-form" class="auth-form hidden">
-                <input type="text" id="signup-username" placeholder="Username" data-lang="username" autocomplete="off" required>
-                <input type="text" id="signup-password" class="no-save-password" placeholder="Password" data-lang="password" autocomplete="off" required>
-                <button type="button" class="btn-primary" data-lang="sign-up" onclick="handleSignUp()">Sign Up</button>
-            </div>
+.screen.active {
+    display: block;
+}
 
-            <p id="auth-error" class="error-text hidden"></p>
-        </div>
-    </div>
+/* ALL PROJECTS BUTTON */
+.all-projects-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #e94560;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    z-index: 100;
+    transition: background 0.2s;
+}
 
-    <!-- HOME SCREEN -->
-    <div id="home-screen" class="screen">
-        <a href="../index.html" class="all-projects-btn">ALL PROJECTS</a>
-        <button class="sign-out-btn" data-lang="sign-out" onclick="handleSignOut()">Sign Out</button>
-        <button class="lang-toggle-btn" id="lang-toggle-home" onclick="toggleLanguage()">ไทย</button>
-        <div class="home-container">
-            <div class="header-row">
-                <h1><span data-lang="welcome-prefix">Welcome, </span><span id="current-username"></span></h1>
-            </div>
+.all-projects-btn:hover {
+    background: #c73650;
+}
 
-            <div class="points-display">
-                <span data-lang="points-label">Your Points: </span><strong id="user-points">0</strong>
-            </div>
+/* SIGN OUT BUTTON (top left) */
+.sign-out-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 8px 16px;
+    border: 2px solid #e94560;
+    border-radius: 8px;
+    background: transparent;
+    color: #e94560;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+}
 
-            <div class="section">
-                <h2 data-lang="choose-duration">Choose Massage Duration</h2>
-                <p class="subtitle" data-lang="subtitle">2 Baht per minute (max 30 min)</p>
-                <div class="duration-selector">
-                    <button class="duration-btn" onclick="setDuration(5, this)"><span data-lang="dur-5">5 min</span><br><small data-lang="baht-10">10 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(10, this)"><span data-lang="dur-10">10 min</span><br><small data-lang="baht-20">20 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(15, this)"><span data-lang="dur-15">15 min</span><br><small data-lang="baht-30">30 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(20, this)"><span data-lang="dur-20">20 min</span><br><small data-lang="baht-40">40 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(25, this)"><span data-lang="dur-25">25 min</span><br><small data-lang="baht-50">50 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(30, this)"><span data-lang="dur-30">30 min</span><br><small data-lang="baht-60">60 Baht</small></button>
-                </div>
+.sign-out-btn:hover {
+    background: #e94560;
+    color: #fff;
+}
 
-                <div class="custom-card" id="custom-card" onclick="selectCustom()">
-                    <span class="custom-label" data-lang="custom">Custom</span>
-                    <div class="custom-display" id="custom-display"></div>
-                    <div class="custom-controls">
-                        <input type="number" id="custom-min" inputmode="numeric" min="0" max="30" value="5" oninput="customMinChanged()">
-                        <select id="custom-sec" onchange="customSecChanged()">
-                            <option value="0">00</option>
-                            <option value="30">30</option>
-                        </select>
-                        <span class="custom-baht" id="custom-baht">10 Baht</span>
-                    </div>
-                    <input type="range" class="custom-slider" id="custom-slider" min="0" max="1800" step="30" value="300" oninput="customSliderMoved()">
-                    <div class="custom-markers"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div>
-                </div>
-            </div>
+/* LANGUAGE TOGGLE BUTTON (top center) */
+.lang-toggle-btn {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border: 2px solid #4ecca3;
+    border-radius: 8px;
+    background: transparent;
+    color: #4ecca3;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+}
 
-            <div class="section">
-                <h2 data-lang="redeem-title">Redeem Free Massage</h2>
-                <div class="redeem-options">
-                    <button class="redeem-btn" id="redeem-5" onclick="redeemFree(5, 25)">
-                        <span data-lang="free-5">5 min free</span><br><small data-lang="pts-25">25 points</small>
-                    </button>
-                    <button class="redeem-btn" id="redeem-10" onclick="redeemFree(10, 55)">
-                        <span data-lang="free-10">10 min free</span><br><small data-lang="pts-55">55 points</small>
-                    </button>
-                    <button class="redeem-btn" id="redeem-15" onclick="redeemFree(15, 85)">
-                        <span data-lang="free-15">15 min free</span><br><small data-lang="pts-85">85 points</small>
-                    </button>
-                </div>
-            </div>
+.lang-toggle-btn:hover {
+    background: #4ecca3;
+    color: #1a1a2e;
+}
 
-            <button class="btn-primary btn-large" data-lang="begin-session" id="begin-session-btn" onclick="beginSession()" disabled>
-                Begin Session
-            </button>
-        </div>
-    </div>
+/* AUTH */
+.auth-container {
+    max-width: 400px;
+    margin: 80px auto 0;
+    background: #16213e;
+    border-radius: 16px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
 
-    <!-- SESSION SCREEN -->
-    <div id="session-screen" class="screen">
-        <div class="session-container">
-            <h1 data-lang="session-title">Massage Session</h1>
-            <p class="session-info"><span data-lang="duration-prefix">Duration: </span><strong id="session-duration"></strong></p>
-            <p class="session-info hidden" id="session-free-label"></p>
+.auth-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    color: #e94560;
+}
 
-            <div id="timer-choice" class="timer-choice">
-                <p data-lang="timer-choice">Do you want to use your own timer or use the timer on this website?</p>
-                <div class="timer-choice-btns">
-                    <button class="btn-secondary" data-lang="your-timer" onclick="chooseTimerMode('my')">My Timer</button>
-                    <button class="btn-primary" data-lang="website-timer" onclick="chooseTimerMode('web')">Website Timer</button>
-                </div>
-            </div>
+.auth-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #e94560;
+}
 
-            <div class="timer-display hidden" id="timer-display">00:00</div>
-            <p class="enjoy-msg hidden" id="enjoy-msg" data-lang="enjoy">Enjoy your massage!</p>
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    color: #aaa;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 
-            <div class="session-actions">
-                <button class="btn-primary btn-large hidden" data-lang="start-timer" id="start-timer-btn" onclick="startTimer()">Start Timer</button>
-                <button class="btn-danger btn-large hidden" data-lang="end-session" id="end-session-btn" onclick="endSession()">End Session</button>
-            </div>
+.auth-tab.active {
+    background: #e94560;
+    color: #fff;
+}
 
-            <button class="btn-secondary" data-lang="cancel" onclick="cancelSession()">Cancel</button>
-        </div>
-    </div>
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
-    <!-- PAYMENT SCREEN -->
-    <div id="payment-screen" class="screen">
-        <div class="payment-container">
-            <h1 data-lang="payment-title">Payment</h1>
-            <p class="payment-amount"><span data-lang="amount-due">Amount Due: </span><strong id="payment-total">0</strong> <span data-lang="baht">Baht</span></p>
-            <p class="payment-points-earned"><span data-lang="you-earned">You earned </span><strong id="points-earned">0</strong> <span data-lang="points-word">points!</span></p>
+.auth-form input {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid #0f3460;
+    background: #1a1a2e;
+    color: #eee;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
 
-            <div class="payment-confirm">
-                <p data-lang="hand-phone">Hand the phone to Jake to confirm the payment.</p>
-                <p data-lang="enter-pw">Enter password to confirm:</p>
-                <input type="text" id="payment-password" class="no-save-password" placeholder="Enter password" data-lang="enter-pw-ph" autocomplete="off">
-                <button class="btn-primary" data-lang="confirm-payment" onclick="confirmPayment()">Confirm Payment</button>
-                <p id="payment-error" class="error-text hidden"></p>
-            </div>
-        </div>
-    </div>
+.auth-form input:focus {
+    border-color: #e94560;
+}
 
-    <script src="app.js"></script>
-</body>
-</html>
+.btn-primary {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #e94560;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #c73650;
+}
+
+.btn-primary:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    border: 2px solid #e94560;
+    border-radius: 10px;
+    background: transparent;
+    color: #e94560;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #e94560;
+    color: #fff;
+}
+
+.btn-danger {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #ff4444;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #cc0000;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Show password as circles but don't trigger Safari's save-password prompt */
+.no-save-password {
+    -webkit-text-security: disc;
+    text-security: disc;
+    letter-spacing: 1px;
+}
+
+.error-text {
+    color: #ff6b6b;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* HOME */
+.home-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-top: 70px;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.header-row h1 {
+    font-size: 24px;
+}
+
+.points-display {
+    background: #16213e;
+    padding: 15px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 30px;
+    border: 2px solid #e94560;
+}
+
+.points-display strong {
+    color: #e94560;
+    font-size: 24px;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.section h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #aaa;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.duration-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.duration-btn {
+    padding: 18px 10px;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    background: #16213e;
+    color: #eee;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.duration-btn:hover,
+.duration-btn.selected {
+    border-color: #e94560;
+    background: #e94560;
+}
+
+.duration-btn small {
+    font-weight: 400;
+    color: #ccc;
+}
+
+.duration-btn.selected small {
+    color: #fff;
+}
+
+.redeem-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.redeem-btn {
+    padding: 18px 10px;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    background: #16213e;
+    color: #eee;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.redeem-btn:hover:not(:disabled) {
+    border-color: #4ecca3;
+    background: #4ecca3;
+    color: #1a1a2e;
+}
+
+.redeem-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.redeem-btn small {
+    font-weight: 400;
+    color: #aaa;
+}
+
+/* SESSION */
+.session-container {
+    max-width: 400px;
+    margin: 100px auto 0;
+    text-align: center;
+}
+
+.session-container h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.session-info {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #aaa;
+}
+
+.timer-display {
+    font-size: 80px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin: 40px 0;
+    color: #4ecca3;
+}
+
+.session-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* PAYMENT */
+.payment-container {
+    max-width: 400px;
+    margin: 100px auto 0;
+    text-align: center;
+    background: #16213e;
+    border-radius: 16px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.payment-container h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #e94560;
+}
+
+.payment-amount {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.payment-amount strong {
+    color: #4ecca3;
+    font-size: 32px;
+}
+
+.payment-points-earned {
+    font-size: 16px;
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+.payment-points-earned strong {
+    color: #e94560;
+}
+
+.payment-confirm p {
+    margin-bottom: 12px;
+    color: #ccc;
+}
+
+.payment-confirm input {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid #0f3460;
+    background: #1a1a2e;
+    color: #eee;
+    font-size: 16px;
+    outline: none;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.payment-confirm input:focus {
+    border-color: #e94560;
+}
+
+/* CUSTOM */
+.custom-card {
+    margin-top: 15px;
+    padding: 18px;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    background: #16213e;
+    transition: all 0.2s;
+}
+
+.custom-card.selected {
+    border-color: #e94560;
+}
+
+.custom-label {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #e94560;
+    margin-bottom: 10px;
+}
+
+.custom-display {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4ecca3;
+    text-align: center;
+    margin-bottom: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.custom-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.custom-controls input,
+.custom-controls select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid #0f3460;
+    background: #1a1a2e;
+    color: #eee;
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+}
+
+.custom-controls input {
+    width: 90px;
+}
+
+.custom-controls select {
+    width: 80px;
+    cursor: pointer;
+}
+
+.custom-baht {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4ecca3;
+    background: #1a1a2e;
+    border: 2px solid #0f3460;
+    border-radius: 10px;
+}
+
+.custom-controls input:focus,
+.custom-controls select:focus {
+    border-color: #e94560;
+}
+
+.custom-slider {
+    width: 100%;
+    accent-color: #4ecca3;
+    cursor: pointer;
+}
+
+.custom-markers {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+    padding: 0 2px;
+}
+
+/* SESSION TIMER CHOICE */
+.timer-choice {
+    background: #16213e;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.timer-choice p {
+    margin-bottom: 15px;
+    color: #ccc;
+    font-size: 15px;
+}
+
+.timer-choice-btns {
+    display: flex;
+    gap: 10px;
+}
+
+.timer-choice-btns .btn-secondary,
+.timer-choice-btns .btn-primary {
+    flex: 1;
+    padding: 12px;
+}
+
+.enjoy-msg {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4ecca3;
+    margin: 0 0 20px;
+}
