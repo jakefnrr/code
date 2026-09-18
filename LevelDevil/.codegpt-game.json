@@ -1,0 +1,14 @@
+{
+  "name": "LevelDevil",
+  "engine": "generic",
+  "launch": {
+    "cmd": "echo set launch.cmd in .codegpt-game.json"
+  },
+  "log": {
+    "stdout": true
+  },
+  "sourceRoots": [
+    "."
+  ],
+  "vars": {}
+}

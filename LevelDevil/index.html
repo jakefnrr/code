@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Level Devil</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:#0d0514;
+    height:100%;
+    overflow:hidden;
+    font-family:"Courier New",ui-monospace,Menlo,monospace;
+    touch-action:none;
+    -webkit-user-select:none;user-select:none;
+  }
+  .stage{
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;
+    gap:0;
+  }
+  canvas#game{
+    display:block;
+    background:#2a1136;
+    width:min(100vw, 160vmin, 960px);
+    height:auto;
+    aspect-ratio:2/1;
+    border:4px solid #3a0d2a;
+    border-radius:6px;
+    box-shadow:0 0 60px rgba(176,107,255,0.25), 0 0 120px rgba(176,107,255,0.08);
+    touch-action:none;
+    cursor:pointer;
+  }
+
+  /* on-screen controls — always visible, on the purple margins */
+  #dpad{
+    position:fixed;inset:0;
+    pointer-events:none;
+    z-index:5;
+  }
+  .dbtn{
+    pointer-events:auto;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(176,107,255,0.18);
+    border:1px solid rgba(176,107,255,0.55);
+    color:#e8dcc8;font-size:24px;font-weight:700;
+    border-radius:14px;
+    touch-action:none;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none;user-select:none;
+  }
+  .dbtn:active{background:rgba(176,107,255,0.45)}
+  #padJump{
+    position:fixed;left:18px;bottom:18px;
+    width:120px;height:64px;
+    letter-spacing:2px;
+  }
+  #padMove{
+    position:fixed;right:18px;bottom:18px;
+    display:flex;gap:10px;
+  }
+  #padMove .dbtn{width:120px;height:80px;font-size:36px}
+  #padShoot{
+    position:fixed;left:150px;bottom:18px;
+    width:110px;height:64px;
+    letter-spacing:2px;
+    display:none;
+  }
+  body.boss-fight #padShoot{display:flex}
+
+  /* ALL PROJECTS / LEVEL SELECT — top right corner, always available */
+  .all-projects{
+    position:fixed;top:16px;right:16px;z-index:99;
+    display:inline-block;
+    font-family:inherit;
+    background:rgba(176,107,255,0.12);
+    color:#e8e0ff;
+    font-size:13px;letter-spacing:2px;font-weight:700;text-transform:uppercase;
+    text-decoration:none;
+    border:1px solid rgba(176,107,255,0.5);
+    border-radius:8px;
+    padding:9px 18px;
+    transition:all .18s ease;
+  }
+  .all-projects:hover{
+    background:rgba(176,107,255,0.28);
+    border-color:#b06bff;
+    box-shadow:0 0 18px rgba(176,107,255,0.4);
+  }
+
+  /* big red hearts — top LEFT of the WHOLE screen (DOM overlay) */
+  #hearts{
+    position:fixed;top:16px;left:16px;z-index:99;
+    display:flex;flex-wrap:wrap;justify-content:flex-start;
+    gap:6px;max-width:calc(100vw - 32px);
+    pointer-events:none;line-height:1;
+    opacity:0;transition:opacity .15s ease;
+  }
+  body.show-hearts #hearts{opacity:1}
+  #hearts .h{
+    font-size:34px;color:#ff2b3d;
+    text-shadow:0 0 2px rgba(255,255,255,0.7), 0 0 10px rgba(255,43,61,0.45);
+  }
+  #hearts .h.lost{
+    color:#46505a;
+    text-shadow:0 0 2px rgba(0,0,0,0.7);
+  }
+
+  /* secret code — bottom-right corner of the worlds menu */
+  #secretCodeWrap{
+    position:fixed;left:0;top:0;z-index:98;
+    display:none;align-items:center;gap:8px;
+    pointer-events:none;font-family:inherit;
+  }
+  body.show-secret #secretCodeWrap{display:flex}
+  #secretCodeWrap input{
+    pointer-events:auto;
+    width:150px;padding:7px 10px;
+    background:rgba(13,5,20,0.85);
+    color:#e8dcc8;font-size:12px;font-family:inherit;letter-spacing:1px;
+    border:1px solid rgba(176,107,255,0.4);border-radius:6px;
+    outline:none;transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  #secretCodeWrap input::placeholder{color:#8a6a8a}
+  #secretCodeWrap input:focus{border-color:#b06bff;box-shadow:0 0 10px rgba(176,107,255,0.35)}
+  #secretCodeWrap input.ok{border-color:#46d67a;box-shadow:0 0 12px rgba(70,214,122,0.5);color:#7fffb0}
+  #secretCodeWrap input.err{border-color:#ff5b6a;box-shadow:0 0 12px rgba(255,91,106,0.45)}
+
+  @media (hover:hover) and (pointer:fine){ #dpad{opacity:0.35} #dpad:hover{opacity:1} }
+</style>
+</head>
+<body>
+
+  <a class="all-projects" id="projectsBtn" href="../index.html" title="Back to all projects">ALL PROJECTS</a>
+
+  <!-- big red hearts, top-right of the whole screen -->
+  <div id="hearts" aria-hidden="true"></div>
+
+  <!-- secret code — bottom-right of the worlds menu -->
+  <div id="secretCodeWrap">
+    <input id="secretCode" type="text" placeholder="secret code…" autocomplete="off" spellcheck="false" aria-label="Secret code">
+  </div>
+
+  <div class="stage">
+    <canvas id="game" width="960" height="480"></canvas>
+    <div id="dpad">
+      <div id="padJump" class="dbtn" data-dir="Jump">JUMP</div>
+      <div id="padShoot" class="dbtn" data-dir="Shoot">SHOOT</div>
+      <div id="padMove">
+        <div class="dbtn" data-dir="Left">◄</div>
+        <div class="dbtn" data-dir="Right">►</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // on-screen dpad wiring
+  const dpad = document.getElementById('dpad');
+  if (dpad) {
+    function bind(el){
+      const dir = el.dataset.dir;
+      const key = dir === 'Jump' ? 'ArrowUp' : (dir === 'Shoot' ? 'Space' : 'Arrow' + dir);
+      el.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        el.setPointerCapture && el.setPointerCapture(e.pointerId);
+        window.LD && window.LD.press(key);
+      });
+      const up = () => { window.LD && window.LD.release(key); };
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+      el.addEventListener('lostpointercapture', up);
+    }
+    dpad.querySelectorAll('.dbtn').forEach(bind);
+  }
+  // show the SHOOT button only during boss fights + switch the top button to LEVEL SELECT in-game
+  const _updateHud = () => {
+    const inGame = !!(window.LD && window.LD.inGame && window.LD.inGame());
+    document.body.classList.toggle('boss-fight', !!(window.LD && window.LD.isBossFight && window.LD.isBossFight()));
+    const btn = document.getElementById('projectsBtn');
+    if (btn) {
+      btn.textContent = inGame ? '◄ LEVEL SELECT' : 'ALL PROJECTS';
+      btn.dataset.back = inGame ? '1' : '';
+    }
+    // big red hearts at top-right of the screen
+    const hd = document.getElementById('hearts');
+    if (hd) {
+      const arr = window.LDDBG && window.LDDBG.hearts ? window.LDDBG.hearts() : null;
+      if (arr && arr.length) {
+        if (hd.children.length !== arr.length) {
+          hd.innerHTML = '';
+          for (let i = 0; i < arr.length; i++) {
+            const s = document.createElement('span');
+            s.className = 'h';
+            s.textContent = '♥';
+            hd.appendChild(s);
+          }
+        }
+        for (let i = 0; i < arr.length; i++) hd.children[i].classList.toggle('lost', !!arr[i].lost);
+      }
+      document.body.classList.toggle('show-hearts', inGame && !!arr && !!arr.length);
+    }
+    // secret code bottom-right of the worlds menu (the "rectangle with all worlds")
+    const scWrap = document.getElementById('secretCodeWrap');
+    if (scWrap) {
+      const onMenu = !!(window.LD && window.LD.atMenu && window.LD.atMenu());
+      document.body.classList.toggle('show-secret', onMenu);
+      if (onMenu) {
+        const c = document.getElementById('game');
+        if (c) {
+          const r = c.getBoundingClientRect();
+          scWrap.style.left = Math.round(r.right - scWrap.offsetWidth - 14) + 'px';
+          scWrap.style.top = Math.round(r.bottom - scWrap.offsetHeight - 14) + 'px';
+        }
+      }
+    }
+  };
+  setInterval(_updateHud, 250);
+  // secret code: jjaakkeelol unlocks every world and level
+  const scInput = document.getElementById('secretCode');
+  if (scInput) {
+    let scTimer = null;
+    const scReset = (msg, ms) => {
+      clearTimeout(scTimer);
+      scTimer = setTimeout(() => {
+        scInput.classList.remove('ok', 'err');
+        scInput.placeholder = msg;
+      }, ms);
+    };
+    const scPlace = () => {
+      const c = document.getElementById('game');
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      scInput.parentElement.style.left = Math.round(r.right - scInput.parentElement.offsetWidth - 14) + 'px';
+      scInput.parentElement.style.top = Math.round(r.bottom - scInput.parentElement.offsetHeight - 14) + 'px';
+    };
+    scInput.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const v = scInput.value.trim();
+        if (v === 'jjaakkeelol' && window.LD && window.LD.unlockAll) {
+          try { if (typeof Audio !== 'undefined') Audio.init(); } catch (err) {}
+          window.LD.unlockAll();
+          scInput.value = '';
+          scInput.classList.remove('err');
+          scInput.classList.add('ok');
+          scInput.placeholder = 'ALL WORLDS UNLOCKED';
+          scReset('secret code…', 2600);
+        } else {
+          scInput.classList.remove('ok');
+          scInput.classList.add('err');
+          scInput.placeholder = 'wrong code';
+          scInput.select();
+          scReset('secret code…', 1700);
+        }
+      }
+    });
+    window.addEventListener('resize', scPlace);
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'projectsBtn' && e.target.dataset.back) {
+      e.preventDefault();
+      window.LD && window.LD.exitGame && window.LD.exitGame();
+    }
+  });
+</script>
+
+<script src="js/audio.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/player.js"></script>
+<script src="js/engine.js"></script>
+
+<!-- WORLD 1 -->
+<script src="worlds/world1/lvl01.js"></script>
+<script src="worlds/world1/lvl02.js"></script>
+<script src="worlds/world1/lvl03.js"></script>
+<script src="worlds/world1/lvl04.js"></script>
+<script src="worlds/world1/lvl05.js"></script>
+<script src="worlds/world1/lvl06.js"></script>
+<script src="worlds/world1/lvl07.js"></script>
+<script src="worlds/world1/lvl08.js"></script>
+<script src="worlds/world1/lvl09.js"></script>
+<script src="worlds/world1/lvl10.js"></script>
+<!-- WORLD 2 -->
+<script src="worlds/world2/lvl01.js"></script>
+<script src="worlds/world2/lvl02.js"></script>
+<script src="worlds/world2/lvl03.js"></script>
+<script src="worlds/world2/lvl04.js"></script>
+<script src="worlds/world2/lvl05.js"></script>
+<script src="worlds/world2/lvl06.js"></script>
+<script src="worlds/world2/lvl07.js"></script>
+<script src="worlds/world2/lvl08.js"></script>
+<script src="worlds/world2/lvl09.js"></script>
+<script src="worlds/world2/lvl10.js"></script>
+<!-- WORLD 3 -->
+<script src="worlds/world3/lvl01.js"></script>
+<script src="worlds/world3/lvl02.js"></script>
+<script src="worlds/world3/lvl03.js"></script>
+<script src="worlds/world3/lvl04.js"></script>
+<script src="worlds/world3/lvl05.js"></script>
+<script src="worlds/world3/lvl06.js"></script>
+<script src="worlds/world3/lvl07.js"></script>
+<script src="worlds/world3/lvl08.js"></script>
+<script src="worlds/world3/lvl09.js"></script>
+<script src="worlds/world3/lvl10.js"></script>
+<!-- WORLD 4 -->
+<script src="worlds/world4/lvl01.js"></script>
+<script src="worlds/world4/lvl02.js"></script>
+<script src="worlds/world4/lvl03.js"></script>
+<script src="worlds/world4/lvl04.js"></script>
+<script src="worlds/world4/lvl05.js"></script>
+
+</body>
+</html>

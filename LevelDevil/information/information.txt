@@ -1,0 +1,244 @@
+================================================================================
+ LEVEL DEVIL — THE FAMILY OF INFO FILES
+ (Read this first. This folder explains EVERYTHING about the game.)
+================================================================================
+
+WHAT THIS FOLDER IS
+-------------------
+The LevelDevil game is driven by LEVEL FILES. This "information" folder is the
+knowledge library Jake (or an AI) reads BEFORE building or editing levels.
+
+The rule is simple: you ONLY ever write level data in  worlds/worldN/lvlMM.js
+by calling  Levels.register({ ... }).  You DO NOT touch the engine files.
+
+FILES IN THIS FOLDER (read them as needed):
+  information.txt   <- you are here: the master guide + rules
+  levels.txt        <- how a LEVEL FILE is built (the level object)
+  platforms.txt     <- floors, walls, and platforms (moving/crumbling/one-way)
+  traps.txt         <- every trap and how it works (spikes, bouncers, lava...)
+  saws.txt          <- the GRAY SPINNING SAWS (how to move / grow / shrink them)
+  menu.txt          <- the menus, screens, controls, and unlock rules
+
+WHAT THIS GAME IS
+-----------------
+Level Devil is a 2D side-scrolling precision platformer set in a creepy
+dungeon where a little red devil runs, jumps, and dies a lot.
+10 worlds x 10 levels = 100 levels, PLUS one boss fight at the end of every
+world (level 11, auto-registered by js/boss.js) = 110 levels total.
+
+Every world ends like this:
+  1. Beat level 10 of a world  -> "WORLD CLEAR" screen.
+  2. The world's BOSS tile (level 11) unlocks in level select.
+  3. Beat the boss -> the NEXT world unlocks.
+
+HOW TO ADD / EDIT A LEVEL
+-------------------------
+1. Edit the file  worlds/worldN/lvlMM.js  (e.g. world1/lvl01.js).
+2. Inside it write ONE call:
+
+   Levels.register({ ...level object... });
+
+3. Save. Refresh the page. That's it. No other file needs editing.
+   (index.html already loads every lvlXX.js file for all 10 worlds.)
+
+If someone asks:  "look at LevelDevil/information.txt and make level 1"
+then good AI behavior is: read this file + levels.txt, then edit world1/lvl01.js.
+
+================================================================================
+ THE LEVEL OBJECT (quick summary — full details in levels.txt)
+================================================================================
+{
+  world: 1,              // world number 1..10
+  level: 2,              // level number 1..10  (level 11 = boss, don't build it)
+  name: "Hot Gate",      // name shown at level start + on level select
+  tip:  "Timing beats speed.",  // optional one-line hint
+
+  width: 960,            // world width in px (960 = no scroll, >960 scrolls)
+  height: 480,           // world height in px
+  spawn: { x: 70, y: 300 },   // player respawn point
+  exit: { x: 900, y: 330 },   // the REAL exit door (w 42, h 58)
+
+  solids: [ ... ],       // floors/walls/platforms  -> platforms.txt
+  gaps:   [ ... ],       // holes carved in the floor
+  traps:  [ ... ],       // the dangerous stuff      -> traps.txt & saws.txt
+
+  emberDensity: 24,      // how many floating fire embers (default 18)
+  bg: "dungeon",         // "dungeon" | "crypt" | "hellfire"
+}
+
+================================================================================
+ PLAYER — sizes, physics (fixed constants, DO NOT change)
+================================================================================
+  Hitbox      : 26 wide x 38 tall
+  Walk speed  : 4.2 px/frame (~252 px/sec)
+  Jump power  : -12.4 vy
+  Gravity     : 0.72/frame, max fall speed 15 px/frame
+  Jump height : about 100 px of FEET rise (platform tops are measured
+                from the surface you jump from to the platform's TOP)
+  Run jump reach : roughly 230 px horizontal
+  EVERY platform in the game is REACHABLE — a platform's top must sit
+  within a single jump (<= ~100 px) of the surface you jump from. If a
+  platform is higher than that it cannot be landed on; lower it or add a
+  bouncer/movingPlatform. This is a hard guarantee, not a suggestion.
+
+  HEARTS: the player has 15 hearts per level (big red hearts, top-right of
+  the screen). EVERY death costs one heart. Lose all 15 for a level = GAME
+  OVER: all progress is wiped and you restart from World 1 · Level 1.
+
+  DESIGN RULES FOR PLATFORMING (keep levels FAIR and FUN):
+  - Max gap the player can jump: ~210 px running, ~110 px standing.
+    Keep deadly-jump gaps to <= 190 px.
+  - Standard step-up obstacle height: <= 105 px (one jump).
+  - One-way platforms: land on top, jump up through them.
+  - REACHABILITY RULE: every platform is reachable in one jump. Measure
+    from the surface the player stands on up to the platform's TOP; that
+    gap must be <= ~100 px. Never place a platform higher than a jump
+    (there is no double jump). If a spot needs more height, use a bouncer
+    or a movingPlatform instead.
+
+================================================================================
+ THE HONEST TRUTH ABOUT TRAPS — no warnings, and EVERYTHING resets on death
+================================================================================
+  - There are NO things that indicate a trap is there. No warning markers,
+    no blinking lights, no arrows. A floor that is about to open into a void,
+    a block that is about to fall, spikes that are about to pop up — the
+    ground looks totally normal right up until it acts.
+  - TRAPS RESET EVERY TIME YOU DIE. Any trap that moves or changes is put
+    back to its very first state when you respawn. If you trigger a void trap
+    (a piece of ground that moves and opens a pit) and you fall in, then when
+    you respawn the ground is whole again — you do NOT see the gap that ate
+    you. The same is true for falling blocks, crumbling floors, trap floors,
+    moving platforms, saws, popup spikes: respawn = clean, innocent world.
+  - This is INTENTIONAL. The level never shows you its hand twice. Trust what
+    you see in THIS run, not what you remember from your last death. Stay on
+    your toes — every single attempt.
+
+================================================================================
+ THE B O U N C E R  (green spring pad — the helper)
+================================================================================
+  { type: "bouncer", x: 300, y: 368, w: 60, boost: -17.5 }
+  - A green spring pad. Standing/bouncing on it launches you UP.
+  - It is NOT deadly. It is a movement helper.
+  - Default boost -17.5 = it bounces you about DOUBLE a normal jump
+    (~210 px into the air). That's high but "not too high" — plenty for
+    reaching tall ledges, never enough to break the ceiling on purpose.
+  - A smaller number is NOT smaller height: the boost is a negative vy,
+    so boost: -12 is a low bounce and boost: -20 is a huge one.
+  - Full write-up in traps.txt.
+
+================================================================================
+ THE GRAY SPINNING SAWS  (the moving blades — see saws.txt)
+================================================================================
+  { type: "saw", x: 360, y: 300, axis: "x", range: 120, speed: 1.5, size: 36 }
+  - Gray circular blades that ALWAYS spin.
+  - By default a saw just stays where it is and spins in place.
+  - They can MOVE left/right, up/down, in a circle, or swing like a
+    pendulum — only if you ask for it (axis / range / speed).
+  - They can GROW or SHRINK — give a bigger or smaller `size`.
+  - Kill on contact. Full details in saws.txt.
+
+================================================================================
+ BOSS FIGHTS — the end of every world (auto-made by js/boss.js)
+================================================================================
+  - Every world has a hidden level 11: a BOSS tile in level select.
+    It unlocks after you beat level 10 of that world.
+  - The boss room: walk right to a chest. OPEN IT -> you get the BLASTER.
+    (Shoot with SPACE, or the SHOOT button on touch. It reloads for ~1
+    second between shots; you cannot fire while it is reloading.)
+  - Past the chest the CAMERA LOCKS and a giant troll breaks out: it walks
+    toward you, spits arcing fire blobs, and body-slams. Hitting the boss
+    with the blaster deals 1 HP; hitting the head (its top ~40%) deals 2.
+    It has 10 HP. When it dies the world is done.
+  - Boss damage to YOU scales with the world: world 1 = 1 heart per hit,
+    world 2 = 6, world 3 = 11, ... (1 + (world-1)*5).
+  - Beating the boss unlocks the NEXT WORLD. You never build boss levels —
+    js/boss.js registers all 10 of them automatically.
+
+================================================================================
+ THE TRAP TYPES (complete list — full details in traps.txt)
+================================================================================
+  1) spikes            static floor spikes            kill on touch
+  2) popupSpikes       spikes that pop up on a cycle  kill while popped
+  3) movingSpikes      a ramp of spikes that slides   kill on touch
+  4) growingGap        floor cracks open when close   fall in = death
+  5) saw               GRAY SPINNING BLADE            -> saws.txt
+  6) crusher           block SLAMS down fast          kill while moving
+  7) fallingBlock      block drops when you get near  deadly while falling
+  8) crumbleFloor      shakes, then breaks            falling kills you
+  9) trapFloor         tile drops away after a moment falling kills you
+ 10) movingPlatform    carries the player             (a helper, not deadly)
+ 11) fakeDoor          looks like exit, is a lie      kill on touch
+ 12) lava              pool of lava                   kill on touch
+ 13) fireballSpitter   stone mouth spits fireballs    kill on touch
+ 14) ceilingSpikes     spikes DROP from the ceiling   deadly while falling
+ 15) bouncer           green spring pad, BIG bounce   (a helper, not deadly)
+ 16) warp              rune circle, teleports you     (a helper, not deadly)
+ 17) invisibleSpikes   hidden until you step on them  kill on touch
+
+ NOTE ON #6, #7, #14 — the falling traps:
+  - A crusher ALWAYS slams down fast and is guaranteed to reach the ground
+    under it (the engine extends it if it would otherwise stop too high),
+    so it can always hit a player running on the floor. Never build it to
+    hang so low that the player can just walk underneath untouched.
+  - A fallingBlock must REST HIGH ENOUGH that it drops at least ~100 px.
+    A block resting near ground level barely moves and never threatens —
+    that is a wasted trap. Raise it so the drop is dramatic.
+  - ceilingSpikes hang harmless at the ceiling, then DROP when the player
+    gets close. They are deadly only while falling; after they hit the
+    ground they shatter into harmless rubble.
+
+================================================================================
+ RULES / CHECKLIST BEFORE YOU DECLARE A LEVEL DONE
+================================================================================
+[ ] world and level are correct numbers (level 1..10 only; 11 = boss).
+[ ] There is exactly one real `exit`.
+[ ] Every deadly gap is <= 190 px (or has a platform to cross).
+[ ] Height steps <= 105 px (or there's a bouncer/platform).
+[ ] EVERY platform is reachable in one jump (feet to platform top <= ~100 px).
+[ ] The exit is reachable — walk it mentally / spawn test.
+[ ] No 2 fakeDoor traps within one screen of each other.
+[ ] invisibleSpikes <= 2 per level. No hint or warning is ever given.
+[ ] crushers/fallingBlocks rest high enough to be a real threat (see above).
+[ ] Trap count <= 8. Mix 2-3 trap TYPES, not 8 of one kind.
+[ ] Level names are fun, 1-3 words each.
+[ ] `tip` is short and teaches the mechanic instead of spoiling it.
+
+================================================================================
+ ENGINE INTERNALS (read-only; do not depend on these to change)
+================================================================================
+Execution order each frame:
+  1. input read
+  2. traps update (movement, cycles, projectiles)
+  3. player physics + collision with solids + dynamic solids
+  4. kill checks (trap kill rects + fireballs + falling + gaps)
+  5. exit touch -> level clear  (or boss logic -> boss win)
+  6. draw: background, solids, traps, particles, player, HUD
+
+Files:
+  index.html           - page shell, styles, on-screen dpad, button + hearts
+  js/audio.js          - procedural SFX + music + gun/reload sound samples
+  js/levels.js         - Levels.register() + level registry
+  js/traps.js          - trap types (create/update/draw) + projectiles
+  js/player.js         - animated devil sprite
+  js/engine.js         - states, menus, physics, HUD, boss/gun logic
+  js/boss.js           - auto-registers the 10 boss levels (world N, level 11)
+  worlds/worldN/lvlMM.js - LEVEL DATA ONLY (this is where YOU work)
+
+To test: open LevelDevil/index.html in a browser. World 1 is unlocked.
+For the menus and controls, read menu.txt.
+
+================================================================================
+ CONTEXT FOR AI COLLABORATION
+================================================================================
+Jake runs MULTIPLE AI assistants in parallel (one per terminal). If one AI
+owns world1 and another owns world2, they both edit different files — no
+conflict ever. Levels are completely isolated files; the engine loads all
+10 worlds' slots automatically.
+
+NEVER modify js/engine.js, js/player.js, js/traps.js, js/audio.js, js/boss.js,
+or index.html unless Jake explicitly says so.
+
+If you notice something in the game that looks off or different from what you
+expect, DO NOT try to fix it — assume another AI made it on purpose. Only make
+changes you were explicitly asked to make.
+================================================================================
