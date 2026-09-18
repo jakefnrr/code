@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #00d4ff; }
+        canvas { border: 2px solid #00d4ff; background: #0f0f23; }
+        #score { font-size: 20px; margin: 10px 0; }
+        button { padding: 10px 20px; font-size: 16px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer; color: #1a1a2e; font-weight: bold; }
+        button:hover { background: #00aacc; }
+    </style>
+</head>
+<body>
+    <h1>Pong</h1>
+    <div id="score">Player: 0 | AI: 0</div>
+    <canvas id="game" width="480" height="320"></canvas>
+    <button onclick="startGame()">Start Game</button>
+    <p style="margin-top:10px">Move mouse to control paddle</p>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        let paddle1, paddle2, ball, score1, score2, game;
+
+        function startGame() {
+            paddle1 = {x: 10, y: 130, w: 10, h: 60};
+            paddle2 = {x: 460, y: 130, w: 10, h: 60};
+            ball = {x: 240, y: 160, dx: 4, dy: 2, r: 6};
+            score1 = 0;
+            score2 = 0;
+            document.getElementById('score').textContent = 'Player: 0 | AI: 0';
+            if (game) cancelAnimationFrame(game);
+            draw();
+        }
+
+        canvas.addEventListener('mousemove', e => {
+            const rect = canvas.getBoundingClientRect();
+            paddle1.y = e.clientY - rect.top - paddle1.h/2;
+        });
+
+        function draw() {
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.setLineDash([5, 15]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, 0);
+            ctx.lineTo(canvas.width/2, canvas.height);
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(paddle1.x, paddle1.y, paddle1.w, paddle1.h);
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(paddle2.x, paddle2.y, paddle2.w, paddle2.h);
+
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+            ctx.fillStyle = '#ffff00';
+            ctx.fill();
+
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            if (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) ball.dy *= -1;
+
+            if (ball.x - ball.r < paddle1.x + paddle1.w && ball.y > paddle1.y && ball.y < paddle1.y + paddle1.h) {
+                ball.dx = Math.abs(ball.dx) * 1.05;
+            }
+
+            if (ball.x + ball.r > paddle2.x && ball.y > paddle2.y && ball.y < paddle2.y + paddle2.h) {
+                ball.dx = -Math.abs(ball.dx) * 1.05;
+            }
+
+            if (ball.x < 0) { score2++; ball.x = 240; ball.y = 160; ball.dx = 4; document.getElementById('score').textContent = `Player: ${score1} | AI: ${score2}`; }
+            if (ball.x > canvas.width) { score1++; ball.x = 240; ball.y = 160; ball.dx = -4; document.getElementById('score').textContent = `Player: ${score1} | AI: ${score2}`; }
+
+            const aiSpeed = 3;
+            if (paddle2.y + paddle2.h/2 < ball.y) paddle2.y += aiSpeed;
+            else if (paddle2.y + paddle2.h/2 > ball.y) paddle2.y -= aiSpeed;
+
+            game = requestAnimationFrame(draw);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

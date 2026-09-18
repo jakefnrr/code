@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #ff6600; }
+        #cookies { font-size: 24px; margin: 10px 0; }
+        #cps { font-size: 16px; color: #888; margin-bottom: 20px; }
+        .cookie { width: 200px; height: 200px; font-size: 120px; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        .cookie:active { transform: scale(0.9); }
+        .upgrades { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .upgrade { padding: 10px 20px; background: #16213e; border: 2px solid #ff6600; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; width: 300px; }
+        .upgrade:hover { background: #1a1a40; }
+        .upgrade.disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>🍪 Cookie Clicker</h1>
+    <div id="cookies">0 cookies</div>
+    <div id="cps">0 per second</div>
+    <div class="cookie" onclick="clickCookie()">🍪</div>
+    <div class="upgrades" id="upgrades"></div>
+    <script>
+        let cookies = 0, cps = 0;
+        const upgrades = [
+            { name: 'Auto Clicker', cost: 10, cps: 1, owned: 0 },
+            { name: 'Grandma', cost: 50, cps: 5, owned: 0 },
+            { name: 'Farm', cost: 200, cps: 20, owned: 0 },
+            { name: 'Mine', cost: 1000, cps: 100, owned: 0 },
+            { name: 'Factory', cost: 5000, cps: 500, owned: 0 }
+        ];
+
+        function clickCookie() {
+            cookies++;
+            update();
+        }
+
+        function buyUpgrade(i) {
+            if (cookies >= upgrades[i].cost) {
+                cookies -= upgrades[i].cost;
+                upgrades[i].owned++;
+                upgrades[i].cost = Math.floor(upgrades[i].cost * 1.5);
+                cps = upgrades.reduce((sum, u) => sum + u.cps * u.owned, 0);
+                update();
+            }
+        }
+
+        function update() {
+            document.getElementById('cookies').textContent = cookies + ' cookies';
+            document.getElementById('cps').textContent = cps + ' per second';
+            const el = document.getElementById('upgrades');
+            el.innerHTML = '';
+            upgrades.forEach((u, i) => {
+                const div = document.createElement('div');
+                div.className = 'upgrade' + (cookies < u.cost ? ' disabled' : '');
+                div.innerHTML = `<span>${u.name} (${u.owned})</span><span>${u.cost} cookies</span>`;
+                div.onclick = () => buyUpgrade(i);
+                el.appendChild(div);
+            });
+        }
+
+        setInterval(() => { cookies += cps; update(); }, 1000);
+        update();
+    </script>
+</body>
+</html>

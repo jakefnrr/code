@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #ff0055; }
+        #status { font-size: 18px; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: repeat(10, 35px); gap: 2px; margin: 10px 0; }
+        .cell { width: 35px; height: 35px; background: #16213e; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .cell.revealed { background: #0f0f23; }
+        .cell.mine { background: #ff0055; }
+        button { padding: 10px 20px; font-size: 16px; background: #ff0055; border: none; border-radius: 5px; cursor: pointer; color: white; }
+        button:hover { background: #cc0044; }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper</h1>
+    <div id="status">Mines: 15 | Flags: 0</div>
+    <div class="grid" id="grid"></div>
+    <button onclick="startGame()">New Game</button>
+    <p style="margin-top:10px">Left click to reveal, right click to flag</p>
+    <script>
+        const ROWS = 10, COLS = 10, MINES = 15;
+        let board, revealed, flagged, minesLeft, gameOver;
+
+        function startGame() {
+            board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+            revealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+            flagged = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+            minesLeft = MINES;
+            gameOver = false;
+
+            let placed = 0;
+            while (placed < MINES) {
+                const r = Math.floor(Math.random() * ROWS);
+                const c = Math.floor(Math.random() * COLS);
+                if (board[r][c] !== -1) { board[r][c] = -1; placed++; }
+            }
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (board[r][c] === -1) continue;
+                    let count = 0;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = r+dr, nc = c+dc;
+                            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === -1) count++;
+                        }
+                    }
+                    board[r][c] = count;
+                }
+            }
+            render();
+        }
+
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            const numColors = ['#000','#00d4ff','#00ff88','#ff0055','#bf00ff','#ffff00','#ff6600','#fff','#888'];
+            
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const div = document.createElement('div');
+                    div.className = 'cell' + (revealed[r][c] ? ' revealed' : '');
+                    if (revealed[r][c]) {
+                        if (board[r][c] === -1) { div.textContent = '💣'; div.classList.add('mine'); }
+                        else if (board[r][c] > 0) { div.textContent = board[r][c]; div.style.color = numColors[board[r][c]]; }
+                    } else if (flagged[r][c]) {
+                        div.textContent = '🚩';
+                    }
+                    div.onclick = () => reveal(r, c);
+                    div.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(r, c); };
+                    gridEl.appendChild(div);
+                }
+            }
+            document.getElementById('status').textContent = `Mines: ${minesLeft} | Flags: ${flagged.flat().filter(Boolean).length}`;
+        }
+
+        function reveal(r, c) {
+            if (gameOver || revealed[r][c] || flagged[r][c]) return;
+            revealed[r][c] = true;
+            if (board[r][c] === -1) {
+                gameOver = true;
+                for (let i = 0; i < ROWS; i++) for (let j = 0; j < COLS; j++) if (board[i][j] === -1) revealed[i][j] = true;
+                render();
+                alert('Game Over!');
+                return;
+            }
+            if (board[r][c] === 0) {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        const nr = r+dr, nc = c+dc;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) reveal(nr, nc);
+                    }
+                }
+            }
+            render();
+            if (revealed.flat().filter(x => !x).length === MINES) { gameOver = true; alert('You Win!'); }
+        }
+
+        function toggleFlag(r, c) {
+            if (gameOver || revealed[r][c]) return;
+            flagged[r][c] = !flagged[r][c];
+            render();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

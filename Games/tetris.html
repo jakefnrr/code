@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #00ff88; }
+        canvas { border: 2px solid #00ff88; background: #0f0f23; }
+        #score { font-size: 20px; margin: 10px 0; }
+        button { padding: 10px 20px; font-size: 16px; background: #00ff88; border: none; border-radius: 5px; cursor: pointer; color: #1a1a2e; font-weight: bold; }
+        button:hover { background: #00cc6a; }
+    </style>
+</head>
+<body>
+    <h1>Tetris</h1>
+    <div id="score">Score: 0</div>
+    <canvas id="game" width="250" height="500"></canvas>
+    <button onclick="startGame()">New Game</button>
+    <p style="margin-top:10px">Arrow keys to move, Up to rotate</p>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const COLS = 10, ROWS = 20, SIZE = 25;
+        let board, piece, score, game;
+
+        const pieces = [
+            [[1,1,1,1]],
+            [[1,1],[1,1]],
+            [[0,1,0],[1,1,1]],
+            [[1,0,0],[1,1,1]],
+            [[0,0,1],[1,1,1]],
+            [[1,1,0],[0,1,1]],
+            [[0,1,1],[1,1,0]]
+        ];
+        const colors = ['#00d4ff','#ffff00','#bf00ff','#ff6600','#00ff88','#ff0055','#00aacc'];
+
+        function startGame() {
+            board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+            score = 0;
+            spawnPiece();
+            document.getElementById('score').textContent = 'Score: 0';
+            if (game) clearInterval(game);
+            game = setInterval(draw, 500);
+        }
+
+        function spawnPiece() {
+            const i = Math.floor(Math.random() * pieces.length);
+            piece = { shape: pieces[i].map(r => [...r]), x: 3, y: 0, color: colors[i] };
+            if (collides(piece.shape, piece.x, piece.y)) {
+                clearInterval(game);
+                alert('Game Over! Score: ' + score);
+            }
+        }
+
+        function collides(shape, px, py) {
+            for (let r = 0; r < shape.length; r++) {
+                for (let c = 0; c < shape[r].length; c++) {
+                    if (shape[r][c]) {
+                        const nx = px + c, ny = py + r;
+                        if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+                        if (ny >= 0 && board[ny][nx]) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function lock() {
+            piece.shape.forEach((row, r) => row.forEach((cell, c) => {
+                if (cell && piece.y + r >= 0) board[piece.y + r][piece.x + c] = piece.color;
+            }));
+            clearLines();
+            spawnPiece();
+        }
+
+        function clearLines() {
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (board[r].every(c => c)) {
+                    board.splice(r, 1);
+                    board.unshift(Array(COLS).fill(0));
+                    score += 100;
+                    document.getElementById('score').textContent = 'Score: ' + score;
+                    r++;
+                }
+            }
+        }
+
+        function rotate() {
+            const rotated = piece.shape[0].map((_, i) => piece.shape.map(row => row[i]).reverse());
+            if (!collides(rotated, piece.x, piece.y)) piece.shape = rotated;
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft' && !collides(piece.shape, piece.x - 1, piece.y)) piece.x--;
+            if (e.key === 'ArrowRight' && !collides(piece.shape, piece.x + 1, piece.y)) piece.x++;
+            if (e.key === 'ArrowDown' && !collides(piece.shape, piece.x, piece.y + 1)) piece.y++;
+            if (e.key === 'ArrowUp') rotate();
+        });
+
+        function draw() {
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, r) => row.forEach((cell, c) => {
+                if (cell) {
+                    ctx.fillStyle = cell;
+                    ctx.fillRect(c*SIZE, r*SIZE, SIZE-1, SIZE-1);
+                }
+            }));
+
+            ctx.fillStyle = piece.color;
+            piece.shape.forEach((row, r) => row.forEach((cell, c) => {
+                if (cell) ctx.fillRect((piece.x+c)*SIZE, (piece.y+r)*SIZE, SIZE-1, SIZE-1);
+            }));
+
+            if (!collides(piece.shape, piece.x, piece.y + 1)) piece.y++;
+            else lock();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

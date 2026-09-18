@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #ff6600; }
+        canvas { border: 2px solid #ff6600; background: #0f0f23; }
+        #score { font-size: 20px; margin: 10px 0; }
+        button { padding: 10px 20px; font-size: 16px; background: #ff6600; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        button:hover { background: #cc5200; }
+    </style>
+</head>
+<body>
+    <h1>Flappy Bird</h1>
+    <div id="score">Score: 0</div>
+    <canvas id="game" width="320" height="480"></canvas>
+    <button onclick="startGame()">Start Game</button>
+    <p style="margin-top:10px">Press SPACE or click to flap</p>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        let bird, pipes, score, game, gravity = 0.5, flapPower = -8;
+
+        function startGame() {
+            bird = {x: 80, y: 240, vy: 0, r: 12};
+            pipes = [];
+            score = 0;
+            document.getElementById('score').textContent = 'Score: 0';
+            if (game) cancelAnimationFrame(game);
+            draw();
+        }
+
+        function flap() {
+            bird.vy = flapPower;
+        }
+
+        document.addEventListener('keydown', e => { if (e.code === 'Space') flap(); });
+        canvas.addEventListener('click', flap);
+
+        function draw() {
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            bird.vy += gravity;
+            bird.y += bird.vy;
+
+            if (bird.y > canvas.height || bird.y < 0) {
+                alert('Game Over! Score: ' + score);
+                return;
+            }
+
+            if (Math.random() < 0.02) {
+                const gap = 120;
+                const topH = Math.random() * (canvas.height - gap - 100) + 50;
+                pipes.push({x: canvas.width, topH, gap});
+            }
+
+            pipes.forEach(p => {
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(p.x, 0, 40, p.topH);
+                ctx.fillRect(p.x, p.topH + p.gap, 40, canvas.height);
+                p.x -= 3;
+
+                if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + 40) {
+                    if (bird.y - bird.r < p.topH || bird.y + bird.r > p.topH + p.gap) {
+                        alert('Game Over! Score: ' + score);
+                        return;
+                    }
+                }
+
+                if (p.x + 40 < bird.x && !p.scored) {
+                    score++;
+                    document.getElementById('score').textContent = 'Score: ' + score;
+                    p.scored = true;
+                }
+            });
+
+            pipes = pipes.filter(p => p.x > -40);
+
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.r, 0, Math.PI*2);
+            ctx.fillStyle = '#ff6600';
+            ctx.fill();
+
+            game = requestAnimationFrame(draw);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

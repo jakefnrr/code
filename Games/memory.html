@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        h1 { margin-bottom: 10px; color: #00d4ff; }
+        #stats { font-size: 18px; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 10px; margin: 20px 0; }
+        .card { width: 80px; height: 80px; background: #16213e; border: 2px solid #00d4ff; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; border-radius: 8px; }
+        .card.flipped { background: #0f3460; }
+        .card.matched { background: #00ff88; border-color: #00ff88; }
+        button { padding: 10px 20px; font-size: 16px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer; color: #1a1a2e; font-weight: bold; }
+        button:hover { background: #00aacc; }
+    </style>
+</head>
+<body>
+    <h1>Memory Game</h1>
+    <div id="stats">Moves: 0 | Matches: 0/8</div>
+    <div class="grid" id="grid"></div>
+    <button onclick="startGame()">New Game</button>
+    <script>
+        const emojis = ['🍎','🍊','🍋','🍇','🍉','🍓','🍒','🥝'];
+        let cards = [], flipped = [], matched = 0, moves = 0, locked = false;
+
+        function startGame() {
+            const pairs = [...emojis, ...emojis];
+            cards = pairs.sort(() => Math.random() - 0.5);
+            flipped = [];
+            matched = 0;
+            moves = 0;
+            locked = false;
+            updateStats();
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            cards.forEach((emoji, i) => {
+                const div = document.createElement('div');
+                div.className = 'card' + (flipped.includes(i) || matched && cards[i] === 'matched' ? ' flipped' : '');
+                div.textContent = flipped.includes(i) || (matched && cards[i] === 'matched') ? emoji : '?';
+                if (cards[i] === 'matched') div.classList.add('matched');
+                div.onclick = () => flipCard(i);
+                grid.appendChild(div);
+            });
+        }
+
+        function flipCard(i) {
+            if (locked || flipped.includes(i) || cards[i] === 'matched') return;
+            flipped.push(i);
+            render();
+
+            if (flipped.length === 2) {
+                moves++;
+                locked = true;
+                const [a, b] = flipped;
+                if (cards[a] === cards[b]) {
+                    cards[a] = 'matched';
+                    cards[b] = 'matched';
+                    matched++;
+                    flipped = [];
+                    locked = false;
+                    updateStats();
+                    render();
+                    if (matched === 8) setTimeout(() => alert('You win!'), 300);
+                } else {
+                    setTimeout(() => { flipped = []; locked = false; updateStats(); render(); }, 800);
+                }
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stats').textContent = `Moves: ${moves} | Matches: ${matched}/8`;
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
