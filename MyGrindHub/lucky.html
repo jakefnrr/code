@@ -1691,6 +1691,54 @@
 
 
     /* =====================================================
+       SECTION TITLES
+    ===================================================== */
+
+    .section-gap {
+
+      margin-top:
+        20px;
+
+    }
+
+
+    .dashboard-title {
+
+      margin-bottom:
+        16px;
+
+    }
+
+
+    .dashboard-title h2 {
+
+      margin:
+        0;
+
+      font-size:
+        17px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .dashboard-title p {
+
+      margin:
+        5px 0 0;
+
+      color:
+        var(--muted);
+
+      font-size:
+        12px;
+
+    }
+
+
+    /* =====================================================
        MOBILE
     ===================================================== */
 
@@ -1936,16 +1984,6 @@
         Upcoming
       </button>
 
-
-      <button
-        id="completedTab"
-        class="tab"
-        onclick="switchTab('completed')"
-        type="button"
-      >
-        Completed
-      </button>
-
     </div>
 
 
@@ -1960,6 +1998,28 @@
         <div
           id="allTaskList"
           class="task-list"
+        ></div>
+
+      </section>
+
+
+      <section class="card section-gap">
+
+        <div class="dashboard-title">
+
+          <h2>
+            Completed Today
+          </h2>
+
+          <p>
+            Finished Lucky tasks appear here.
+          </p>
+
+        </div>
+
+        <div
+          id="completedTodayList"
+          class="completed-list-box"
         ></div>
 
       </section>
@@ -1980,27 +2040,6 @@
 
         <div
           id="upcomingList"
-        ></div>
-
-      </section>
-
-    </main>
-
-
-    <!-- ===================================================
-         COMPLETED
-    =================================================== -->
-
-    <main
-      id="completedPage"
-      style="display:none"
-    >
-
-      <section class="card">
-
-        <div
-          id="completedList"
-          class="completed-list-box"
         ></div>
 
       </section>
@@ -2369,6 +2408,127 @@
 
 
     /* =====================================================
+       DEFAULT TASKS
+    ===================================================== */
+
+    function buildDefaultTask(
+      name,
+      category,
+      hour,
+      minute,
+      ampm,
+      repeatDays
+    ) {
+
+      return {
+
+        id:
+          Date.now().toString() +
+          "_" +
+          Math.random()
+            .toString(36)
+            .slice(2),
+
+        name:
+
+          name,
+
+        category:
+
+          category,
+
+        date:
+
+          todayKey(),
+
+        hour:
+
+          hour,
+
+        minute:
+
+          minute,
+
+        ampm:
+
+          ampm,
+
+        repeatDays:
+
+          [...repeatDays],
+
+        completedOccurrences:
+
+          {},
+
+        createdAt:
+
+          new Date().toISOString()
+
+      };
+
+    }
+
+
+    function createDefaultTasks() {
+
+      const daily =
+        [0,1,2,3,4,5,6];
+
+
+      return [
+
+        buildDefaultTask(
+          "Give Lucky breakfast",
+          "Food",
+          "10",
+          "00",
+          "AM",
+          daily
+        ),
+
+        buildDefaultTask(
+          "Clean Lucky's litter box",
+          "Litter",
+          "10",
+          "00",
+          "AM",
+          daily
+        ),
+
+        buildDefaultTask(
+          "Check Lucky's water",
+          "Water",
+          "1",
+          "00",
+          "PM",
+          [1, 3, 5, 0]
+        ),
+
+        buildDefaultTask(
+          "Give Lucky dinner",
+          "Food",
+          "5",
+          "00",
+          "PM",
+          daily
+        ),
+
+        buildDefaultTask(
+          "Clean Lucky's litter box",
+          "Litter",
+          "11",
+          "30",
+          "PM",
+          daily
+        )
+
+      ];
+
+    }
+
+
+    /* =====================================================
        DATA
     ===================================================== */
 
@@ -2382,9 +2542,19 @@
 
       if (!saved) {
 
-        return {
-          tasks: []
+        const defaults = {
+
+          tasks:
+
+            createDefaultTasks()
+
         };
+
+
+        saveData(defaults);
+
+
+        return defaults;
 
       }
 
@@ -2400,9 +2570,19 @@
           !Array.isArray(data.tasks)
         ) {
 
-          return {
-            tasks: []
+          const defaults = {
+
+            tasks:
+
+              createDefaultTasks()
+
           };
+
+
+          saveData(defaults);
+
+
+          return defaults;
 
         }
 
@@ -2432,6 +2612,24 @@
         });
 
 
+        /*
+          When Luc's routine is empty, restore
+          the default daily tasks.
+        */
+
+        if (
+          data.tasks.length === 0
+        ) {
+
+          data.tasks =
+
+            createDefaultTasks();
+
+          saveData(data);
+
+        }
+
+
         return data;
 
       } catch (error) {
@@ -2442,9 +2640,19 @@
         );
 
 
-        return {
-          tasks: []
+        const defaults = {
+
+          tasks:
+
+            createDefaultTasks()
+
         };
+
+
+        saveData(defaults);
+
+
+        return defaults;
 
       }
 
@@ -4012,8 +4220,7 @@
     /* =====================================================
        ALL TASKS
     ===================================================== */
-
-    function renderAllTasks(
+function renderAllTasks(
       data
     ) {
 
@@ -4022,8 +4229,16 @@
           "allTaskList"
         );
 
+      const completedContainer =
+        document.getElementById(
+          "completedTodayList"
+        );
+
 
       container.innerHTML =
+        "";
+
+      completedContainer.innerHTML =
         "";
 
 
@@ -4045,6 +4260,16 @@
 
         `;
 
+        completedContainer.innerHTML = `
+
+          <div class="empty">
+
+            Nothing completed yet today. 🐱
+
+          </div>
+
+        `;
+
         return;
 
       }
@@ -4053,6 +4278,9 @@
       const active = [];
 
       const completed = [];
+
+      const today =
+        todayKey();
 
 
       /*
@@ -4071,9 +4299,11 @@
           const item = {
 
             task:
+
               task,
 
             date:
+
               date
 
           };
@@ -4112,73 +4342,88 @@
         );
 
 
-      /*
-        Completed tasks go to the bottom.
-      */
-
-      const completedSorted =
-        sortOccurrences(
-          completed
-        );
-
-
       if (
-        !activeSorted.length &&
-        !completedSorted.length
+        !activeSorted.length
       ) {
 
         container.innerHTML = `
 
           <div class="empty">
 
-            No Lucky tasks yet. 🐱
+            Everything is done for today! 🐱
 
           </div>
 
         `;
 
-        return;
+      } else {
+
+        activeSorted.forEach(
+          item => {
+
+            container.appendChild(
+              createTaskElement(
+                item.task,
+                item.date
+              )
+            );
+
+          }
+        );
 
       }
 
 
       /*
-        Render active tasks.
+        Only tasks finished today appear
+        in the Completed Today box.
       */
 
-      activeSorted.forEach(
-        item => {
+      const todayCompleted =
+        completed.filter(
+          item =>
+            item.date === today
+        );
 
-          container.appendChild(
-            createTaskElement(
-              item.task,
-              item.date
-            )
+
+      if (
+        !todayCompleted.length
+      ) {
+
+        completedContainer.innerHTML = `
+
+          <div class="empty">
+
+            Nothing completed yet today. 🐱
+
+          </div>
+
+        `;
+
+      } else {
+
+        const completedSorted =
+          sortOccurrences(
+            todayCompleted
           );
 
-        }
-      );
 
+        completedSorted.forEach(
+          item => {
 
-      /*
-        Render completed tasks at bottom.
-      */
+            completedContainer.appendChild(
+              createTaskElement(
+                item.task,
+                item.date
+              )
+            );
 
-      completedSorted.forEach(
-        item => {
+          }
+        );
 
-          container.appendChild(
-            createTaskElement(
-              item.task,
-              item.date
-            )
-          );
-
-        }
-      );
+      }
 
     }
-
 
     /* =====================================================
        UPCOMING
@@ -4419,141 +4664,6 @@
 
 
     /* =====================================================
-       COMPLETED
-    ===================================================== */
-
-    function renderCompleted(
-      data
-    ) {
-
-      const container =
-        document.getElementById(
-          "completedList"
-        );
-
-
-      container.innerHTML =
-        "";
-
-
-      const completedItems = [];
-
-
-      data.tasks.forEach(
-        task => {
-
-          if (
-            !task.completedOccurrences
-          ) {
-
-            return;
-
-          }
-
-
-          Object.keys(
-            task.completedOccurrences
-          ).forEach(
-            date => {
-
-              completedItems.push({
-
-                task:
-                  task,
-
-                date:
-                  date
-
-              });
-
-            }
-          );
-
-        }
-      );
-
-
-      completedItems.sort(
-        (a, b) => {
-
-          const dateDifference =
-            dateObject(b.date) -
-            dateObject(a.date);
-
-
-          if (
-            dateDifference !== 0
-          ) {
-
-            return dateDifference;
-
-          }
-
-
-          return (
-            timeToMinutes(b.task) -
-            timeToMinutes(a.task)
-          );
-
-        }
-      );
-
-
-      if (
-        !completedItems.length
-      ) {
-
-        container.innerHTML = `
-
-          <div class="empty">
-
-            Nothing completed yet. 🐱
-
-          </div>
-
-        `;
-
-        return;
-
-      }
-
-
-      completedItems.forEach(
-        item => {
-
-          const row =
-            document.createElement(
-              "div"
-            );
-
-
-          row.className =
-            "completed-list-group";
-
-
-          const completedTask =
-            createTaskElement(
-              item.task,
-              item.date
-            );
-
-
-          row.appendChild(
-            completedTask
-          );
-
-
-          container.appendChild(
-            row
-          );
-
-        }
-      );
-
-    }
-
-
-    /* =====================================================
        TABS
     ===================================================== */
 
@@ -4582,14 +4692,6 @@
 
 
       document.getElementById(
-        "completedPage"
-      ).style.display =
-        tab === "completed"
-          ? "block"
-          : "none";
-
-
-      document.getElementById(
         "allTasksTab"
       ).classList.toggle(
         "active",
@@ -4602,14 +4704,6 @@
       ).classList.toggle(
         "active",
         tab === "upcoming"
-      );
-
-
-      document.getElementById(
-        "completedTab"
-      ).classList.toggle(
-        "active",
-        tab === "completed"
       );
 
 
@@ -4797,11 +4891,6 @@
       );
 
 
-      renderCompleted(
-        data
-      );
-
-
       /*
         Keep current tab visible.
       */
@@ -4818,14 +4907,6 @@
         "upcomingPage"
       ).style.display =
         currentTab === "upcoming"
-          ? "block"
-          : "none";
-
-
-      document.getElementById(
-        "completedPage"
-      ).style.display =
-        currentTab === "completed"
           ? "block"
           : "none";
 

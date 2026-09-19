@@ -1,4 +1,4 @@
-      let users = JSON.parse(localStorage.getItem('massageUsers')) || {};
+let users = JSON.parse(localStorage.getItem('massageUsers')) || {};
 let currentUser = null;
 let selectedTotalSeconds = 0;
 let sessionFreeMinutes = 0;

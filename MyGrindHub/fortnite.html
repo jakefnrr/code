@@ -147,7 +147,7 @@ header {
 
 .title-area h1 {
   margin: 0;
-  font-size: clamp(30px, 5vw, 42px);
+  font-size: clamp(24px, 4.5vw, 32px);
   font-weight: 950;
   letter-spacing: -1.5px;
   background: linear-gradient(
@@ -199,32 +199,83 @@ header {
 }
 
 /* =========================
-   DAY SELECTORS
+   VARIANT + MODE SELECTOR
 ========================= */
 
-.day-selector {
+.mode-selector {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.day-arrow {
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
+/* Build / Zero Build toggle */
+
+.variant-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 12px;
+  background: rgba(0,246,255,.05);
+  border: 1px solid rgba(0,246,255,.25);
+  cursor: pointer;
+  transition: .2s;
+  user-select: none;
+}
+
+.variant-toggle:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0,246,255,.3);
+}
+
+.variant-option {
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: .2s;
+}
+
+.variant-sep {
+  color: rgba(0,246,255,.35);
+  font-weight: 900;
+}
+
+.variant-option.active {
+  color: white;
+  background: linear-gradient(
+    90deg,
+    #007b99,
+    #006dff
+  );
+  box-shadow:
+    0 0 14px rgba(0,246,255,.55),
+    0 0 28px rgba(138,46,255,.25);
+  text-shadow: 0 0 8px rgba(255,255,255,.5);
+}
+
+/* Mode buttons */
+
+.mode-btn {
+  padding: 12px 24px;
+  min-width: 92px;
+  border-radius: 12px;
   background: rgba(0,246,255,.06);
   border: 1px solid rgba(0,246,255,.25);
   color: var(--cyan);
-  font-size: 20px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 950;
   cursor: pointer;
   transition: .2s;
 }
 
-.day-arrow:hover {
-  transform: scale(1.12);
+.mode-btn:hover {
+  transform: scale(1.06);
   color: white;
   border-color: var(--cyan);
   box-shadow:
@@ -232,27 +283,17 @@ header {
     0 0 35px rgba(138,46,255,.2);
 }
 
-.day-label {
-  min-width: 125px;
-  text-align: center;
-  font-size: 21px;
-  font-weight: 950;
+.mode-btn.active {
+  background: linear-gradient(
+    90deg,
+    #007b99,
+    #006dff
+  );
   color: white;
-  cursor: pointer;
-  user-select: none;
-  text-shadow:
-    0 0 8px rgba(0,246,255,.7),
-    0 0 22px rgba(138,46,255,.35);
-  transition: .2s;
-}
-
-.day-label:hover {
-  color: var(--cyan);
-  transform: scale(1.05);
-}
-
-.top-day {
-  margin-bottom: 18px;
+  border-color: var(--cyan);
+  box-shadow:
+    0 0 18px rgba(0,246,255,.45),
+    0 0 40px rgba(138,46,255,.2);
 }
 
 /* =========================
@@ -460,7 +501,7 @@ header {
 
 .card h2 {
   margin: 0 0 17px;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 900;
 }
 
@@ -621,6 +662,18 @@ input::placeholder {
   transition: .2s;
 }
 
+.save-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  filter: grayscale(.4);
+  transform: none !important;
+}
+
+.save-btn:disabled:hover {
+  box-shadow:
+    0 0 18px rgba(0,119,255,.25);
+}
+
 @keyframes buttonFlow {
   to { background-position: 250% 0; }
 }
@@ -636,6 +689,18 @@ input::placeholder {
   transform: scale(.98);
 }
 
+.save-mode-hint {
+  margin-top: 10px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.save-mode-hint span {
+  color: var(--cyan);
+  font-weight: 900;
+}
+
 /* =========================
    PERSONAL RECORDS
 ========================= */
@@ -643,28 +708,31 @@ input::placeholder {
 .record-list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 2px;
 }
 
-.record {
+.record-compact {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 13px 14px;
-  border-radius: 11px;
-  background: rgba(0,246,255,.035);
-  border: 1px solid rgba(0,246,255,.09);
+  padding: 7px 2px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0,246,255,.07);
+}
+
+.record-compact:last-child {
+  border-bottom: none;
 }
 
 .record-name {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .record-value {
   color: var(--cyan);
-  font-weight: 950;
-  text-shadow: 0 0 10px rgba(0,246,255,.4);
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(0,246,255,.35);
 }
 
 /* =========================
@@ -687,16 +755,13 @@ input::placeholder {
   color: var(--cyan);
   font-weight: 950;
   white-space: nowrap;
+  text-shadow: 0 0 10px rgba(0,246,255,.4);
 }
 
 .history-subtitle {
   color: var(--muted);
   font-size: 12px;
   margin-bottom: 13px;
-}
-
-.bottom-day {
-  margin: 13px 0 15px;
 }
 
 .game-list {
@@ -840,153 +905,28 @@ input::placeholder {
 }
 
 /* =========================
-   POPUP
+   FLOATING CLEAR ALL DATA
 ========================= */
 
-.modal {
+.clear-data-floating {
   position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0,0,0,.72);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-}
-
-.modal.open {
-  display: flex;
-}
-
-.modal-box {
-  position: relative;
-  width: min(760px, 100%);
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 24px;
-  border-radius: 20px;
-  background: #060a13;
-  border: 1px solid rgba(0,246,255,.35);
-  box-shadow:
-    0 0 35px rgba(0,246,255,.18),
-    0 0 90px rgba(138,46,255,.13);
-}
-
-.modal-box::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--angle),
-    transparent,
-    var(--cyan),
-    transparent 25%,
-    var(--pink),
-    transparent 50%,
-    var(--purple),
-    transparent 75%,
-    var(--cyan)
-  );
-  animation: spinBorder 4s linear infinite;
-  z-index: -1;
-}
-
-.close-modal {
-  position: absolute;
-  top: 13px;
-  right: 13px;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.close-modal:hover {
-  color: var(--pink);
-  border-color: var(--pink);
-  box-shadow: 0 0 15px rgba(255,24,208,.35);
-}
-
-.modal h2 {
-  margin: 0 45px 18px 0;
-}
-
-.modal-day-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.modal-day-btn {
-  width: 100%;
-  text-align: left;
-  padding: 13px;
-  border-radius: 10px;
-  background: rgba(0,246,255,.04);
-  border: 1px solid rgba(0,246,255,.12);
-  color: white;
+  bottom: 10px;
+  left: 12px;
+  z-index: 50;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: rgba(255,108,156,.55);
+  background: rgba(255,30,100,.04);
+  border: 1px solid rgba(255,30,100,.12);
   cursor: pointer;
   transition: .2s;
 }
 
-.modal-day-btn:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  box-shadow: 0 0 18px rgba(0,246,255,.12);
-}
-
-.modal-day-content {
-  margin-top: 15px;
-}
-
-.popup-match {
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: 10px;
-  background: rgba(0,246,255,.035);
-  border: 1px solid rgba(0,246,255,.1);
-}
-
-.popup-match strong {
-  color: var(--cyan);
-}
-
-.popup-summary {
-  margin-top: 18px;
-  padding: 16px;
-  border-radius: 12px;
-  background: rgba(138,46,255,.07);
-  border: 1px solid rgba(138,46,255,.2);
-}
-
-.popup-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.popup-summary-item {
-  text-align: center;
-}
-
-.popup-summary-item small {
-  display: block;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.popup-summary-item strong {
-  display: block;
-  color: var(--cyan);
-  margin-top: 4px;
+.clear-data-floating:hover {
+  color: #ff6c9c;
+  background: rgba(255,30,100,.1);
+  border-color: rgba(255,30,100,.28);
 }
 
 /* =========================
@@ -1033,17 +973,23 @@ input::placeholder {
     grid-column: 1 / -1;
   }
 
-  .total-grid,
-  .popup-summary-grid {
+  .total-grid {
     grid-template-columns: 1fr 1fr;
   }
 
-  .day-selector {
-    gap: 9px;
+  .mode-selector {
+    gap: 8px;
   }
 
-  .day-label {
-    min-width: 105px;
+  .mode-btn {
+    min-width: 0;
+    flex: 1;
+    padding: 11px 8px;
+    font-size: 14px;
+  }
+
+  .variant-toggle {
+    order: 0;
   }
 }
 
@@ -1074,15 +1020,52 @@ input::placeholder {
     </a>
   </header>
 
-  <!-- TOP DAY -->
-  <div class="day-selector top-day">
-    <button class="day-arrow" id="topPrev" onclick="changeTopDay(-1)">←</button>
+  <!-- VARIANT + MODE SELECTOR -->
+  <div class="mode-selector">
 
-    <div class="day-label" onclick="openDayPopup()" id="topDayLabel">
-      Day 1
-    </div>
+    <button
+      class="variant-toggle"
+      id="variantToggle"
+      onclick="toggleVariant()"
+      title="Switch between Build and Zero Build"
+    >
+      <span class="variant-option" id="variantZero">Zero Build</span>
+      <span class="variant-sep">|</span>
+      <span class="variant-option active" id="variantBuild">Build</span>
+    </button>
 
-    <button class="day-arrow" id="topNext" onclick="changeTopDay(1)">+</button>
+    <button
+      class="mode-btn"
+      data-mode="solos"
+      onclick="setMode('solos')"
+    >
+      Solos
+    </button>
+
+    <button
+      class="mode-btn"
+      data-mode="duos"
+      onclick="setMode('duos')"
+    >
+      Duos
+    </button>
+
+    <button
+      class="mode-btn"
+      data-mode="squads"
+      onclick="setMode('squads')"
+    >
+      Squads
+    </button>
+
+    <button
+      class="mode-btn"
+      data-mode="all"
+      onclick="setMode('all')"
+    >
+      All
+    </button>
+
   </div>
 
   <!-- TOP STATS -->
@@ -1094,8 +1077,8 @@ input::placeholder {
     </div>
 
     <div class="stat">
-      <div class="stat-label">Career K/D</div>
-      <div class="stat-value" id="careerKD">0.00</div>
+      <div class="stat-label">K/D</div>
+      <div class="stat-value" id="kdValue">0.00</div>
     </div>
 
     <div class="stat">
@@ -1114,7 +1097,7 @@ input::placeholder {
   <div class="plan-progress">
 
     <div class="progress-top">
-      <span>Today's Plan Progress</span>
+      <span>Plan Progress</span>
       <span class="progress-percent" id="progressText">0%</span>
     </div>
 
@@ -1129,7 +1112,7 @@ input::placeholder {
     <!-- TRAINING -->
     <section class="card">
 
-      <h2>Today's Training Plan</h2>
+      <h2>Training Plan</h2>
 
       <div class="training-plan">
 
@@ -1175,7 +1158,7 @@ input::placeholder {
       </div>
 
       <div class="reset-note">
-        Plan progress resets each day.
+        Plan progress stays saved.
       </div>
 
     </section>
@@ -1225,38 +1208,53 @@ input::placeholder {
         id="gameFocus"
         type="text"
         maxlength="120"
-        placeholder="Main focus for your next match..."
+        placeholder="Main focus for your next match (optional)..."
       >
 
-      <button class="save-btn" onclick="saveGame()">
+      <button class="save-btn" id="saveBtn" onclick="saveGame()">
         SAVE MATCH
       </button>
+
+      <div class="save-mode-hint">
+        <span id="saveModeLabel">Adding to</span>
+        <span id="saveModeName">Solos</span>
+      </div>
 
     </section>
 
     <!-- PERSONAL RECORDS -->
     <section class="card">
 
-      <h2>Personal Match Records</h2>
+      <div class="history-header">
+
+        <h2 class="history-title">
+          Today's Match Records
+        </h2>
+
+        <div class="match-count" id="recordModeBadge">
+          SOLOS
+        </div>
+
+      </div>
 
       <div class="record-list">
 
-        <div class="record">
+        <div class="record-compact">
           <span class="record-name">Most Kills</span>
           <span class="record-value" id="mostKills">0</span>
         </div>
 
-        <div class="record">
+        <div class="record-compact">
           <span class="record-name">Total Wins</span>
           <span class="record-value" id="totalWins">0</span>
         </div>
 
-        <div class="record">
+        <div class="record-compact">
           <span class="record-name">Best K/D</span>
           <span class="record-value" id="bestKD">0.00</span>
         </div>
 
-        <div class="record">
+        <div class="record-compact">
           <span class="record-name">Best Placement</span>
           <span class="record-value" id="bestPlacement">—</span>
         </div>
@@ -1280,33 +1278,8 @@ input::placeholder {
 
       </div>
 
-      <div class="history-subtitle">
-        Most recent matches appear first.
-      </div>
-
-      <!-- BOTTOM DAY -->
-      <div class="day-selector bottom-day">
-
-        <button
-          class="day-arrow"
-          id="bottomPrev"
-          onclick="changeHistoryDay(-1)"
-        >
-          ←
-        </button>
-
-        <div class="day-label" id="historyDayLabel">
-          Day 1
-        </div>
-
-        <button
-          class="day-arrow"
-          id="bottomNext"
-          onclick="changeHistoryDay(1)"
-        >
-          +
-        </button>
-
+      <div class="history-subtitle" id="historySubtitle">
+        Build · Solos matches shown.
       </div>
 
       <div class="game-list" id="gameList"></div>
@@ -1351,25 +1324,13 @@ input::placeholder {
 
 </div>
 
-<!-- DAY POPUP -->
-
-<div class="modal" id="dayModal">
-
-  <div class="modal-box">
-
-    <button class="close-modal" onclick="closeDayPopup()">×</button>
-
-    <h2>Day History</h2>
-
-    <div class="modal-day-buttons" id="modalDayButtons"></div>
-
-    <div class="modal-day-content" id="modalDayContent">
-      Select a day.
-    </div>
-
-  </div>
-
-</div>
+<button
+  class="clear-data-floating"
+  onclick="clearAllStats()"
+  type="button"
+>
+  Clear All Data
+</button>
 
 <script>
 
@@ -1377,36 +1338,35 @@ input::placeholder {
    STORAGE
 ========================================================= */
 
-const STORAGE_KEY = "fortnite_grind_long_term_v1";
+const STORAGE_KEY = "fortnite_grind_test_v2";
 
-let topDay = 1;
-let historyDay = 1;
+const MODES = ["solos", "duos", "squads"];
 
-function todayKey() {
-  const d = new Date();
+let variant = "build";
+let mode = "solos";
 
-  return d.getFullYear() + "-" +
-    String(d.getMonth() + 1).padStart(2, "0") + "-" +
-    String(d.getDate()).padStart(2, "0");
-}
-
-function createDay(number) {
+function createVariantData() {
   return {
-    day: number,
-    date: todayKey(),
-    matches: [],
-    plan: {
-      1: false,
-      2: false,
-      3: false
-    }
+    solos:  { matches: [] },
+    duos:   { matches: [] },
+    squads: { matches: [] }
   };
 }
 
 function createData() {
   return {
-    version: 1,
-    days: [createDay(1)]
+    version: 2,
+    variant: "build",
+    mode: "solos",
+    plan: {
+      1: false,
+      2: false,
+      3: false
+    },
+    variants: {
+      build: createVariantData(),
+      zerobuild: createVariantData()
+    }
   };
 }
 
@@ -1424,7 +1384,7 @@ function getData() {
 
     const data = JSON.parse(saved);
 
-    if (!data.days || !Array.isArray(data.days)) {
+    if (!data.variants || typeof data.variants !== "object") {
       return createData();
     }
 
@@ -1444,95 +1404,72 @@ function saveData(data) {
   );
 }
 
-function getDay(data, number) {
-  return data.days.find(day => day.day === number);
+function getMatches(data, v, m) {
+  if (
+    data.variants[v] &&
+    data.variants[v][m]
+  ) {
+    return data.variants[v][m].matches;
+  }
+  return [];
 }
 
-function maxDayNumber(data) {
+function getModeMatches(data) {
 
-  if (!data.days.length) return 1;
+  if (mode === "all") {
 
-  return Math.max(
-    ...data.days.map(day => day.day)
-  );
+    return MODES.flatMap(
+      m => getMatches(data, variant, m)
+    );
+
+  }
+
+  return getMatches(data, variant, mode);
+
 }
 
 /* =========================================================
-   TOP DAY NAVIGATION
+   VARIANT + MODE SELECTION
 ========================================================= */
 
-function changeTopDay(direction) {
+function variantName(v) {
+  return v === "zerobuild"
+    ? "Zero Build"
+    : "Build";
+}
+
+function modeName(m) {
+  return m.charAt(0).toUpperCase() + m.slice(1);
+}
+
+function toggleVariant() {
+
+  const next =
+    variant === "build"
+      ? "zerobuild"
+      : "build";
+
+  variant = next;
 
   const data = getData();
-  const maxDay = maxDayNumber(data);
 
-  const next = topDay + direction;
+  data.variant = next;
 
-  if (next < 1) return;
-
-  if (next > maxDay) {
-
-    if (direction === 1) {
-      createNextDay();
-    }
-
-    return;
-  }
-
-  topDay = next;
+  saveData(data);
 
   render();
 
 }
 
-/* =========================================================
-   HISTORY DAY NAVIGATION
-   ONLY CHANGES MATCH HISTORY
-========================================================= */
+function setMode(m) {
 
-function changeHistoryDay(direction) {
-
-  const data = getData();
-  const maxDay = maxDayNumber(data);
-
-  const next = historyDay + direction;
-
-  if (next < 1) return;
-
-  if (next > maxDay) {
-
-    if (direction === 1) {
-      createNextDay();
-    }
-
-    return;
-  }
-
-  historyDay = next;
-
-  renderHistoryOnly();
-
-}
-
-/* =========================================================
-   CREATE NEW DAY
-========================================================= */
-
-function createNextDay() {
+  mode = m;
 
   const data = getData();
 
-  const nextNumber =
-    maxDayNumber(data) + 1;
-
-  data.days.push(
-    createDay(nextNumber)
-  );
+  data.mode = m;
 
   saveData(data);
-
-  topDay = nextNumber;
-  historyDay = nextNumber;
 
   render();
 
@@ -1546,12 +1483,8 @@ function completeStep(number) {
 
   const data = getData();
 
-  const day = getDay(data, topDay);
-
-  if (!day) return;
-
-  day.plan[number] =
-    !day.plan[number];
+  data.plan[number] =
+    !data.plan[number];
 
   saveData(data);
 
@@ -1564,6 +1497,16 @@ function completeStep(number) {
 ========================================================= */
 
 function saveGame() {
+
+  if (mode === "all") {
+
+    alert(
+      "Pick Solos, Duos, or Squads to save a match."
+    );
+
+    return;
+
+  }
 
   const kills =
     Number(
@@ -1606,20 +1549,17 @@ function saveGame() {
     return;
   }
 
-  if (!focus) {
-    alert(
-      "Choose 1 thing to focus on in the next match."
-    );
-    return;
-  }
-
   const data = getData();
 
-  const day = getDay(data, topDay);
+  if (
+    !data.variants[variant] ||
+    !data.variants[variant][mode]
+  ) {
+    data.variants[variant] =
+      data.variants[variant] || createVariantData();
+  }
 
-  if (!day) return;
-
-  day.matches.push({
+  data.variants[variant][mode].matches.push({
 
     kills,
     deaths,
@@ -1647,8 +1587,6 @@ function saveGame() {
   document.getElementById("gamePlacement").value = "";
   document.getElementById("gameFocus").value = "";
 
-  historyDay = topDay;
-
   render();
 
 }
@@ -1657,9 +1595,9 @@ function saveGame() {
    STATS
 ========================================================= */
 
-function calculateDayStats(day) {
+function calculateModeStats(matches) {
 
-  if (!day || !day.matches.length) {
+  if (!matches.length) {
 
     return {
       matches: 0,
@@ -1667,12 +1605,14 @@ function calculateDayStats(day) {
       deaths: 0,
       kd: 0,
       avgKills: 0,
-      avgPlacement: 0
+      avgPlacement: 0,
+      bestKills: 0,
+      bestKD: 0,
+      bestPlacement: null,
+      wins: 0
     };
 
   }
-
-  const matches = day.matches;
 
   const kills =
     matches.reduce(
@@ -1692,6 +1632,34 @@ function calculateDayStats(day) {
       0
     );
 
+  const bestKills =
+    Math.max(
+      ...matches.map(game => game.kills)
+    );
+
+  const bestKD =
+    Math.max(
+      ...matches.map(game => {
+
+        if (game.deaths === 0) {
+          return game.kills;
+        }
+
+        return game.kills / game.deaths;
+
+      })
+    );
+
+  const bestPlacement =
+    Math.min(
+      ...matches.map(game => game.placement)
+    );
+
+  const wins =
+    matches.filter(
+      game => game.placement === 1
+    ).length;
+
   return {
 
     matches: matches.length,
@@ -1709,85 +1677,7 @@ function calculateDayStats(day) {
       kills / matches.length,
 
     avgPlacement:
-      placement / matches.length
-
-  };
-
-}
-
-/* =========================================================
-   CAREER / PERSONAL RECORDS
-========================================================= */
-
-function getCareerStats(data) {
-
-  const allMatches =
-    data.days.flatMap(
-      day => day.matches
-    );
-
-  const kills =
-    allMatches.reduce(
-      (sum, game) => sum + game.kills,
-      0
-    );
-
-  const deaths =
-    allMatches.reduce(
-      (sum, game) => sum + game.deaths,
-      0
-    );
-
-  const bestKills =
-    allMatches.length
-      ? Math.max(
-          ...allMatches.map(
-            game => game.kills
-          )
-        )
-      : 0;
-
-  const bestKD =
-    allMatches.length
-      ? Math.max(
-          ...allMatches.map(game => {
-
-            if (game.deaths === 0) {
-              return game.kills;
-            }
-
-            return game.kills / game.deaths;
-
-          })
-        )
-      : 0;
-
-  const bestPlacement =
-    allMatches.length
-      ? Math.min(
-          ...allMatches.map(
-            game => game.placement
-          )
-        )
-      : null;
-
-  const wins =
-    allMatches.filter(
-      game => game.placement === 1
-    ).length;
-
-  return {
-
-    matches: allMatches.length,
-
-    kills,
-
-    deaths,
-
-    kd:
-      deaths === 0
-        ? kills
-        : kills / deaths,
+      placement / matches.length,
 
     bestKills,
     bestKD,
@@ -1806,26 +1696,88 @@ function render() {
 
   const data = getData();
 
-  const day =
-    getDay(data, topDay);
-
-  if (!day) return;
+  const matches =
+    getModeMatches(data);
 
   const stats =
-    calculateDayStats(day);
+    calculateModeStats(matches);
 
-  const career =
-    getCareerStats(data);
+  const allMode =
+    mode === "all";
+
+  /* Overall records: best across every mode (solos + duos + squads) */
+
+  const overallMatches =
+    MODES.flatMap(
+      m => getMatches(data, variant, m)
+    );
+
+  const overallStats =
+    calculateModeStats(overallMatches);
+
+  /* VARIANT TOGGLE */
 
   document.getElementById(
-    "topDayLabel"
-  ).textContent =
-    "Day " + topDay;
+    "variantBuild"
+  ).classList.toggle(
+    "active",
+    variant === "build"
+  );
 
   document.getElementById(
-    "historyDayLabel"
+    "variantZero"
+  ).classList.toggle(
+    "active",
+    variant === "zerobuild"
+  );
+
+  /* MODE BUTTONS */
+
+  document.querySelectorAll(
+    ".mode-btn"
+  ).forEach(btn => {
+
+    btn.classList.toggle(
+      "active",
+      btn.dataset.mode === mode
+    );
+
+  });
+
+  /* SAVE HINT / BUTTON STATE */
+
+  const saveBtn =
+    document.getElementById("saveBtn");
+
+  saveBtn.disabled = allMode;
+
+  document.getElementById(
+    "saveModeLabel"
   ).textContent =
-    "Day " + historyDay;
+    allMode ? "Viewing" : "Adding to";
+
+  document.getElementById(
+    "saveModeName"
+  ).textContent =
+    allMode ? "All modes" : modeName(mode);
+
+  /* RECORDS BADGE */
+
+  document.getElementById(
+    "recordModeBadge"
+  ).textContent =
+    allMode ? "ALL" : mode.toUpperCase();
+
+  /* HISTORY SUBTITLE */
+
+  document.getElementById(
+    "historySubtitle"
+  ).textContent =
+    variantName(variant) +
+    " · " +
+    (allMode
+      ? "all modes combined."
+      : modeName(mode) + " matches shown.");
 
   /* TOP STATS */
 
@@ -1835,9 +1787,9 @@ function render() {
     stats.matches;
 
   document.getElementById(
-    "careerKD"
+    "kdValue"
   ).textContent =
-    career.kd.toFixed(2);
+    stats.kd.toFixed(2);
 
   document.getElementById(
     "avgKills"
@@ -1854,26 +1806,26 @@ function render() {
   document.getElementById(
     "mostKills"
   ).textContent =
-    career.bestKills;
+    "0";
 
   document.getElementById(
     "totalWins"
   ).textContent =
-    career.wins;
+    stats.wins;
 
   document.getElementById(
     "bestKD"
   ).textContent =
-    career.bestKD.toFixed(2);
+    overallStats.bestKD.toFixed(2);
 
   document.getElementById(
     "bestPlacement"
   ).textContent =
-    career.bestPlacement === null
+    overallStats.bestPlacement === null
       ? "—"
-      : "#" + career.bestPlacement;
+      : "#" + overallStats.bestPlacement;
 
-  /* PLAN */
+  /* PLAN PROGRESS */
 
   let completed = 0;
 
@@ -1884,7 +1836,7 @@ function render() {
         "step" + i
       );
 
-    if (day.plan[i]) {
+    if (data.plan[i]) {
 
       completed++;
 
@@ -1917,46 +1869,7 @@ function render() {
   ).textContent =
     percent + "%";
 
-  /* TOP ARROWS */
-
-  document.getElementById(
-    "topPrev"
-  ).style.visibility =
-    topDay === 1
-      ? "hidden"
-      : "visible";
-
-  document.getElementById(
-    "topNext"
-  ).textContent =
-    topDay >= maxDayNumber(data)
-      ? "+"
-      : "→";
-
-  renderHistoryOnly();
-
-}
-
-/* =========================================================
-   RENDER MATCH HISTORY ONLY
-========================================================= */
-
-function renderHistoryOnly() {
-
-  const data = getData();
-
-  const day =
-    getDay(data, historyDay);
-
-  if (!day) return;
-
-  const stats =
-    calculateDayStats(day);
-
-  document.getElementById(
-    "historyDayLabel"
-  ).textContent =
-    "Day " + historyDay;
+  /* MATCH HISTORY */
 
   document.getElementById(
     "matchCount"
@@ -1993,23 +1906,23 @@ function renderHistoryOnly() {
 
   list.innerHTML = "";
 
-  if (!day.matches.length) {
+  if (!matches.length) {
 
     list.innerHTML = `
       <div class="empty-games">
-        No matches recorded for Day ${historyDay}.
+        No matches recorded${allMode ? " yet" : " for " + mode + " yet"}.
       </div>
     `;
 
   } else {
 
-    [...day.matches]
+    [...matches]
       .reverse()
       .forEach(
         (game, reversedIndex) => {
 
           const originalIndex =
-            day.matches.length -
+            matches.length -
             reversedIndex;
 
           const kd =
@@ -2054,10 +1967,16 @@ function renderHistoryOnly() {
 
             </div>
 
-            <div class="focus-line">
-              <strong>Main focus:</strong>
-              ${escapeHTML(game.focus)}
-            </div>
+            ${
+              game.focus
+                ? `
+                  <div class="focus-line">
+                    <strong>Main focus:</strong>
+                    ${escapeHTML(game.focus)}
+                  </div>
+                `
+                : ""
+            }
 
           `;
 
@@ -2067,189 +1986,6 @@ function renderHistoryOnly() {
       );
 
   }
-
-  /* Bottom arrows */
-
-  document.getElementById(
-    "bottomPrev"
-  ).style.visibility =
-    historyDay === 1
-      ? "hidden"
-      : "visible";
-
-  document.getElementById(
-    "bottomNext"
-  ).textContent =
-    historyDay >= maxDayNumber(data)
-      ? "+"
-      : "→";
-
-}
-
-/* =========================================================
-   DAY POPUP
-========================================================= */
-
-function openDayPopup() {
-
-  const data = getData();
-
-  const modal =
-    document.getElementById(
-      "dayModal"
-    );
-
-  const buttons =
-    document.getElementById(
-      "modalDayButtons"
-    );
-
-  buttons.innerHTML = "";
-
-  data.days.forEach(day => {
-
-    const button =
-      document.createElement("button");
-
-    button.className =
-      "modal-day-btn";
-
-    button.textContent =
-      "Day " +
-      day.day +
-      " — " +
-      day.matches.length +
-      (day.matches.length === 1
-        ? " match"
-        : " matches");
-
-    button.onclick = () =>
-      showPopupDay(day.day);
-
-    buttons.appendChild(button);
-
-  });
-
-  modal.classList.add("open");
-
-}
-
-function showPopupDay(number) {
-
-  const data = getData();
-
-  const day =
-    getDay(data, number);
-
-  if (!day) return;
-
-  const stats =
-    calculateDayStats(day);
-
-  const content =
-    document.getElementById(
-      "modalDayContent"
-    );
-
-  let html = `
-    <h3>Day ${number}</h3>
-  `;
-
-  if (!day.matches.length) {
-
-    html += `
-      <div class="popup-match">
-        No matches recorded.
-      </div>
-    `;
-
-  } else {
-
-    day.matches.forEach(
-      (game, index) => {
-
-        const kd =
-          game.deaths === 0
-            ? game.kills
-            : game.kills /
-              game.deaths;
-
-        html += `
-          <div class="popup-match">
-
-            <strong>Match ${index + 1}</strong>
-
-            &nbsp; • &nbsp;
-
-            ${game.kills} Kills
-
-            &nbsp; • &nbsp;
-
-            ${game.deaths} Deaths
-
-            &nbsp; • &nbsp;
-
-            ${kd.toFixed(2)} K/D
-
-            &nbsp; • &nbsp;
-
-            #${game.placement}
-
-            <br>
-
-            <small>
-              Main focus: ${escapeHTML(game.focus)}
-            </small>
-
-          </div>
-        `;
-
-      }
-    );
-
-  }
-
-  html += `
-    <div class="popup-summary">
-
-      <strong>Day ${number} Totals</strong>
-
-      <div class="popup-summary-grid">
-
-        <div class="popup-summary-item">
-          <small>Total Kills</small>
-          <strong>${stats.kills}</strong>
-        </div>
-
-        <div class="popup-summary-item">
-          <small>Total Deaths</small>
-          <strong>${stats.deaths}</strong>
-        </div>
-
-        <div class="popup-summary-item">
-          <small>Average K/D</small>
-          <strong>${stats.kd.toFixed(2)}</strong>
-        </div>
-
-        <div class="popup-summary-item">
-          <small>Avg. Placement</small>
-          <strong>${stats.avgPlacement.toFixed(2)}</strong>
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-  content.innerHTML = html;
-
-}
-
-function closeDayPopup() {
-
-  document.getElementById(
-    "dayModal"
-  ).classList.remove("open");
 
 }
 
@@ -2266,14 +2002,10 @@ function clearAllStats() {
 
   if (!confirmed) return;
 
-  localStorage.removeItem(
-    STORAGE_KEY
-  );
-
-  topDay = 1;
-  historyDay = 1;
-
   const fresh = createData();
+
+  fresh.variant = variant;
+  fresh.mode = mode;
 
   saveData(fresh);
 
@@ -2298,27 +2030,20 @@ function escapeHTML(value) {
 }
 
 /* =========================================================
-   CLOSE POPUP BY CLICKING OUTSIDE
-========================================================= */
-
-document
-  .getElementById("dayModal")
-  .addEventListener(
-    "click",
-    function(event) {
-
-      if (
-        event.target === this
-      ) {
-        closeDayPopup();
-      }
-
-    }
-  );
-
-/* =========================================================
    START
 ========================================================= */
+
+{
+  const data = getData();
+
+  variant =
+    data.variant === "zerobuild"
+      ? "zerobuild"
+      : "build";
+
+  mode =
+    data.mode || "solos";
+}
 
 render();
 

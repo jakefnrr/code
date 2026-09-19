@@ -3936,6 +3936,244 @@ document
                 pieces.join("\n")
             );
 
+
+            /*
+                Also put HTML on clipboard so
+                formatting (font size, bold,
+                color) is preserved when
+                pasting back into the editor.
+            */
+
+            const frag =
+                range.cloneContents();
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.appendChild(frag);
+
+            event.clipboardData.setData(
+                "text/html",
+                wrapper.innerHTML
+            );
+
+        }
+    );
+
+
+/* ================================= */
+/* PASTE WITH FORMATTING */
+/* ================================= */
+
+/*
+    When pasting, read HTML from the
+    clipboard so font size, bold, and
+    color are preserved. Fall back to
+    plain text if no HTML is available.
+*/
+
+document
+    .getElementById("noteEditor")
+    .addEventListener(
+        "paste",
+        function(event) {
+
+            event.preventDefault();
+
+            const clipboard =
+                event.clipboardData;
+
+            let html =
+                clipboard.getData("text/html");
+
+            let text =
+                clipboard.getData("text/plain");
+
+
+            /*
+                If we have HTML, clean it
+                up: remove tags the editor
+                does not use, keep only
+                inline styles we support.
+            */
+
+            if (html) {
+
+                const temp =
+                    document.createElement("div");
+
+                temp.innerHTML = html;
+
+                /*
+                    Remove meta, style, and
+                    script tags from pasted
+                    HTML.
+                */
+
+                temp.querySelectorAll(
+                    "meta, style, script, link"
+                ).forEach(function(el) {
+
+                    el.remove();
+
+                });
+
+                /*
+                    Strip class attributes
+                    and data- attributes from
+                    all elements, keep only
+                    inline styles, font-weight,
+                    and b/strong/i/em tags.
+                */
+
+                temp.querySelectorAll("*")
+                    .forEach(function(el) {
+
+                        el.removeAttribute(
+                            "class"
+                        );
+
+                        el.removeAttribute(
+                            "id"
+                        );
+
+                        el.removeAttribute(
+                            "dir"
+                        );
+
+                        /*
+                            Keep only safe
+                            inline styles:
+                            font-size,
+                            font-weight,
+                            color.
+                        */
+
+                        if (
+                            el.hasAttribute(
+                                "style"
+                            )
+                        ) {
+
+                            const safe =
+                                {};
+
+                            const s =
+                                el.style;
+
+                            if (
+                                s.fontSize
+                            ) {
+
+                                safe.fontSize =
+                                    s.fontSize;
+
+                            }
+
+                            if (
+                                s.fontWeight
+                            ) {
+
+                                safe.fontWeight =
+                                    s.fontWeight;
+
+                            }
+
+                            if (
+                                s.color
+                            ) {
+
+                                safe.color =
+                                    s.color;
+
+                            }
+
+                            if (
+                                s.backgroundColor
+                            ) {
+
+                                safe.backgroundColor =
+                                    s.backgroundColor;
+
+                            }
+
+                            el.style.cssText = "";
+
+                            Object.keys(safe)
+                                .forEach(
+                                    function(k) {
+
+                                        el.style[k] =
+                                            safe[k];
+
+                                    }
+                                );
+
+                        }
+
+                    });
+
+                /*
+                    Wrap each top-level text
+                    node or inline element in
+                    a .note-editor-line so the
+                    editor line system stays
+                    consistent.
+                */
+
+                const lines =
+                    temp.querySelectorAll(
+                        ".note-editor-line," +
+                        ".checklist-line," +
+                        ".bullet-line"
+                    );
+
+                if (
+                    lines.length === 0 &&
+                    temp.innerHTML.trim()
+                ) {
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+                    div.className =
+                        "note-editor-line";
+
+                    div.innerHTML =
+                        temp.innerHTML;
+
+                    temp.innerHTML = "";
+
+                    temp.appendChild(div);
+
+                }
+
+                html = temp.innerHTML;
+
+            }
+
+
+            if (html) {
+
+                document.execCommand(
+                    "insertHTML",
+                    false,
+                    html
+                );
+
+            }
+            else if (text) {
+
+                document.execCommand(
+                    "insertText",
+                    false,
+                    text
+                );
+
+            }
+
         }
     );
 

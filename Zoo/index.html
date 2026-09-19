@@ -748,7 +748,8 @@
             didYouKnow:    { en: "DID YOU KNOW?", th: "รู้หรือไม่?" },
             close:         { en: "CLOSE", th: "ปิด" },
             footer:        { en: "Zoo Project • Made by Jake", th: "โปรเจกต์สวนสัตว์ • ทำโดยเจค" },
-            infoBtn:       { en: "Info", th: "ข้อมูล" }
+            infoBtn:       { en: "Info", th: "ข้อมูล" },
+            photo:         { en: "PHOTO", th: "รูป" }
         };
 
         let lang = localStorage.getItem("zoo-lang") || "en";
@@ -795,7 +796,8 @@
                 const titleBlock = document.createElement("div");
                 const num = document.createElement("div");
                 num.className = "card-num";
-                num.textContent = "PHOTO " + (index + 1);
+                num.setAttribute("data-photo-num", index + 1);
+                num.textContent = STRINGS.photo[lang] + " " + (index + 1);
                 const title = document.createElement("div");
                 title.className = "card-title";
                 title.setAttribute("data-name-en", names.en);
@@ -900,6 +902,10 @@
 
             document.querySelectorAll(".info-btn").forEach(function(el) {
                 el.textContent = STRINGS.infoBtn[lang];
+            });
+
+            document.querySelectorAll(".card-num").forEach(function(el) {
+                el.textContent = STRINGS.photo[lang] + " " + el.getAttribute("data-photo-num");
             });
 
             if (overlay.classList.contains("open")) {

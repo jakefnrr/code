@@ -9,6 +9,8 @@
 :root{--bg:#0a0a0a;--panel:#111;--border:#1a1a1a;--green:#00ff88;--green-glow:rgba(0,255,136,.15);--text:#e0e0e0;--text-dim:#888;--red:#ff4444}
 html,body{height:100%}
 body{font-family:'SF Mono',Monaco,'Cascadia Code',Consolas,monospace;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;padding:20px}
+.all-projects{position:fixed;top:16px;right:16px;display:inline-block;font-family:inherit;background:transparent;color:var(--green);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;text-decoration:none;border:1px solid var(--green);border-radius:8px;padding:9px 18px;transition:all .2s;z-index:10}
+.all-projects:hover{background:var(--green);color:var(--bg);box-shadow:0 0 20px var(--green-glow)}
 h1{font-size:1.6rem;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 20px var(--green-glow)}
 .subtitle{color:var(--text-dim);font-size:.8rem;margin-bottom:24px;letter-spacing:1px}
 .container{width:100%;max-width:720px}
@@ -66,6 +68,7 @@ h1{font-size:1.2rem}
 </style>
 </head>
 <body>
+<a href="../index.html" class="all-projects" title="Back to all projects">ALL PROJECTS</a>
 <h1>Typing Speed Test</h1>
 <p class="subtitle">Find your speed, type normal sentences, beat your best time</p>
 <div class="container">

@@ -1380,14 +1380,6 @@
       Upcoming
     </button>
 
-    <button
-      class="tab"
-      id="completedTab"
-      onclick="switchTab('completed')"
-    >
-      Completed
-    </button>
-
   </div>
 
 
@@ -1477,37 +1469,6 @@
       <div
         class="upcoming-list"
         id="upcomingAssignments"
-      ></div>
-
-    </section>
-
-  </main>
-
-
-  <!-- COMPLETED -->
-
-  <main
-    id="completedPage"
-    style="display:none;"
-  >
-
-    <section class="card">
-
-      <div class="dashboard-title">
-
-        <h2>
-          Completed Assignments
-        </h2>
-
-        <p>
-          Everything you've finished.
-        </p>
-
-      </div>
-
-      <div
-        class="assignment-list"
-        id="allCompleted"
       ></div>
 
     </section>
@@ -1779,6 +1740,7 @@
   function createData() {
 
     return {
+      date: getTodayKey(),
       assignments: []
     };
   }
@@ -1813,6 +1775,20 @@
       ) {
 
         data.assignments = [];
+      }
+
+      /* New day → wipe everything */
+      if (
+        data.date !==
+        getTodayKey()
+      ) {
+
+        data.date =
+          getTodayKey();
+
+        data.assignments = [];
+
+        saveData(data);
       }
 
       return data;
@@ -2311,11 +2287,6 @@
         "upcomingPage"
       );
 
-    const completed =
-      document.getElementById(
-        "completedPage"
-      );
-
     const dashboardTab =
       document.getElementById(
         "dashboardTab"
@@ -2324,11 +2295,6 @@
     const upcomingTab =
       document.getElementById(
         "upcomingTab"
-      );
-
-    const completedTab =
-      document.getElementById(
-        "completedTab"
       );
 
     dashboard.style.display =
@@ -2341,11 +2307,6 @@
         ? "block"
         : "none";
 
-    completed.style.display =
-      tab === "completed"
-        ? "block"
-        : "none";
-
     dashboardTab.classList.toggle(
       "active",
       tab === "dashboard"
@@ -2354,11 +2315,6 @@
     upcomingTab.classList.toggle(
       "active",
       tab === "upcoming"
-    );
-
-    completedTab.classList.toggle(
-      "active",
-      tab === "completed"
     );
 
     render();
@@ -2711,69 +2667,6 @@
 
 
   /* =====================================================
-     ALL COMPLETED
-  ===================================================== */
-
-  function renderCompleted(data) {
-
-    const container =
-      document.getElementById(
-        "allCompleted"
-      );
-
-    container.innerHTML = "";
-
-    const completed =
-      data.assignments.filter(
-        assignment =>
-          assignment.completed
-      );
-
-    if (!completed.length) {
-
-      container.innerHTML = `
-        <div class="empty">
-          No completed assignments yet.
-        </div>
-      `;
-
-      return;
-    }
-
-    completed
-      .sort(
-        (a, b) => {
-
-          return (
-            new Date(
-              b.completedAt ||
-              b.createdAt
-            ) -
-            new Date(
-              a.completedAt ||
-              a.createdAt
-            )
-          );
-
-        }
-      )
-      .forEach(
-        assignment => {
-
-          const item =
-            createAssignmentElement(
-              assignment
-            );
-
-          container.appendChild(
-            item
-          );
-        }
-      );
-  }
-
-
-  /* =====================================================
      RENDER
   ===================================================== */
 
@@ -2785,8 +2678,6 @@
     renderToday(data);
 
     renderUpcoming(data);
-
-    renderCompleted(data);
   }
 
 
@@ -2831,6 +2722,33 @@
   ===================================================== */
 
   render();
+
+  /* New day detection — keeps working if the page is left open past midnight */
+
+  setInterval(
+    () => {
+
+      const data =
+        getData();
+
+      if (
+        data.date ===
+        getTodayKey()
+      ) {
+        return;
+      }
+
+      data.date =
+        getTodayKey();
+
+      data.assignments = [];
+
+      saveData(data);
+
+      render();
+    },
+    30000
+  );
 
 </script>
 

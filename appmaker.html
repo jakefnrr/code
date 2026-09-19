@@ -638,17 +638,13 @@
                 <span class="filter-label">Category:</span>
                 <div class="filter-group" id="categoryFilters-fortnite">
                     <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="improve">Improve</button>
                     <button class="filter-btn" data-category="fun">Fun</button>
-                    <button class="filter-btn" data-category="work">Work</button>
-                    <button class="filter-btn" data-category="learning">Learning</button>
-                    <button class="filter-btn" data-category="productivity">Productivity</button>
-                    <button class="filter-btn" data-category="entertainment">Entertainment</button>
-                    <button class="filter-btn" data-category="social">Social</button>
-
-                    <button class="filter-btn" data-category="health">Health</button>
-                    <button class="filter-btn" data-category="finance">Finance</button>
                     <button class="filter-btn" data-category="creative">Creative</button>
-                    <button class="filter-btn" data-category="utility">Utility</button>
+                    <button class="filter-btn" data-category="weapons">Weapons</button>
+                    <button class="filter-btn" data-category="movement">Movement</button>
+                    <button class="filter-btn" data-category="strategy">Strategy</button>
+                    <button class="filter-btn" data-category="stats">Stats</button>
                 </div>
                 
                 <span class="filter-label">Complexity:</span>
@@ -686,17 +682,14 @@
                 <span class="filter-label">Category:</span>
                 <div class="filter-group" id="categoryFilters-rocketleague">
                     <button class="filter-btn active" data-category="all">All</button>
+                    <button class="filter-btn" data-category="training">Training</button>
                     <button class="filter-btn" data-category="fun">Fun</button>
-                    <button class="filter-btn" data-category="work">Work</button>
-                    <button class="filter-btn" data-category="learning">Learning</button>
-                    <button class="filter-btn" data-category="productivity">Productivity</button>
-                    <button class="filter-btn" data-category="entertainment">Entertainment</button>
-                    <button class="filter-btn" data-category="social">Social</button>
-
-                    <button class="filter-btn" data-category="health">Health</button>
-                    <button class="filter-btn" data-category="finance">Finance</button>
-                    <button class="filter-btn" data-category="creative">Creative</button>
-                    <button class="filter-btn" data-category="utility">Utility</button>
+                    <button class="filter-btn" data-category="aerials">Aerials</button>
+                    <button class="filter-btn" data-category="rotation">Rotation</button>
+                    <button class="filter-btn" data-category="trading">Trading</button>
+                    <button class="filter-btn" data-category="mechanics">Mechanics</button>
+                    <button class="filter-btn" data-category="strategy">Strategy</button>
+                    <button class="filter-btn" data-category="stats">Stats</button>
                 </div>
                 
                 <span class="filter-label">Complexity:</span>
@@ -930,21 +923,142 @@
         ];
 
         const FORTNITE_IDEAS = [
-            { title: "Victory Royale Progress Tracker", description: "Log every win, crown, and elimination streak across your Fortnite matches", category: "fun", complexity: "beginner", tags: ["gaming", "tracking"] },
-            { title: "Build Battle Trainer", description: "Practice edit courses with timing drills and combo chains", category: "learning", complexity: "intermediate", tags: ["gaming", "practice"] },
+            { title: "Build Speed Trainer", description: "Track how fast you can complete edit courses and aim for personal bests", category: "improve", complexity: "intermediate", tags: ["gaming", "practice"] },
+            { title: "Aim Accuracy Drill", description: "Log your headshot percentage and tracking accuracy over time", category: "improve", complexity: "intermediate", tags: ["gaming", "aim"] },
+            { title: "Game Sense Coach", description: "Analyze your decisions after each match and identify what to improve", category: "improve", complexity: "advanced", tags: ["gaming", "coaching"] },
+            { title: "Warm-Up Routine Builder", description: "Create a custom pre-game warm-up with aim, build, and edit drills", category: "improve", complexity: "intermediate", tags: ["gaming", "routine"] },
+            { title: "Replay Review Journal", description: "Watch replays and log mistakes to avoid in future games", category: "improve", complexity: "intermediate", tags: ["gaming", "analysis"] },
+            { title: "Sensitivity Finder", description: "Test different sensitivity settings and track which feels best", category: "improve", complexity: "beginner", tags: ["gaming", "settings"] },
+            { title: "Edit Course Speedrun Timer", description: "Time yourself through edit courses and compare against your bests", category: "improve", complexity: "beginner", tags: ["gaming", "speedrun"] },
+            { title: "Piece Control Drill Tracker", description: "Practice piece control techniques and log your consistency", category: "improve", complexity: "advanced", tags: ["gaming", "piece-control"] },
+
+            { title: "Victory Royale Tracker", description: "Log every win, crown, and elimination streak across your matches", category: "fun", complexity: "beginner", tags: ["gaming", "tracking"] },
             { title: "Drop Spot Randomizer", description: "Spin a random landing spot with loot-tier notes for each", category: "fun", complexity: "beginner", tags: ["gaming", "random"] },
-            { title: "Battle Pass Level Planner", description: "Map out your XP quests to max the pass before the season ends", category: "productivity", complexity: "intermediate", tags: ["gaming", "planning"] },
-            { title: "Item Shop Watchlist", description: "Track which skins and emotes you want back in rotation", category: "utility", complexity: "beginner", tags: ["gaming", "wishlist"] },
-            { title: "Squad Comms Coach", description: "Rehearse callouts, rotations, and reboot timing with your squad", category: "social", complexity: "intermediate", tags: ["gaming", "communication"] }
+            { title: "Fortnite Trivia Quiz", description: "Test your knowledge of items, seasons, and Fortnite history", category: "fun", complexity: "beginner", tags: ["gaming", "trivia"] },
+            { title: "Emote Challenge Generator", description: "Random emote challenges to do mid-match for laughs", category: "fun", complexity: "beginner", tags: ["gaming", "emotes"] },
+            { title: "Squad Challenge Board", description: "Daily and weekly challenges to complete with your squad", category: "fun", complexity: "intermediate", tags: ["gaming", "challenges"] },
+            { title: "Fortnite Bingo Card", description: "Random bingo card with match events to complete", category: "fun", complexity: "beginner", tags: ["gaming", "bingo"] },
+            { title: "Random Loadout Generator", description: "Get a random loadout and play a full match with it", category: "fun", complexity: "beginner", tags: ["gaming", "loadout"] },
+            { title: "Win Streak Counter", description: "Track your longest win streaks and celebrate milestones", category: "fun", complexity: "beginner", tags: ["gaming", "streaks"] },
+
+            { title: "Creative Map Showcase", description: "Browse and rate the best community-made creative maps", category: "creative", complexity: "intermediate", tags: ["gaming", "maps"] },
+            { title: "Map Idea Generator", description: "Generate random creative map ideas with themes and mechanics", category: "creative", complexity: "intermediate", tags: ["gaming", "ideas"] },
+            { title: "Island Blueprint Planner", description: "Plan your creative island layouts with a visual builder", category: "creative", complexity: "advanced", tags: ["gaming", "planning"] },
+            { title: "Prop Hunt Map Maker", description: "Design prop hunt maps with hiding spots and scoring rules", category: "creative", complexity: "advanced", tags: ["gaming", "prop-hunt"] },
+            { title: "Parkour Course Designer", description: "Design and share parkour courses with difficulty ratings", category: "creative", complexity: "intermediate", tags: ["gaming", "parkour"] },
+            { title: "Zone Wars Setup Guide", description: "Step-by-step guide to building your own zone wars map", category: "creative", complexity: "advanced", tags: ["gaming", "zone-wars"] },
+            { title: "Deathrun Creator", description: "Plan deathrun trap sequences and test difficulty levels", category: "creative", complexity: "intermediate", tags: ["gaming", "deathrun"] },
+            { title: "Creative Mode Showcase", description: "Show off your best creative builds with screenshots and ratings", category: "creative", complexity: "beginner", tags: ["gaming", "showcase"] },
+
+            { title: "Weapon Tier List Builder", description: "Rank every weapon from worst to best with your own tier list", category: "weapons", complexity: "beginner", tags: ["gaming", "tier-list"] },
+            { title: "Loadout Optimizer", description: "Find the best weapon combos for different playstyles", category: "weapons", complexity: "intermediate", tags: ["gaming", "loadout"] },
+            { title: "Shotgun Comparison Tool", description: "Compare damage, fire rate, and range for all shotguns", category: "weapons", complexity: "beginner", tags: ["gaming", "shotguns"] },
+            { title: "Sniper Practice Planner", description: "Track your sniping accuracy and practice routines", category: "weapons", complexity: "intermediate", tags: ["gaming", "sniping"] },
+            { title: "SMG vs AR Analyzer", description: "Compare close-range and mid-range weapon stats side by side", category: "weapons", complexity: "beginner", tags: ["gaming", "comparison"] },
+            { title: "Best Loadout by Zone", description: "Recommended weapons for early, mid, and end game", category: "weapons", complexity: "intermediate", tags: ["gaming", "zones"] },
+            { title: "Weapon Meta Tracker", description: "Track which weapons are meta each patch and how they perform", category: "weapons", complexity: "intermediate", tags: ["gaming", "meta"] },
+            { title: "Explosive Weapon Guide", description: "Tips and damage breakdowns for RPGs, grenades, and boom bows", category: "weapons", complexity: "beginner", tags: ["gaming", "explosives"] },
+
+            { title: "Movement Tech Trainer", description: "Practice sprinting, sliding, mantling, and combinations", category: "movement", complexity: "intermediate", tags: ["gaming", "movement"] },
+            { title: "Rotation Planner", description: "Plan your storm rotations with route optimization", category: "movement", complexity: "intermediate", tags: ["gaming", "rotations"] },
+            { title: "Box Fight Movement Guide", description: "Master box fight movement with strafing and peeking drills", category: "movement", complexity: "advanced", tags: ["gaming", "box-fight"] },
+            { title: "Storm Edge Tracker", description: "Track how close you play to the storm and optimize pathing", category: "movement", complexity: "intermediate", tags: ["gaming", "storm"] },
+            { title: "Glider Path Optimizer", description: "Find the best glide paths from each drop spot", category: "movement", complexity: "beginner", tags: ["gaming", "gliding"] },
+            { title: "Height Advantage Guide", description: "Drills for taking and maintaining high ground in fights", category: "movement", complexity: "advanced", tags: ["gaming", "high-ground"] },
+            { title: "Zone Rotation Timer", description: "Time your rotations based on storm speed and distance", category: "movement", complexity: "beginner", tags: ["gaming", "timing"] },
+            { title: "Slide-Jump Combo Trainer", description: "Practice momentum-based movement combos for speed", category: "movement", complexity: "intermediate", tags: ["gaming", "momentum"] },
+
+            { title: "Landing Strategy Guide", description: "Best landing spots by playstyle with loot analysis", category: "strategy", complexity: "intermediate", tags: ["gaming", "landing"] },
+            { title: "Endgame Rotation Coach", description: "Plan your late-game positioning and rotation timing", category: "strategy", complexity: "advanced", tags: ["gaming", "endgame"] },
+            { title: "Squad Role Assigner", description: "Assign roles like IGL, fragger, support, and scout to your team", category: "strategy", complexity: "intermediate", tags: ["gaming", "roles"] },
+            { title: "Storm Prediction Tool", description: "Predict the next storm circle and plan your position", category: "strategy", complexity: "advanced", tags: ["gaming", "storm"] },
+            { title: "Third Party Prevention Guide", description: "Tips and drills for avoiding and countering third parties", category: "strategy", complexity: "intermediate", tags: ["gaming", "positioning"] },
+            { title: "Supply Drop Priority Planner", description: "Decide when to chase supply drops based on zone and loot", category: "strategy", complexity: "beginner", tags: ["gaming", "supply-drops"] },
+            { title: "Reboot Strategy Guide", description: "When and where to reboot teammates with optimal timing", category: "strategy", complexity: "intermediate", tags: ["gaming", "reboots"] },
+            { title: "Loadout Priority System", description: "Rank what loot to grab first in different situations", category: "strategy", complexity: "beginner", tags: ["gaming", "loot"] },
+
+            { title: "Win Rate Tracker", description: "Track your wins, top 5s, top 10s, and overall win rate", category: "stats", complexity: "beginner", tags: ["gaming", "wins"] },
+            { title: "K/D Ratio Monitor", description: "Monitor your kills, deaths, and K/D ratio over time", category: "stats", complexity: "beginner", tags: ["gaming", "k/d"] },
+            { title: "Match History Logger", description: "Log every match with placement, kills, and notes", category: "stats", complexity: "intermediate", tags: ["gaming", "history"] },
+            { title: "Season Progress Dashboard", description: "Visual dashboard of your season progress with charts", category: "stats", complexity: "intermediate", tags: ["gaming", "progress"] },
+            { title: "Damage Per Match Tracker", description: "Track average damage dealt and compare across seasons", category: "stats", complexity: "beginner", tags: ["gaming", "damage"] },
+            { title: "Squad Stats Comparator", description: "Compare stats across your squad members", category: "stats", complexity: "intermediate", tags: ["gaming", "squad"] },
+            { title: "Weapon Stats Breakdown", description: "Track which weapons get you the most kills", category: "stats", complexity: "intermediate", tags: ["gaming", "weapons"] },
+            { title: "Season Milestone Tracker", description: "Track your progress toward season milestones and rewards", category: "stats", complexity: "beginner", tags: ["gaming", "milestones"] }
         ];
 
         const ROCKETLEAGUE_IDEAS = [
-            { title: "Aerial Training Pack Curator", description: "Organize boost recovery and aerial drills into daily routines", category: "learning", complexity: "intermediate", tags: ["gaming", "practice"] },
-            { title: "Replay Breakdown Journal", description: "Annotate your replays with rotation and boost mistakes", category: "learning", complexity: "intermediate", tags: ["gaming", "reviews"] },
-            { title: "Rank Climber Tracker", description: "Chart MMR swings and set weekly rank-up goals", category: "productivity", complexity: "beginner", tags: ["gaming", "tracking"] },
-            { title: "Inventory Trade Valuer", description: "Compare credit values for your favorite items and blueprints", category: "finance", complexity: "intermediate", tags: ["gaming", "trading"] },
-            { title: "Boost Management Drill", description: "Practice boost pad routes and boost-saving mechanics", category: "learning", complexity: "beginner", tags: ["gaming", "practice"] },
-            { title: "Tournament Rotation Coach", description: "Plan team rotations and demo moments for tournament night", category: "social", complexity: "intermediate", tags: ["gaming", "teamwork"] }
+            { title: "Aerial Training Pack Curator", description: "Organize boost recovery and aerial drills into daily routines", category: "training", complexity: "intermediate", tags: ["gaming", "aerials"] },
+            { title: "Dribble Drill Scheduler", description: "Plan daily dribble practice with progressive difficulty levels", category: "training", complexity: "intermediate", tags: ["gaming", "dribbling"] },
+            { title: "Freeplay Routine Builder", description: "Create custom freeplay routines for mechanics you want to improve", category: "training", complexity: "beginner", tags: ["gaming", "freeplay"] },
+            { title: "Shot Training Planner", description: "Organize custom training packs by shot type and difficulty", category: "training", complexity: "intermediate", tags: ["gaming", "shots"] },
+            { title: "Wall Shot Practice Tracker", description: "Track your wall shot accuracy and consistency over time", category: "training", complexity: "intermediate", tags: ["gaming", "wall-shots"] },
+            { title: "Kickoff Practice Timer", description: "Time your kickoffs and track improvement speed", category: "training", complexity: "beginner", tags: ["gaming", "kickoffs"] },
+            { title: "Boost Management Drill", description: "Practice boost pad routes and boost-saving mechanics", category: "training", complexity: "beginner", tags: ["gaming", "boost"] },
+            { title: "Save Training Pack", description: "Organize and track progress through defensive save training", category: "training", complexity: "intermediate", tags: ["gaming", "saves"] },
+
+            { title: "Rank Climber Tracker", description: "Chart MMR swings and set weekly rank-up goals", category: "fun", complexity: "beginner", tags: ["gaming", "ranking"] },
+            { title: "Car Design Showcase", description: "Show off your best car designs and get community ratings", category: "fun", complexity: "beginner", tags: ["gaming", "designs"] },
+            { title: "Goal Replay Gallery", description: "Collect and showcase your best goals with notes", category: "fun", complexity: "beginner", tags: ["gaming", "goals"] },
+            { title: "Rocket League Trivia", description: "Test your knowledge of RL history, items, and mechanics", category: "fun", complexity: "beginner", tags: ["gaming", "trivia"] },
+            { title: "Random Car Challenge", description: "Get a random car preset and play a full match", category: "fun", complexity: "beginner", tags: ["gaming", "random"] },
+            { title: "Squad Night Planner", description: "Schedule and organize team practice sessions and scrims", category: "fun", complexity: "intermediate", tags: ["gaming", "team"] },
+            { title: "Overtime Clutch Counter", description: "Track your overtime wins and clutch moments", category: "fun", complexity: "beginner", tags: ["gaming", "overtime"] },
+            { title: "Montage Idea Generator", description: "Generate ideas for your next Rocket League highlight montage", category: "fun", complexity: "beginner", tags: ["gaming", "montage"] },
+
+            { title: "Aerial Accuracy Trainer", description: "Track your aerial hit percentage and air dribble consistency", category: "aerials", complexity: "intermediate", tags: ["gaming", "accuracy"] },
+            { title: "Air Dribble Practice Log", description: "Log air dribble attempts, success rate, and height achieved", category: "aerials", complexity: "advanced", tags: ["gaming", "air-dribble"] },
+            { title: "Ceiling Shot Trainer", description: "Practice ceiling shots with timing and boost management drills", category: "aerials", complexity: "advanced", tags: ["gaming", "ceiling-shots"] },
+            { title: "Flip Reset Progress Tracker", description: "Track your flip reset attempts and successful implementations", category: "aerials", complexity: "advanced", tags: ["gaming", "flip-reset"] },
+            { title: "Double Tap Drill Logger", description: "Practice double taps off backboard and track consistency", category: "aerials", complexity: "advanced", tags: ["gaming", "double-taps"] },
+            { title: "Aerial Height Challenge", description: "Set goals for how high you can consistently aerial", category: "aerials", complexity: "intermediate", tags: ["gaming", "height"] },
+            { title: "Musty Flick Trainer", description: "Practice musty flick mechanics and track improvement", category: "aerials", complexity: "advanced", tags: ["gaming", "musty-flick"] },
+            { title: "Pinch Shot Practice", description: "Work on ceiling pinches and ground pinches with accuracy logs", category: "aerials", complexity: "advanced", tags: ["gaming", "pinches"] },
+
+            { title: "Rotation Positioning Guide", description: "Learn and practice proper 2v2 and 3v3 rotation patterns", category: "rotation", complexity: "intermediate", tags: ["gaming", "positioning"] },
+            { title: "Third Man Rotation Drill", description: "Practice being the third man with decision-making scenarios", category: "rotation", complexity: "advanced", tags: ["gaming", "third-man"] },
+            { title: "Back Post Rotation Timer", description: "Track how often you rotate back post correctly", category: "rotation", complexity: "intermediate", tags: ["gaming", "back-post"] },
+            { title: "Shadow Defense Planner", description: "Practice shadow defense positioning and timing", category: "rotation", complexity: "intermediate", tags: ["gaming", "shadow"] },
+            { title: "Boost Lane Rotation Map", description: "Map out boost lanes and rotation paths for each arena", category: "rotation", complexity: "intermediate", tags: ["gaming", "boost-lanes"] },
+            { title: "Defensive Rotation Coach", description: "Analyze your defensive positioning and suggest improvements", category: "rotation", complexity: "advanced", tags: ["gaming", "defense"] },
+            { title: "Transition Speed Tracker", description: "Track how fast you switch from offense to defense", category: "rotation", complexity: "intermediate", tags: ["gaming", "transitions"] },
+            { title: "Corner Rotation Guide", description: "Master corner play with proper rotation and boost stealing", category: "rotation", complexity: "intermediate", tags: ["gaming", "corners"] },
+
+            { title: "Inventory Trade Valuer", description: "Compare credit values for your favorite items and blueprints", category: "trading", complexity: "intermediate", tags: ["gaming", "values"] },
+            { title: "Trade History Logger", description: "Log all trades with items exchanged and profit/loss", category: "trading", complexity: "intermediate", tags: ["gaming", "history"] },
+            { title: "Item Price Tracker", description: "Track price changes for items you want to buy or sell", category: "trading", complexity: "intermediate", tags: ["gaming", "prices"] },
+            { title: "Trade Offer Evaluator", description: "Evaluate trade offers to see if you're getting a fair deal", category: "trading", complexity: "intermediate", tags: ["gaming", "evaluation"] },
+            { title: "Inventory Showcase", description: "Showcase your item collection with rarity and value stats", category: "trading", complexity: "beginner", tags: ["gaming", "inventory"] },
+            { title: "Blueprint Planner", description: "Track which blueprints you have and what it costs to build them", category: "trading", complexity: "beginner", tags: ["gaming", "blueprints"] },
+            { title: "Seasonal Item Watchlist", description: "Track limited-time items and when they might return", category: "trading", complexity: "beginner", tags: ["gaming", "limited-items"] },
+            { title: "Trade Profit Calculator", description: "Calculate your total trading profit across all deals", category: "trading", complexity: "intermediate", tags: ["gaming", "profit"] },
+
+            { title: "Flick Shot Trainer", description: "Practice flick shots with different angles and speeds", category: "mechanics", complexity: "intermediate", tags: ["gaming", "flicks"] },
+            { title: "Powerslide Cut Trainer", description: "Master powerslide cuts for quick direction changes", category: "mechanics", complexity: "intermediate", tags: ["gaming", "powerslide"] },
+            { title: "Wave Dash Practice Log", description: "Track wave dash consistency and speed gains", category: "mechanics", complexity: "advanced", tags: ["gaming", "wave-dash"] },
+            { title: "Half-Flip Drill", description: "Practice half-flips for quick turns and recovery", category: "mechanics", complexity: "intermediate", tags: ["gaming", "half-flip"] },
+            { title: "Fast Aerial Speed Test", description: "Time your fast aerials and track improvement", category: "mechanics", complexity: "intermediate", tags: ["gaming", "fast-aerial"] },
+            { title: "Recovery Mechanics Guide", description: "Practice landing on walls, ceiling, and recovering boost", category: "mechanics", complexity: "intermediate", tags: ["gaming", "recovery"] },
+            { title: "Ground Dribble Course", description: "Practice ground dribbling with obstacle courses", category: "mechanics", complexity: "intermediate", tags: ["gaming", "ground-dribble"] },
+            { title: "Pre-Jump Timing Drill", description: "Practice pre-jumping opponents with proper timing", category: "mechanics", complexity: "advanced", tags: ["gaming", "pre-jump"] },
+
+            { title: "Team Strategy Planner", description: "Plan team plays, set pieces, and offensive strategies", category: "strategy", complexity: "intermediate", tags: ["gaming", "team-plays"] },
+            { title: "Tournament Rotation Coach", description: "Plan team rotations and demo moments for tournament night", category: "strategy", complexity: "intermediate", tags: ["gaming", "tournament"] },
+            { title: "Counter-Attack Blueprint", description: "Design fast break strategies for different field positions", category: "strategy", complexity: "advanced", tags: ["gaming", "counter-attack"] },
+            { title: "Defensive Formation Guide", description: "Set up defensive formations for 2v2 and 3v3 scenarios", category: "strategy", complexity: "advanced", tags: ["gaming", "formations"] },
+            { title: "Demo Strategy Planner", description: "Plan demolition opportunities and bump plays", category: "strategy", complexity: "intermediate", tags: ["gaming", "demos"] },
+            { title: "Overtime Strategy Guide", description: "Tips and plays for winning overtime situations", category: "strategy", complexity: "intermediate", tags: ["gaming", "overtime"] },
+            { title: "Passing Play Designer", description: "Design passing plays with your teammates", category: "strategy", complexity: "advanced", tags: ["gaming", "passing"] },
+            { title: "Boost Steal Strategy", description: "Plan boost steals to starve the other team", category: "strategy", complexity: "intermediate", tags: ["gaming", "boost-steal"] },
+
+            { title: "MMR Tracker", description: "Track your MMR in each playlist over time with graphs", category: "stats", complexity: "beginner", tags: ["gaming", "mmr"] },
+            { title: "Match History Logger", description: "Log every match with score, goals, assists, and saves", category: "stats", complexity: "beginner", tags: ["gaming", "history"] },
+            { title: "Shot Accuracy Dashboard", description: "Track your shooting accuracy across different shot types", category: "stats", complexity: "intermediate", tags: ["gaming", "accuracy"] },
+            { title: "Season Stats Overview", description: "Visual dashboard of your season stats with comparisons", category: "stats", complexity: "intermediate", tags: ["gaming", "season"] },
+            { title: "Boost Usage Analyzer", description: "Analyze how efficiently you use boost per match", category: "stats", complexity: "intermediate", tags: ["gaming", "boost"] },
+            { title: "Goal Contribution Tracker", description: "Track goals, assists, and your total point contributions", category: "stats", complexity: "beginner", tags: ["gaming", "goals"] },
+            { title: "Rank Progression Graph", description: "Visual graph of your rank changes across all seasons", category: "stats", complexity: "intermediate", tags: ["gaming", "rank"] },
+            { title: "Squad Stats Comparator", description: "Compare stats across your team members", category: "stats", complexity: "intermediate", tags: ["gaming", "squad"] }
         ];
 
         // ---- Per-tab word banks ----
@@ -960,18 +1074,18 @@
         const FORTNITE_WORDS = {
             subject: ["victory royales", "storm circles", "build battles", "edit courses", "emote collections", "battle pass tiers", "supply drop loot", "elimination streaks", "drop spots", "crown wins", "zone rotations", "reboot cards", "fishing spots", "glider descents", "quest checklists", "xp grinds", "vaulted items", "season rotations", "loadout presets", "creative map hubs"],
             audience: ["solo grinders", "squad fillers", "creative builders", "zero-build mains", "crown chasers", "item shop hunters", "chapter 1 veterans", "xp grinders"],
-            feature: ["storm timer alerts", "loot rarity tracking", "edit course practice", "drop spot randomizer", "quest tick lists", "xp milepost bars", "loadout deck builder", "match recap journal", "reboot timing helper", "elimination kill counter"],
-            perk: ["battle pass level tracker", "endgame rotation planner", "squad voice cue ringtones", "vaulted-return news feed", "supply drop scout timer", "crown win counter", "zero-build meta picks", "aura rarity detector"],
-            interaction: ["tracks your V-buck balance", "turns matches into highlights", "breaks the grind into daily quests", "syncs with item shop drops", "keeps you calm in the final zone", "adapts to your game sense", "surfaces what matters mid-match", "cuts out the pre-match busywork"],
-            theme: ["stormful purple", "neon chroma", "comic pop", "zero-build minimal", "chapter 1 retro", "item shop neon", "leyline glow", "glimmer gold"]
+            feature: ["storm timer alerts", "loot rarity tracking", "edit course practice", "drop spot randomizer", "quest tick lists", "xp milepost bars", "loadout deck builder", "match recap journal", "reboot timing helper", "elimination kill counter", "shotgun flicks drill", "bunker build pattern", "crank timer", "piece control grid", "weapon drop loot pool", "movement combo chain", "slide-jump momentum bar", "height take drill"],
+            perk: ["battle pass level tracker", "endgame rotation planner", "squad voice cue ringtones", "vaulted-return news feed", "supply drop scout timer", "crown win counter", "zero-build meta picks", "aura rarity detector", "aim speed multiplier", "box-fight flow coach", "storm-edge pathing map", "tier list drag-builder"],
+            interaction: ["tracks your V-buck balance", "turns matches into highlights", "breaks the grind into daily quests", "syncs with item shop drops", "keeps you calm in the final zone", "adapts to your game sense", "surfaces what matters mid-match", "cuts out the pre-match busywork", "rewards every new personal best", "maps your rotation style", "pressure-tests your piece control", "measures your movement tech"],
+            theme: ["stormful purple", "neon chroma", "comic pop", "zero-build minimal", "chapter 1 retro", "item shop neon", "leyline glow", "glimmer gold", "slurp green", "dragon glider flame"]
         };
 
         const ROCKETLEAGUE_WORDS = {
             subject: ["aerial trainings", "replay save files", "car loadouts", "trade inventories", "tournament games", "training packs", "dribble drills", "wall shot routines", "rank climbers", "season rewards", "credit trades", "clutch overtime goals", "ball control drills", "team comms", "car body tiers", "boost inventories", "boost management", "mechanics tier lists", "demo plays", "save streaks"],
             audience: ["solo queuers", "threes teammates", "freestylers", "diamond climbers", "tournament grinders", "traders", "coached duos", "rookie rollers"],
-            feature: ["boosting drills", "replay breakdown notes", "training pack playlists", "shot timing charts", "rank-up trackers", "car stat calculators", "spin and flick drills", "boost pad maps", "rotation reminders", "demo counter"],
-            perk: ["goal replay editor", "mechanics checklist", "overtime momentum tracker", "trade value scanner", "season milestone log", "dribble practice timer", "aerial accuracy score", "wasted boost alarm"],
-            interaction: ["tracks your MMR movements", "turns replays into lessons", "breaks practice into daily packs", "keeps rotation simple in comms", "celebrates every save streak", "adapts to your skill ceiling", "cuts the grind into weekly challenges", "protects your inventory info"],
+            feature: ["boosting drills", "replay breakdown notes", "training pack playlists", "shot timing charts", "rank-up trackers", "car stat calculators", "spin and flick drills", "boost pad maps", "rotation reminders", "demo counter", "aerial height meter", "flip reset counter", "half-flip timer", "wave dash combo meter"],
+            perk: ["goal replay editor", "mechanics checklist", "overtime momentum tracker", "trade value scanner", "season milestone log", "dribble practice timer", "aerial accuracy score", "wasted boost alarm", "back-post rotation cue", "musty flick streak bar", "cut rotation warning", "air dribble height chart"],
+            interaction: ["tracks your MMR movements", "turns replays into lessons", "breaks practice into daily packs", "keeps rotation simple in comms", "celebrates every save streak", "adapts to your skill ceiling", "cuts the grind into weekly challenges", "protects your inventory info", "times your fast aerials", "rates your ball control", "plans your boost routes", "flags your slot-stealing"],
             theme: ["boost orange", "neon pitch", "arena floodlights", "octane clean", "championship gold", "night skyline pitch", "sweat-lobby dark", "esports broadcast"]
         };
 
@@ -986,13 +1100,23 @@
             health: ["Coach", "Logger", "Tracker", "Routine Builder", "Planner", "Journal", "Challenge", "Assistant"],
             finance: ["Tracker", "Planner", "Calculator", "Analyzer", "Dashboard", "Manager", "Wizard", "Logger"],
             creative: ["Studio", "Editor", "Moodboard", "Palette", "Sketchpad", "Composer", "Gallery", "Blueprint"],
-            utility: ["Toolbox", "Converter", "Helper", "Checker", "Wizard", "Shortcut", "Formatter", "Lens"]
+            utility: ["Toolbox", "Converter", "Helper", "Checker", "Wizard", "Shortcut", "Formatter", "Lens"],
+            improve: ["Trainer", "Coach", "Drill Log", "Progress Tracker", "Practice Planner", "Routine Builder", "Benchmark", "Improvement Tracker"],
+            weapons: ["Tier List", "Analyzer", "Comparator", "Optimizer", "Guide", "Tracker", "Breakdown", "Planner"],
+            movement: ["Trainer", "Drill Pack", "Path Planner", "Coach", "Guide", "Timer", "Tracker", "Route Optimizer"],
+            strategy: ["Planner", "Coach", "Guide", "Blueprint", "Analyzer", "Simulator", "Predictor", "Playbook"],
+            stats: ["Tracker", "Dashboard", "Logger", "Monitor", "Analyzer", "Graph", "Comparator", "History"],
+            training: ["Pack Curator", "Routine Builder", "Drill Planner", "Timer", "Practice Tracker", "Coach", "Scheduler", "Plan"],
+            aerials: ["Trainer", "Practice Log", "Drill Pack", "Progress Tracker", "Coach", "Challenge", "Height Meter", "Analyzer"],
+            rotation: ["Coach", "Planner", "Guide", "Map", "Drill", "Analyzer", "Timer", "Tracker"],
+            trading: ["Valuer", "Tracker", "Evaluator", "Calculator", "Planner", "Logger", "Watchlist", "Analyzer"],
+            mechanics: ["Trainer", "Practice Log", "Guide", "Drill Pack", "Course", "Progress Tracker", "Timer", "Combo Meter"]
         };
 
         const GENERATORS = {
-            main: { handpicked: MAIN_IDEAS, words: BASE_WORDS },
-            fortnite: { handpicked: FORTNITE_IDEAS, words: FORTNITE_WORDS },
-            rocketleague: { handpicked: ROCKETLEAGUE_IDEAS, words: ROCKETLEAGUE_WORDS }
+            main: { handpicked: MAIN_IDEAS, words: BASE_WORDS, categories: ["fun", "work", "learning", "productivity", "entertainment", "social", "ecommerce", "health", "finance", "creative", "utility"] },
+            fortnite: { handpicked: FORTNITE_IDEAS, words: FORTNITE_WORDS, categories: ["improve", "fun", "creative", "weapons", "movement", "strategy", "stats"] },
+            rocketleague: { handpicked: ROCKETLEAGUE_IDEAS, words: ROCKETLEAGUE_WORDS, categories: ["training", "fun", "aerials", "rotation", "trading", "mechanics", "strategy", "stats"] }
         };
 
         const CATEGORIES = Object.keys(CAT_FORMATS);
@@ -1004,7 +1128,7 @@
 
         function buildGeneratedIdea(category, complexity, generator) {
             const W = generator.words;
-            const cat = category || pick(CATEGORIES);
+            const cat = category || pick(generator.categories || CATEGORIES);
             const format = pick(CAT_FORMATS[cat]);
             const subject = pick(W.subject);
             const audience = pick(W.audience);
@@ -1041,8 +1165,9 @@
 
         function totalCombinations(generator) {
             const W = generator.words;
+            const cats = generator.categories || CATEGORIES;
             const perCategory = (W.subject.length * W.audience.length * W.feature.length * W.perk.length * W.interaction.length * W.theme.length * Math.max(...Object.values(CAT_FORMATS).map(a => a.length)));
-            return perCategory * CATEGORIES.length;
+            return perCategory * cats.length;
         }
 
         const esc = t => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -1131,7 +1256,7 @@
             const container = document.getElementById('ideasContainer-' + tabKey);
             const generator = state.generator;
 
-            const cats = state.category.includes('all') ? CATEGORIES.slice() : state.category.slice();
+            const cats = state.category.includes('all') ? (generator.categories || CATEGORIES).slice() : state.category.slice();
             const complexities = state.complexity.includes('all') ? ["beginner", "intermediate", "advanced"] : state.complexity.slice();
             const searchTerm = document.getElementById('searchBox-' + tabKey).value.toLowerCase();
 
