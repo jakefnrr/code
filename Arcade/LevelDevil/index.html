@@ -132,7 +132,7 @@
 </head>
 <body>
 
-  <a class="all-projects" id="projectsBtn" href="../../index.html" title="Back to all projects">ALL PROJECTS</a>
+  <a class="all-projects" id="projectsBtn" href="../index.html" title="Back to Hub">BACK TO HUB</a>
 
   <!-- big red hearts, top-right of the whole screen -->
   <div id="hearts" aria-hidden="true"></div>
@@ -179,7 +179,7 @@
     document.body.classList.toggle('boss-fight', !!(window.LD && window.LD.isBossFight && window.LD.isBossFight()));
     const btn = document.getElementById('projectsBtn');
     if (btn) {
-      btn.textContent = inGame ? '◄ LEVEL SELECT' : 'ALL PROJECTS';
+      btn.textContent = inGame ? '◄ LEVEL SELECT' : 'BACK TO HUB';
       btn.dataset.back = inGame ? '1' : '';
     }
     // big red hearts at top-right of the screen
