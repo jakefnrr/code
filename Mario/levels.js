@@ -1,0 +1,335 @@
+const TILE = 32;
+const ROWS = 15;
+
+const LEVELS = [
+{
+    name: "1-1", world: 1, level: 1, width: 120, bg: "outdoor",
+    ground: [{x: 0, w: 120}],
+    blocks: [{x: 5, y: 9, type: "question", content: "mushroom"}],
+    enemies: [],
+    coins: [{x: 33, y: 8}, {x: 96, y: 8}, {x: 77, y: 9}, {x: 5, y: 8}, {x: 31, y: 10}],
+    powerups: [],
+    platforms: [],
+    checkpoints: [],
+    goalX: 118
+},
+{
+    name: "1-2", world: 1, level: 2, width: 130, bg: "outdoor",
+    ground: [{x: 0, w: 50}, {x: 54, w: 76}],
+    blocks: [{x: 84, y: 9, type: "question", content: "mushroom"}, {x: 91, y: 9, type: "brick"}],
+    enemies: [{x: 37, y: 12, type: "walker"}, {x: 47, y: 12, type: "walker"}],
+    coins: [{x: 12, y: 10}, {x: 99, y: 9}, {x: 15, y: 9}, {x: 7, y: 9}, {x: 24, y: 9}, {x: 61, y: 10}],
+    powerups: [],
+    platforms: [{x: 58, y: 8, w: 5}, {x: 50, y: 10, w: 4}, {x: 52, y: 12, w: 4, moving: true, moveX: 4, moveSpeed: 1}],
+    checkpoints: [{x: 68, y: 12}],
+    goalX: 128
+},
+{
+    name: "1-3", world: 1, level: 3, width: 140, bg: "outdoor",
+    ground: [{x: 0, w: 40}, {x: 44, w: 46}, {x: 93, w: 47}],
+    blocks: [{x: 86, y: 9, type: "question", content: "mushroom"}, {x: 56, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 51, y: 12, type: "walker"}, {x: 8, y: 12, type: "walker"}, {x: 63, y: 12, type: "walker"}],
+    coins: [{x: 68, y: 8}, {x: 112, y: 10}, {x: 136, y: 8}, {x: 135, y: 8}, {x: 110, y: 8}, {x: 70, y: 9}],
+    powerups: [],
+    platforms: [{x: 56, y: 10, w: 5}, {x: 14, y: 8, w: 3}, {x: 40, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 42, y: 12, w: 3, moving: true, moveY: 3, moveSpeed: 1}],
+    checkpoints: [{x: 68, y: 12}],
+    goalX: 138
+},
+{
+    name: "1-4", world: 1, level: 4, width: 150, bg: "outdoor",
+    ground: [{x: 0, w: 35}, {x: 39, w: 31}, {x: 74, w: 36}, {x: 113, w: 37}],
+    blocks: [{x: 57, y: 9, type: "question", content: "mushroom"}, {x: 120, y: 9, type: "question", content: "fire"}, {x: 29, y: 9, type: "brick"}],
+    enemies: [{x: 84, y: 12, type: "walker"}, {x: 64, y: 12, type: "walker"}, {x: 103, y: 12, type: "walker"}, {x: 138, y: 7, type: "flyer"}],
+    coins: [{x: 6, y: 10}, {x: 66, y: 10}, {x: 119, y: 9}, {x: 144, y: 10}, {x: 76, y: 10}, {x: 23, y: 10}, {x: 97, y: 8}],
+    powerups: [],
+    platforms: [{x: 75, y: 9, w: 4}, {x: 67, y: 9, w: 5}, {x: 27, y: 10, w: 5}, {x: 35, y: 10, w: 3, moving: true, moveX: 4, moveSpeed: 1}, {x: 37, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 70, y: 10, w: 3, moving: true, moveX: 2, moveSpeed: 1}, {x: 72, y: 10, w: 4}],
+    checkpoints: [{x: 76, y: 12}, {x: 115, y: 12}],
+    goalX: 148
+},
+{
+    name: "1-5", world: 1, level: 5, width: 140, bg: "underground",
+    ground: [{x: 0, w: 30}, {x: 34, w: 46}, {x: 84, w: 56}],
+    blocks: [{x: 134, y: 9, type: "question", content: "mushroom"}, {x: 130, y: 9, type: "question", content: "fire"}, {x: 24, y: 9, type: "brick"}, {x: 61, y: 9, type: "brick"}],
+    enemies: [{x: 6, y: 12, type: "walker"}, {x: 116, y: 12, type: "walker"}, {x: 96, y: 12, type: "walker"}, {x: 69, y: 12, type: "walker"}, {x: 113, y: 7, type: "flyer"}],
+    coins: [{x: 127, y: 9}, {x: 69, y: 9}, {x: 9, y: 8}, {x: 12, y: 8}, {x: 121, y: 8}, {x: 100, y: 8}, {x: 24, y: 10}],
+    powerups: [],
+    platforms: [{x: 15, y: 8, w: 3}, {x: 84, y: 9, w: 3}, {x: 124, y: 9, w: 3}, {x: 30, y: 10, w: 4}, {x: 32, y: 10, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 80, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 82, y: 11, w: 3}],
+    checkpoints: [{x: 73, y: 12}],
+    goalX: 138
+},
+{
+    name: "1-6", world: 1, level: 6, width: 150, bg: "outdoor",
+    ground: [{x: 0, w: 25}, {x: 29, w: 31}, {x: 64, w: 36}, {x: 104, w: 46}],
+    blocks: [{x: 16, y: 9, type: "question", content: "mushroom"}, {x: 3, y: 9, type: "question", content: "fire"}, {x: 4, y: 9, type: "brick"}, {x: 36, y: 9, type: "brick"}],
+    enemies: [{x: 9, y: 12, type: "walker"}, {x: 37, y: 12, type: "walker"}, {x: 114, y: 12, type: "walker"}, {x: 117, y: 12, type: "walker"}, {x: 95, y: 7, type: "flyer"}],
+    coins: [{x: 137, y: 9}, {x: 43, y: 8}, {x: 14, y: 9}, {x: 124, y: 9}, {x: 115, y: 8}, {x: 79, y: 8}, {x: 12, y: 8}, {x: 20, y: 9}],
+    powerups: [],
+    platforms: [{x: 128, y: 9, w: 5}, {x: 130, y: 9, w: 3}, {x: 17, y: 9, w: 5}, {x: 63, y: 8, w: 5}, {x: 25, y: 12, w: 4}, {x: 27, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 60, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 62, y: 10, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 100, y: 12, w: 3, moving: true, moveX: 3, moveSpeed: 1}, {x: 102, y: 11, w: 3, moving: true, moveX: 4, moveSpeed: 2}],
+    checkpoints: [{x: 76, y: 12}, {x: 115, y: 12}],
+    goalX: 148
+},
+{
+    name: "1-7", world: 1, level: 7, width: 140, bg: "outdoor",
+    ground: [{x: 0, w: 55}, {x: 63, w: 77}],
+    blocks: [{x: 101, y: 9, type: "question", content: "mushroom"}, {x: 47, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 44, y: 12, type: "walker"}, {x: 78, y: 12, type: "walker"}, {x: 18, y: 12, type: "walker"}, {x: 8, y: 7, type: "flyer"}],
+    coins: [{x: 91, y: 10}, {x: 129, y: 9}, {x: 71, y: 8}, {x: 100, y: 8}, {x: 23, y: 8}, {x: 85, y: 10}, {x: 135, y: 10}],
+    powerups: [],
+    platforms: [{x: 109, y: 8, w: 5}, {x: 38, y: 8, w: 5}, {x: 37, y: 9, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 91, y: 9, w: 3}, {x: 90, y: 11, w: 5}, {x: 45, y: 8, w: 4}, {x: 55, y: 11, w: 4}, {x: 57, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}],
+    checkpoints: [{x: 73, y: 12}],
+    goalX: 138
+},
+{
+    name: "1-8", world: 1, level: 8, width: 160, bg: "outdoor",
+    ground: [{x: 0, w: 30}, {x: 34, w: 31}, {x: 69, w: 31}, {x: 104, w: 26}, {x: 134, w: 26}],
+    blocks: [{x: 26, y: 9, type: "question", content: "mushroom"}, {x: 82, y: 9, type: "question", content: "fire"}, {x: 148, y: 9, type: "brick"}, {x: 146, y: 9, type: "brick"}],
+    enemies: [{x: 17, y: 12, type: "walker"}, {x: 42, y: 12, type: "walker"}, {x: 117, y: 12, type: "walker"}, {x: 97, y: 12, type: "walker"}, {x: 43, y: 12, type: "walker"}, {x: 23, y: 7, type: "flyer"}, {x: 116, y: 8, type: "flyer"}],
+    coins: [{x: 5, y: 9}, {x: 54, y: 9}, {x: 149, y: 9}, {x: 84, y: 10}, {x: 139, y: 9}, {x: 142, y: 9}, {x: 24, y: 9}, {x: 18, y: 10}],
+    powerups: [],
+    platforms: [{x: 50, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 80, y: 8, w: 5}, {x: 76, y: 10, w: 5}, {x: 83, y: 10, w: 4}, {x: 49, y: 11, w: 4}, {x: 30, y: 12, w: 3}, {x: 32, y: 12, w: 4}, {x: 65, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 67, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 1}, {x: 100, y: 11, w: 3}, {x: 102, y: 10, w: 4}, {x: 130, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 132, y: 10, w: 3, moving: true, moveX: 2, moveSpeed: 2}],
+    checkpoints: [{x: 80, y: 12}, {x: 122, y: 12}],
+    goalX: 158
+},
+{
+    name: "1-9", world: 1, level: 9, width: 160, bg: "outdoor",
+    ground: [{x: 0, w: 28}, {x: 32, w: 23}, {x: 59, w: 26}, {x: 89, w: 26}, {x: 119, w: 41}],
+    blocks: [{x: 19, y: 9, type: "question", content: "mushroom"}, {x: 37, y: 9, type: "question", content: "fire"}, {x: 95, y: 9, type: "brick"}, {x: 112, y: 9, type: "brick"}],
+    enemies: [{x: 133, y: 12, type: "walker"}, {x: 106, y: 12, type: "walker"}, {x: 98, y: 12, type: "walker"}, {x: 34, y: 12, type: "walker"}, {x: 15, y: 12, type: "walker"}, {x: 39, y: 9, type: "flyer"}],
+    coins: [{x: 156, y: 10}, {x: 75, y: 10}, {x: 148, y: 10}, {x: 96, y: 10}, {x: 105, y: 9}, {x: 42, y: 10}, {x: 111, y: 8}, {x: 24, y: 9}],
+    powerups: [],
+    platforms: [{x: 60, y: 10, w: 4}, {x: 138, y: 9, w: 3}, {x: 98, y: 9, w: 5}, {x: 16, y: 11, w: 4}, {x: 119, y: 8, w: 4}, {x: 28, y: 11, w: 4}, {x: 30, y: 12, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 55, y: 11, w: 4}, {x: 57, y: 11, w: 3, moving: true, moveX: 2, moveSpeed: 2}, {x: 85, y: 12, w: 4}, {x: 87, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 115, y: 12, w: 4}, {x: 117, y: 10, w: 3}],
+    checkpoints: [{x: 78, y: 12}, {x: 123, y: 12}],
+    goalX: 158
+},
+{
+    name: "1-10", world: 1, level: 10, width: 180, bg: "outdoor",
+    ground: [{x: 0, w: 25}, {x: 29, w: 26}, {x: 59, w: 21}, {x: 84, w: 26}, {x: 115, w: 30}, {x: 149, w: 31}],
+    blocks: [{x: 13, y: 9, type: "question", content: "mushroom"}, {x: 51, y: 9, type: "question", content: "fire"}, {x: 22, y: 9, type: "question", content: "oneup"}, {x: 2, y: 9, type: "brick"}, {x: 37, y: 9, type: "brick"}],
+    enemies: [{x: 91, y: 12, type: "walker"}, {x: 10, y: 12, type: "walker"}, {x: 96, y: 12, type: "walker"}, {x: 45, y: 12, type: "walker"}, {x: 71, y: 12, type: "walker"}, {x: 94, y: 9, type: "flyer"}, {x: 63, y: 9, type: "flyer"}, {x: 20, y: 12, type: "tough"}],
+    coins: [{x: 21, y: 8}, {x: 35, y: 9}, {x: 154, y: 10}, {x: 45, y: 10}, {x: 72, y: 8}, {x: 136, y: 10}, {x: 40, y: 8}, {x: 117, y: 9}, {x: 138, y: 9}],
+    powerups: [],
+    platforms: [{x: 101, y: 9, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 26, y: 10, w: 5}, {x: 153, y: 8, w: 3}, {x: 109, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 107, y: 8, w: 4}, {x: 92, y: 11, w: 5}, {x: 25, y: 10, w: 4}, {x: 27, y: 12, w: 4}, {x: 55, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 57, y: 10, w: 4}, {x: 80, y: 11, w: 3}, {x: 82, y: 11, w: 3}, {x: 110, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 112, y: 10, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 145, y: 12, w: 3}, {x: 147, y: 10, w: 3}],
+    checkpoints: [{x: 90, y: 12}, {x: 136, y: 12}],
+    goalX: 178
+},
+{
+    name: "2-1", world: 2, level: 1, width: 150, bg: "underground",
+    ground: [{x: 0, w: 40}, {x: 44, w: 41}, {x: 89, w: 61}],
+    blocks: [{x: 106, y: 9, type: "question", content: "mushroom"}, {x: 69, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 32, y: 12, type: "walker"}, {x: 136, y: 12, type: "walker"}, {x: 74, y: 12, type: "walker"}, {x: 7, y: 8, type: "flyer"}, {x: 28, y: 12, type: "tough"}],
+    coins: [{x: 81, y: 10}, {x: 73, y: 10}, {x: 112, y: 9}, {x: 120, y: 9}, {x: 62, y: 8}, {x: 14, y: 9}, {x: 36, y: 10}],
+    powerups: [],
+    platforms: [{x: 47, y: 9, w: 3}, {x: 70, y: 10, w: 5}, {x: 92, y: 10, w: 3}, {x: 40, y: 11, w: 3, moving: true, moveX: 3, moveSpeed: 1}, {x: 42, y: 10, w: 4}, {x: 85, y: 11, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 87, y: 10, w: 4}],
+    checkpoints: [{x: 75, y: 12}, {x: 112, y: 12}],
+    goalX: 148
+},
+{
+    name: "2-2", world: 2, level: 2, width: 155, bg: "underground",
+    ground: [{x: 0, w: 20}, {x: 24, w: 21}, {x: 49, w: 21}, {x: 74, w: 26}, {x: 104, w: 26}, {x: 133, w: 22}],
+    blocks: [{x: 90, y: 9, type: "question", content: "mushroom"}, {x: 64, y: 9, type: "question", content: "fire"}, {x: 52, y: 9, type: "brick"}],
+    enemies: [{x: 3, y: 12, type: "walker"}, {x: 30, y: 12, type: "walker"}, {x: 115, y: 12, type: "walker"}, {x: 9, y: 12, type: "walker"}, {x: 15, y: 7, type: "flyer"}, {x: 119, y: 12, type: "tough"}],
+    coins: [{x: 109, y: 8}, {x: 141, y: 9}, {x: 137, y: 8}, {x: 31, y: 10}, {x: 7, y: 8}, {x: 90, y: 10}, {x: 121, y: 9}, {x: 9, y: 9}],
+    powerups: [],
+    platforms: [{x: 72, y: 11, w: 5, moving: true, moveX: 5, moveSpeed: 2}, {x: 50, y: 8, w: 4}, {x: 38, y: 9, w: 4, moving: true, moveX: 5, moveSpeed: 2}, {x: 145, y: 11, w: 4}, {x: 20, y: 12, w: 4, moving: true, moveX: 4, moveSpeed: 2}, {x: 22, y: 10, w: 4}, {x: 45, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 47, y: 12, w: 3}, {x: 70, y: 10, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 72, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 100, y: 11, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 102, y: 11, w: 4}],
+    checkpoints: [{x: 76, y: 12}, {x: 118, y: 12}],
+    goalX: 153
+},
+{
+    name: "2-3", world: 2, level: 3, width: 150, bg: "underground",
+    ground: [{x: 0, w: 45}, {x: 55, w: 95}],
+    blocks: [{x: 63, y: 9, type: "question", content: "mushroom"}, {x: 35, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 127, y: 12, type: "walker"}, {x: 31, y: 12, type: "walker"}, {x: 22, y: 8, type: "flyer"}, {x: 71, y: 9, type: "flyer"}, {x: 36, y: 9, type: "flyer"}],
+    coins: [{x: 136, y: 9}, {x: 63, y: 8}, {x: 127, y: 8}, {x: 113, y: 10}, {x: 72, y: 8}, {x: 12, y: 9}, {x: 37, y: 9}],
+    powerups: [],
+    platforms: [{x: 23, y: 8, w: 3}, {x: 30, y: 9, w: 5}, {x: 74, y: 10, w: 5}, {x: 123, y: 9, w: 4}, {x: 37, y: 9, w: 4}, {x: 130, y: 9, w: 5}, {x: 129, y: 8, w: 4}, {x: 76, y: 11, w: 5}, {x: 46, y: 12, w: 4, moving: true, moveX: 4, moveSpeed: 2}, {x: 49, y: 11, w: 4}],
+    checkpoints: [{x: 77, y: 12}, {x: 110, y: 12}],
+    goalX: 148
+},
+{
+    name: "2-4", world: 2, level: 4, width: 160, bg: "underground",
+    ground: [{x: 0, w: 30}, {x: 34, w: 26}, {x: 64, w: 31}, {x: 99, w: 26}, {x: 129, w: 31}],
+    blocks: [{x: 141, y: 9, type: "question", content: "mushroom"}, {x: 16, y: 9, type: "question", content: "fire"}, {x: 18, y: 9, type: "brick"}],
+    enemies: [{x: 143, y: 12, type: "walker"}, {x: 49, y: 12, type: "walker"}, {x: 12, y: 12, type: "walker"}, {x: 113, y: 9, type: "flyer"}, {x: 51, y: 6, type: "flyer"}, {x: 53, y: 12, type: "tough"}],
+    coins: [{x: 101, y: 10}, {x: 49, y: 10}, {x: 38, y: 9}, {x: 76, y: 10}, {x: 121, y: 8}, {x: 87, y: 10}, {x: 111, y: 10}, {x: 118, y: 8}],
+    powerups: [],
+    platforms: [{x: 17, y: 10, w: 3}, {x: 23, y: 8, w: 4}, {x: 25, y: 9, w: 4}, {x: 7, y: 10, w: 3}, {x: 75, y: 10, w: 4}, {x: 30, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 32, y: 10, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 60, y: 12, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 62, y: 12, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 95, y: 10, w: 3, moving: true, moveX: 4, moveSpeed: 2}, {x: 97, y: 12, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 125, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 127, y: 10, w: 4}],
+    checkpoints: [{x: 82, y: 12}, {x: 120, y: 12}],
+    goalX: 158
+},
+{
+    name: "2-5", world: 2, level: 5, width: 140, bg: "underground",
+    ground: [{x: 0, w: 30}, {x: 100, w: 40}],
+    blocks: [{x: 22, y: 9, type: "question", content: "mushroom"}, {x: 11, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 102, y: 12, type: "walker"}, {x: 21, y: 9, type: "flyer"}, {x: 116, y: 8, type: "flyer"}, {x: 22, y: 7, type: "flyer"}, {x: 111, y: 12, type: "tough"}],
+    coins: [{x: 104, y: 10}, {x: 110, y: 8}, {x: 122, y: 10}, {x: 113, y: 8}, {x: 27, y: 10}, {x: 135, y: 10}, {x: 112, y: 9}],
+    powerups: [],
+    platforms: [{x: 123, y: 10, w: 4}, {x: 119, y: 9, w: 3}, {x: 57, y: 11, w: 5}, {x: 93, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 94, y: 10, w: 5}, {x: 95, y: 9, w: 3}, {x: 83, y: 9, w: 5}, {x: 118, y: 10, w: 5}, {x: 29, y: 8, w: 3}, {x: 77, y: 8, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 31, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 34, y: 11, w: 3}, {x: 37, y: 12, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 40, y: 10, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 43, y: 12, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 46, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 49, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 52, y: 11, w: 3, moving: true, moveX: 4, moveSpeed: 1}, {x: 55, y: 12, w: 3, moving: true, moveX: 2, moveSpeed: 2}, {x: 58, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 61, y: 12, w: 3, moving: true, moveX: 4, moveSpeed: 1}, {x: 64, y: 10, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 67, y: 10, w: 3, moving: true, moveX: 3, moveSpeed: 1}, {x: 70, y: 11, w: 3, moving: true, moveX: 4, moveSpeed: 1}, {x: 73, y: 12, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 76, y: 12, w: 4}, {x: 79, y: 11, w: 3}],
+    checkpoints: [{x: 15, y: 12}],
+    goalX: 138
+},
+{
+    name: "2-6", world: 2, level: 6, width: 165, bg: "underground",
+    ground: [{x: 0, w: 165}],
+    blocks: [{x: 118, y: 9, type: "question", content: "mushroom"}, {x: 108, y: 9, type: "question", content: "fire"}, {x: 82, y: 9, type: "question", content: "star"}, {x: 97, y: 9, type: "brick"}],
+    enemies: [{x: 127, y: 12, type: "walker"}, {x: 20, y: 12, type: "walker"}, {x: 84, y: 12, type: "walker"}, {x: 18, y: 12, type: "walker"}, {x: 72, y: 12, type: "walker"}, {x: 99, y: 12, type: "walker"}, {x: 118, y: 9, type: "flyer"}, {x: 31, y: 7, type: "flyer"}, {x: 118, y: 12, type: "tough"}, {x: 108, y: 12, type: "tough"}],
+    coins: [{x: 123, y: 8}, {x: 23, y: 8}, {x: 26, y: 10}, {x: 35, y: 10}, {x: 152, y: 10}, {x: 33, y: 9}, {x: 110, y: 10}, {x: 75, y: 10}],
+    powerups: [],
+    platforms: [{x: 79, y: 8, w: 4}, {x: 54, y: 11, w: 3}, {x: 27, y: 10, w: 4}],
+    checkpoints: [{x: 81, y: 12}, {x: 124, y: 12}],
+    goalX: 163
+},
+{
+    name: "2-7", world: 2, level: 7, width: 160, bg: "underground",
+    ground: [{x: 0, w: 25}, {x: 40, w: 15}, {x: 70, w: 15}, {x: 100, w: 15}, {x: 130, w: 30}],
+    blocks: [{x: 51, y: 9, type: "question", content: "mushroom"}, {x: 103, y: 9, type: "question", content: "fire"}],
+    enemies: [{x: 48, y: 12, type: "walker"}, {x: 156, y: 6, type: "flyer"}, {x: 153, y: 8, type: "flyer"}, {x: 7, y: 8, type: "flyer"}, {x: 77, y: 8, type: "flyer"}, {x: 8, y: 12, type: "tough"}],
+    coins: [{x: 52, y: 8}, {x: 18, y: 8}, {x: 108, y: 9}, {x: 74, y: 9}, {x: 77, y: 10}, {x: 134, y: 8}, {x: 44, y: 10}, {x: 4, y: 9}],
+    powerups: [],
+    platforms: [{x: 113, y: 11, w: 5, moving: true, moveX: 5, moveSpeed: 2}, {x: 55, y: 8, w: 5, moving: true, moveX: 6, moveSpeed: 2}, {x: 134, y: 10, w: 5, moving: true, moveX: 3, moveSpeed: 2}, {x: 1, y: 10, w: 3}, {x: 35, y: 10, w: 4, moving: true, moveX: 6, moveSpeed: 2}, {x: 44, y: 11, w: 3}, {x: 58, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 19, y: 11, w: 4}, {x: 106, y: 8, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 117, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 26, y: 12, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 29, y: 11, w: 3}, {x: 32, y: 12, w: 3}, {x: 56, y: 11, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 59, y: 10, w: 3, moving: true, moveX: 4, moveSpeed: 1}, {x: 62, y: 10, w: 3}, {x: 86, y: 11, w: 4}, {x: 89, y: 12, w: 4}, {x: 92, y: 12, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 116, y: 11, w: 4}, {x: 119, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 122, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}],
+    checkpoints: [{x: 81, y: 12}],
+    goalX: 158
+},
+{
+    name: "2-8", world: 2, level: 8, width: 170, bg: "underground",
+    ground: [{x: 0, w: 30}, {x: 35, w: 25}, {x: 65, w: 30}, {x: 100, w: 30}, {x: 135, w: 35}],
+    blocks: [{x: 18, y: 9, type: "question", content: "mushroom"}, {x: 38, y: 9, type: "question", content: "fire"}, {x: 51, y: 9, type: "question", content: "oneup"}, {x: 118, y: 9, type: "brick"}],
+    enemies: [{x: 149, y: 12, type: "walker"}, {x: 120, y: 12, type: "walker"}, {x: 167, y: 12, type: "walker"}, {x: 16, y: 12, type: "walker"}, {x: 157, y: 12, type: "walker"}, {x: 47, y: 9, type: "flyer"}, {x: 141, y: 6, type: "flyer"}, {x: 106, y: 12, type: "tough"}, {x: 90, y: 12, type: "tough"}],
+    coins: [{x: 156, y: 8}, {x: 78, y: 9}, {x: 115, y: 9}, {x: 138, y: 10}, {x: 69, y: 9}, {x: 19, y: 10}, {x: 111, y: 9}, {x: 164, y: 8}, {x: 158, y: 8}],
+    powerups: [],
+    platforms: [{x: 89, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 79, y: 11, w: 5}, {x: 84, y: 8, w: 3}, {x: 108, y: 10, w: 5, moving: true, moveX: 4, moveSpeed: 2}, {x: 87, y: 9, w: 4}, {x: 30, y: 10, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 32, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 60, y: 10, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 62, y: 10, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 95, y: 12, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 97, y: 12, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 130, y: 11, w: 3}, {x: 132, y: 11, w: 4}],
+    checkpoints: [{x: 88, y: 12}, {x: 127, y: 12}],
+    goalX: 168
+},
+{
+    name: "2-9", world: 2, level: 9, width: 170, bg: "underground",
+    ground: [{x: 0, w: 25}, {x: 30, w: 20}, {x: 55, w: 20}, {x: 80, w: 20}, {x: 105, w: 25}, {x: 136, w: 34}],
+    blocks: [{x: 46, y: 9, type: "question", content: "mushroom"}, {x: 57, y: 9, type: "question", content: "fire"}, {x: 83, y: 9, type: "question", content: "oneup"}, {x: 93, y: 9, type: "brick"}, {x: 44, y: 9, type: "brick"}],
+    enemies: [{x: 123, y: 12, type: "walker"}, {x: 87, y: 12, type: "walker"}, {x: 36, y: 12, type: "walker"}, {x: 58, y: 12, type: "walker"}, {x: 153, y: 12, type: "walker"}, {x: 60, y: 6, type: "flyer"}, {x: 59, y: 7, type: "flyer"}, {x: 65, y: 12, type: "tough"}, {x: 112, y: 12, type: "tough"}, {x: 84, y: 12, type: "tough"}],
+    coins: [{x: 13, y: 8}, {x: 12, y: 8}, {x: 158, y: 9}, {x: 36, y: 8}, {x: 72, y: 10}, {x: 47, y: 9}, {x: 107, y: 8}, {x: 10, y: 8}, {x: 45, y: 8}],
+    powerups: [],
+    platforms: [{x: 73, y: 10, w: 3, moving: true, moveX: 6, moveSpeed: 2}, {x: 16, y: 11, w: 3}, {x: 4, y: 9, w: 5}, {x: 74, y: 8, w: 4}, {x: 61, y: 11, w: 5, moving: true, moveY: 3, moveSpeed: 1}, {x: 17, y: 8, w: 5}, {x: 25, y: 10, w: 4}, {x: 27, y: 11, w: 4}, {x: 50, y: 10, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 52, y: 10, w: 4, moving: true, moveX: 4, moveSpeed: 1}, {x: 75, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 77, y: 10, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 100, y: 11, w: 4}, {x: 102, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 130, y: 10, w: 4}, {x: 132, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}],
+    checkpoints: [{x: 85, y: 12}, {x: 126, y: 12}],
+    goalX: 168
+},
+{
+    name: "2-10", world: 2, level: 10, width: 200, bg: "underground",
+    ground: [{x: 0, w: 25}, {x: 30, w: 25}, {x: 60, w: 25}, {x: 91, w: 24}, {x: 121, w: 29}, {x: 156, w: 44}],
+    blocks: [{x: 186, y: 9, type: "question", content: "mushroom"}, {x: 76, y: 9, type: "question", content: "fire"}, {x: 13, y: 9, type: "question", content: "star"}, {x: 136, y: 9, type: "question", content: "oneup"}, {x: 82, y: 9, type: "brick"}, {x: 4, y: 9, type: "brick"}],
+    enemies: [{x: 47, y: 12, type: "walker"}, {x: 189, y: 12, type: "walker"}, {x: 78, y: 12, type: "walker"}, {x: 64, y: 12, type: "walker"}, {x: 185, y: 12, type: "walker"}, {x: 15, y: 7, type: "flyer"}, {x: 132, y: 8, type: "flyer"}, {x: 4, y: 8, type: "flyer"}, {x: 177, y: 12, type: "tough"}, {x: 77, y: 12, type: "tough"}, {x: 146, y: 12, type: "tough"}, {x: 99, y: 12, type: "tough"}],
+    coins: [{x: 183, y: 9}, {x: 146, y: 10}, {x: 32, y: 8}, {x: 144, y: 9}, {x: 6, y: 8}, {x: 52, y: 9}, {x: 74, y: 10}, {x: 21, y: 8}, {x: 186, y: 9}, {x: 76, y: 8}],
+    powerups: [],
+    platforms: [{x: 146, y: 10, w: 3}, {x: 166, y: 9, w: 4}, {x: 6, y: 9, w: 5}, {x: 99, y: 8, w: 5, moving: true, moveX: 6, moveSpeed: 2}, {x: 54, y: 10, w: 5}, {x: 125, y: 8, w: 3, moving: true, moveX: 4, moveSpeed: 2}, {x: 182, y: 8, w: 4}, {x: 81, y: 10, w: 5}, {x: 25, y: 11, w: 4}, {x: 27, y: 11, w: 3}, {x: 55, y: 10, w: 3}, {x: 57, y: 11, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 85, y: 12, w: 3}, {x: 87, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 115, y: 11, w: 4}, {x: 117, y: 10, w: 3}, {x: 150, y: 11, w: 3, moving: true, moveX: 2, moveSpeed: 1}, {x: 152, y: 11, w: 3}],
+    checkpoints: [{x: 103, y: 12}, {x: 147, y: 12}],
+    goalX: 198
+},
+{
+    name: "3-1", world: 3, level: 1, width: 160, bg: "castle",
+    ground: [{x: 0, w: 40}, {x: 45, w: 45}, {x: 95, w: 65}],
+    blocks: [{x: 116, y: 9, type: "question", content: "mushroom"}, {x: 131, y: 9, type: "question", content: "fire"}, {x: 34, y: 9, type: "brick"}],
+    enemies: [{x: 35, y: 12, type: "walker"}, {x: 21, y: 12, type: "walker"}, {x: 12, y: 12, type: "walker"}, {x: 61, y: 12, type: "walker"}, {x: 80, y: 8, type: "flyer"}, {x: 18, y: 7, type: "flyer"}, {x: 133, y: 12, type: "tough"}, {x: 56, y: 12, type: "tough"}],
+    coins: [{x: 107, y: 10}, {x: 106, y: 8}, {x: 136, y: 10}, {x: 118, y: 10}, {x: 3, y: 8}, {x: 18, y: 10}, {x: 28, y: 10}, {x: 98, y: 9}],
+    powerups: [],
+    platforms: [{x: 139, y: 10, w: 4}, {x: 103, y: 11, w: 4, moving: true, moveX: 6, moveSpeed: 2}, {x: 106, y: 11, w: 4}, {x: 36, y: 10, w: 4}, {x: 40, y: 11, w: 4, moving: true, moveX: 4, moveSpeed: 1}, {x: 42, y: 10, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 90, y: 10, w: 3, moving: true, moveX: 4, moveSpeed: 2}, {x: 92, y: 10, w: 3}],
+    checkpoints: [{x: 81, y: 12}, {x: 122, y: 12}],
+    goalX: 158
+},
+{
+    name: "3-2", world: 3, level: 2, width: 170, bg: "castle",
+    ground: [{x: 0, w: 30}, {x: 35, w: 30}, {x: 70, w: 30}, {x: 105, w: 30}, {x: 140, w: 30}],
+    blocks: [{x: 153, y: 9, type: "question", content: "mushroom"}, {x: 3, y: 9, type: "question", content: "fire"}, {x: 87, y: 9, type: "brick"}],
+    enemies: [{x: 78, y: 12, type: "walker"}, {x: 52, y: 12, type: "walker"}, {x: 156, y: 12, type: "walker"}, {x: 116, y: 9, type: "flyer"}, {x: 4, y: 9, type: "flyer"}, {x: 157, y: 12, type: "tough"}, {x: 44, y: 12, type: "tough"}],
+    coins: [{x: 162, y: 10}, {x: 116, y: 10}, {x: 5, y: 9}, {x: 45, y: 10}, {x: 96, y: 9}, {x: 73, y: 9}, {x: 20, y: 10}, {x: 48, y: 10}],
+    powerups: [],
+    platforms: [{x: 73, y: 11, w: 3}, {x: 140, y: 8, w: 4, moving: true, moveX: 5, moveSpeed: 2}, {x: 86, y: 10, w: 5}, {x: 50, y: 11, w: 5}, {x: 11, y: 9, w: 3}, {x: 30, y: 12, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 32, y: 12, w: 4, moving: true, moveX: 4, moveSpeed: 2}, {x: 65, y: 12, w: 4}, {x: 67, y: 12, w: 4}, {x: 100, y: 10, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 102, y: 12, w: 4}, {x: 135, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 137, y: 12, w: 3, moving: true, moveX: 4, moveSpeed: 2}],
+    checkpoints: [{x: 83, y: 12}, {x: 130, y: 12}],
+    goalX: 168
+},
+{
+    name: "3-3", world: 3, level: 3, width: 170, bg: "castle",
+    ground: [{x: 0, w: 25}, {x: 30, w: 20}, {x: 55, w: 25}, {x: 85, w: 25}, {x: 116, w: 24}, {x: 145, w: 25}],
+    blocks: [{x: 124, y: 9, type: "question", content: "mushroom"}, {x: 128, y: 9, type: "question", content: "fire"}, {x: 162, y: 9, type: "question", content: "oneup"}, {x: 130, y: 9, type: "brick"}],
+    enemies: [{x: 154, y: 12, type: "walker"}, {x: 20, y: 12, type: "walker"}, {x: 150, y: 12, type: "walker"}, {x: 32, y: 9, type: "flyer"}, {x: 70, y: 7, type: "flyer"}, {x: 93, y: 9, type: "flyer"}, {x: 134, y: 12, type: "tough"}, {x: 149, y: 12, type: "tough"}, {x: 152, y: 12, type: "tough"}],
+    coins: [{x: 62, y: 9}, {x: 128, y: 10}, {x: 77, y: 10}, {x: 76, y: 9}, {x: 39, y: 9}, {x: 127, y: 8}, {x: 66, y: 10}, {x: 47, y: 9}, {x: 98, y: 10}],
+    powerups: [],
+    platforms: [{x: 70, y: 8, w: 4}, {x: 139, y: 11, w: 4}, {x: 37, y: 8, w: 4}, {x: 20, y: 11, w: 4}, {x: 122, y: 9, w: 3}, {x: 69, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 25, y: 10, w: 3}, {x: 27, y: 12, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 50, y: 12, w: 3}, {x: 52, y: 12, w: 3}, {x: 80, y: 11, w: 3}, {x: 82, y: 11, w: 4}, {x: 110, y: 11, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 112, y: 10, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 140, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 142, y: 10, w: 3, moving: true, moveY: 3, moveSpeed: 1}],
+    checkpoints: [{x: 127, y: 12}],
+    goalX: 168
+},
+{
+    name: "3-4", world: 3, level: 4, width: 180, bg: "castle",
+    ground: [{x: 0, w: 180}],
+    blocks: [{x: 65, y: 9, type: "question", content: "mushroom"}, {x: 68, y: 9, type: "question", content: "fire"}, {x: 62, y: 9, type: "question", content: "star"}, {x: 70, y: 9, type: "brick"}, {x: 79, y: 9, type: "brick"}],
+    enemies: [{x: 36, y: 12, type: "walker"}, {x: 71, y: 12, type: "walker"}, {x: 30, y: 12, type: "walker"}, {x: 43, y: 12, type: "walker"}, {x: 167, y: 12, type: "walker"}, {x: 49, y: 12, type: "walker"}, {x: 88, y: 12, type: "walker"}, {x: 147, y: 7, type: "flyer"}, {x: 158, y: 9, type: "flyer"}, {x: 133, y: 8, type: "flyer"}, {x: 105, y: 12, type: "tough"}, {x: 50, y: 12, type: "tough"}, {x: 125, y: 12, type: "tough"}],
+    coins: [{x: 68, y: 10}, {x: 62, y: 8}, {x: 121, y: 9}, {x: 105, y: 10}, {x: 32, y: 10}, {x: 96, y: 10}, {x: 58, y: 8}, {x: 41, y: 9}, {x: 108, y: 10}],
+    powerups: [],
+    platforms: [{x: 140, y: 9, w: 4}, {x: 174, y: 8, w: 5}, {x: 135, y: 10, w: 5}, {x: 144, y: 8, w: 3}],
+    checkpoints: [{x: 91, y: 12}, {x: 133, y: 12}],
+    goalX: 178
+},
+{
+    name: "3-5", world: 3, level: 5, width: 170, bg: "castle",
+    ground: [{x: 0, w: 30}, {x: 55, w: 10}, {x: 90, w: 10}, {x: 130, w: 40}],
+    blocks: [{x: 92, y: 9, type: "question", content: "mushroom"}, {x: 61, y: 9, type: "question", content: "fire"}, {x: 3, y: 9, type: "brick"}],
+    enemies: [{x: 58, y: 12, type: "walker"}, {x: 96, y: 9, type: "flyer"}, {x: 23, y: 7, type: "flyer"}, {x: 137, y: 9, type: "flyer"}, {x: 16, y: 7, type: "flyer"}, {x: 161, y: 6, type: "flyer"}, {x: 152, y: 12, type: "tough"}, {x: 15, y: 12, type: "tough"}],
+    coins: [{x: 154, y: 10}, {x: 19, y: 8}, {x: 17, y: 8}, {x: 95, y: 8}, {x: 62, y: 10}, {x: 155, y: 9}, {x: 156, y: 9}, {x: 23, y: 10}, {x: 92, y: 8}],
+    powerups: [],
+    platforms: [{x: 137, y: 9, w: 4}, {x: 57, y: 8, w: 3}, {x: 118, y: 11, w: 5}, {x: 58, y: 11, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 8, y: 11, w: 5}, {x: 4, y: 9, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 153, y: 8, w: 5, moving: true, moveX: 6, moveSpeed: 2}, {x: 59, y: 9, w: 5}, {x: 14, y: 10, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 147, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 105, y: 10, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 160, y: 11, w: 5}, {x: 31, y: 11, w: 3}, {x: 34, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 37, y: 10, w: 4}, {x: 40, y: 10, w: 4}, {x: 43, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 46, y: 12, w: 4}, {x: 66, y: 10, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 69, y: 10, w: 4}, {x: 72, y: 10, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 75, y: 10, w: 3}, {x: 78, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 81, y: 10, w: 3}, {x: 101, y: 12, w: 3}, {x: 104, y: 10, w: 4}, {x: 107, y: 11, w: 3}, {x: 110, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 113, y: 11, w: 4}, {x: 116, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 119, y: 10, w: 4, moving: true, moveX: 4, moveSpeed: 1}],
+    checkpoints: [{x: 15, y: 12}, {x: 145, y: 12}],
+    goalX: 168
+},
+{
+    name: "3-6", world: 3, level: 6, width: 160, bg: "castle",
+    ground: [{x: 0, w: 25}, {x: 110, w: 50}],
+    blocks: [{x: 2, y: 9, type: "question", content: "mushroom"}, {x: 120, y: 9, type: "question", content: "fire"}, {x: 4, y: 9, type: "question", content: "star"}],
+    enemies: [{x: 10, y: 12, type: "walker"}, {x: 130, y: 12, type: "walker"}, {x: 8, y: 8, type: "flyer"}, {x: 14, y: 7, type: "flyer"}, {x: 147, y: 8, type: "flyer"}, {x: 143, y: 9, type: "flyer"}, {x: 122, y: 8, type: "flyer"}, {x: 6, y: 9, type: "flyer"}, {x: 20, y: 12, type: "tough"}, {x: 19, y: 12, type: "tough"}, {x: 5, y: 12, type: "tough"}],
+    coins: [{x: 2, y: 8}, {x: 135, y: 8}, {x: 154, y: 9}, {x: 112, y: 8}, {x: 146, y: 9}, {x: 18, y: 10}, {x: 123, y: 8}, {x: 9, y: 8}, {x: 134, y: 9}],
+    powerups: [],
+    platforms: [{x: 101, y: 10, w: 3}, {x: 117, y: 9, w: 5}, {x: 57, y: 8, w: 4}, {x: 8, y: 11, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 2, y: 9, w: 5, moving: true, moveY: 3, moveSpeed: 1}, {x: 144, y: 8, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 69, y: 8, w: 3}, {x: 71, y: 8, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 53, y: 9, w: 5}, {x: 41, y: 9, w: 5}, {x: 99, y: 10, w: 5, moving: true, moveY: 2, moveSpeed: 1}, {x: 128, y: 10, w: 5, moving: true, moveX: 3, moveSpeed: 2}, {x: 87, y: 11, w: 5}, {x: 83, y: 10, w: 3}, {x: 26, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 29, y: 12, w: 3}, {x: 32, y: 10, w: 4}, {x: 35, y: 10, w: 4}, {x: 38, y: 11, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 41, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 44, y: 11, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 47, y: 10, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 50, y: 10, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 53, y: 12, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 56, y: 10, w: 4, moving: true, moveX: 3, moveSpeed: 2}, {x: 59, y: 10, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 62, y: 11, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 65, y: 11, w: 4, moving: true, moveX: 4, moveSpeed: 1}, {x: 68, y: 11, w: 4}, {x: 71, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 74, y: 12, w: 4}, {x: 77, y: 12, w: 4}, {x: 80, y: 11, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 83, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 86, y: 12, w: 3, moving: true, moveY: 3, moveSpeed: 1}],
+    checkpoints: [{x: 119, y: 12}],
+    goalX: 158
+},
+{
+    name: "3-7", world: 3, level: 7, width: 190, bg: "castle",
+    ground: [{x: 0, w: 30}, {x: 36, w: 24}, {x: 66, w: 29}, {x: 101, w: 24}, {x: 132, w: 23}, {x: 161, w: 29}],
+    blocks: [{x: 136, y: 9, type: "question", content: "mushroom"}, {x: 26, y: 9, type: "question", content: "fire"}, {x: 49, y: 9, type: "question", content: "oneup"}, {x: 57, y: 9, type: "brick"}, {x: 20, y: 9, type: "brick"}],
+    enemies: [{x: 165, y: 12, type: "walker"}, {x: 118, y: 12, type: "walker"}, {x: 47, y: 12, type: "walker"}, {x: 46, y: 12, type: "walker"}, {x: 167, y: 12, type: "walker"}, {x: 176, y: 12, type: "walker"}, {x: 105, y: 9, type: "flyer"}, {x: 149, y: 9, type: "flyer"}, {x: 151, y: 12, type: "tough"}, {x: 177, y: 12, type: "tough"}, {x: 136, y: 12, type: "tough"}, {x: 91, y: 12, type: "tough"}],
+    coins: [{x: 184, y: 10}, {x: 113, y: 9}, {x: 2, y: 8}, {x: 75, y: 10}, {x: 179, y: 10}, {x: 152, y: 8}, {x: 114, y: 9}, {x: 121, y: 10}, {x: 138, y: 9}, {x: 17, y: 8}],
+    powerups: [],
+    platforms: [{x: 75, y: 8, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 89, y: 10, w: 4}, {x: 52, y: 11, w: 5}, {x: 24, y: 11, w: 4}, {x: 5, y: 8, w: 4}, {x: 42, y: 9, w: 5}, {x: 141, y: 10, w: 3}, {x: 30, y: 10, w: 4}, {x: 32, y: 10, w: 3}, {x: 60, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 62, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 95, y: 12, w: 4}, {x: 97, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 125, y: 11, w: 4, moving: true, moveX: 4, moveSpeed: 2}, {x: 127, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 155, y: 11, w: 4}, {x: 157, y: 12, w: 4}],
+    checkpoints: [{x: 140, y: 12}],
+    goalX: 188
+},
+{
+    name: "3-8", world: 3, level: 8, width: 190, bg: "castle",
+    ground: [{x: 0, w: 28}, {x: 34, w: 22}, {x: 62, w: 22}, {x: 91, w: 21}, {x: 119, w: 21}, {x: 147, w: 43}],
+    blocks: [{x: 64, y: 9, type: "question", content: "mushroom"}, {x: 97, y: 9, type: "question", content: "fire"}, {x: 48, y: 9, type: "question", content: "star"}, {x: 137, y: 9, type: "question", content: "oneup"}, {x: 180, y: 9, type: "brick"}],
+    enemies: [{x: 67, y: 12, type: "walker"}, {x: 45, y: 12, type: "walker"}, {x: 7, y: 12, type: "walker"}, {x: 68, y: 12, type: "walker"}, {x: 133, y: 12, type: "walker"}, {x: 97, y: 9, type: "flyer"}, {x: 98, y: 9, type: "flyer"}, {x: 183, y: 7, type: "flyer"}, {x: 124, y: 12, type: "tough"}, {x: 98, y: 12, type: "tough"}, {x: 42, y: 12, type: "tough"}, {x: 79, y: 12, type: "tough"}, {x: 122, y: 12, type: "tough"}],
+    coins: [{x: 108, y: 9}, {x: 177, y: 9}, {x: 38, y: 10}, {x: 9, y: 9}, {x: 10, y: 8}, {x: 130, y: 8}, {x: 137, y: 8}, {x: 124, y: 9}, {x: 132, y: 10}, {x: 25, y: 9}],
+    powerups: [],
+    platforms: [{x: 139, y: 11, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 76, y: 11, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 112, y: 9, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 181, y: 11, w: 5, moving: true, moveX: 4, moveSpeed: 2}, {x: 52, y: 10, w: 3}, {x: 152, y: 9, w: 5}, {x: 180, y: 10, w: 4}, {x: 131, y: 8, w: 5, moving: true, moveY: 3, moveSpeed: 1}, {x: 28, y: 11, w: 3}, {x: 30, y: 12, w: 3}, {x: 56, y: 10, w: 3}, {x: 58, y: 12, w: 3, moving: true, moveX: 4, moveSpeed: 2}, {x: 84, y: 11, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 86, y: 12, w: 4}, {x: 112, y: 11, w: 4}, {x: 114, y: 12, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 140, y: 12, w: 4}, {x: 142, y: 10, w: 4}],
+    checkpoints: [{x: 95, y: 12}],
+    goalX: 188
+},
+{
+    name: "3-9", world: 3, level: 9, width: 200, bg: "castle",
+    ground: [{x: 0, w: 25}, {x: 31, w: 19}, {x: 56, w: 22}, {x: 84, w: 22}, {x: 113, w: 21}, {x: 141, w: 21}, {x: 168, w: 32}],
+    blocks: [{x: 63, y: 9, type: "question", content: "mushroom"}, {x: 178, y: 9, type: "question", content: "fire"}, {x: 22, y: 9, type: "question", content: "star"}, {x: 66, y: 9, type: "question", content: "oneup"}, {x: 13, y: 9, type: "brick"}, {x: 148, y: 9, type: "brick"}],
+    enemies: [{x: 92, y: 12, type: "walker"}, {x: 94, y: 12, type: "walker"}, {x: 67, y: 12, type: "walker"}, {x: 75, y: 12, type: "walker"}, {x: 119, y: 12, type: "walker"}, {x: 130, y: 8, type: "flyer"}, {x: 144, y: 6, type: "flyer"}, {x: 22, y: 9, type: "flyer"}, {x: 6, y: 12, type: "tough"}, {x: 176, y: 12, type: "tough"}, {x: 101, y: 12, type: "tough"}, {x: 16, y: 12, type: "tough"}, {x: 45, y: 12, type: "tough"}, {x: 44, y: 12, type: "tough"}],
+    coins: [{x: 14, y: 10}, {x: 65, y: 9}, {x: 145, y: 10}, {x: 2, y: 8}, {x: 88, y: 8}, {x: 122, y: 10}, {x: 157, y: 8}, {x: 12, y: 8}, {x: 183, y: 10}, {x: 40, y: 8}],
+    powerups: [],
+    platforms: [{x: 58, y: 8, w: 4}, {x: 26, y: 10, w: 3}, {x: 76, y: 11, w: 3}, {x: 192, y: 9, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 112, y: 9, w: 4}, {x: 38, y: 11, w: 4}, {x: 22, y: 9, w: 3}, {x: 150, y: 11, w: 5}, {x: 109, y: 9, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 25, y: 12, w: 4, moving: true, moveY: 3, moveSpeed: 1}, {x: 27, y: 12, w: 3}, {x: 50, y: 12, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 52, y: 11, w: 4, moving: true, moveX: 4, moveSpeed: 1}, {x: 78, y: 11, w: 3}, {x: 80, y: 11, w: 3}, {x: 106, y: 11, w: 4}, {x: 108, y: 11, w: 3}, {x: 134, y: 10, w: 3}, {x: 136, y: 11, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 162, y: 12, w: 4}, {x: 164, y: 11, w: 4}],
+    checkpoints: [{x: 97, y: 12}, {x: 152, y: 12}],
+    goalX: 198
+},
+{
+    name: "3-10", world: 3, level: 10, width: 220, bg: "castle",
+    ground: [{x: 0, w: 25}, {x: 31, w: 24}, {x: 61, w: 24}, {x: 92, w: 23}, {x: 122, w: 23}, {x: 152, w: 23}, {x: 182, w: 38}],
+    blocks: [{x: 79, y: 9, type: "question", content: "mushroom"}, {x: 132, y: 9, type: "question", content: "fire"}, {x: 44, y: 9, type: "question", content: "star"}, {x: 41, y: 9, type: "question", content: "oneup"}, {x: 157, y: 9, type: "brick"}, {x: 185, y: 9, type: "brick"}, {x: 76, y: 9, type: "brick"}],
+    enemies: [{x: 141, y: 12, type: "walker"}, {x: 128, y: 12, type: "walker"}, {x: 65, y: 12, type: "walker"}, {x: 130, y: 12, type: "walker"}, {x: 193, y: 12, type: "walker"}, {x: 134, y: 12, type: "walker"}, {x: 112, y: 6, type: "flyer"}, {x: 76, y: 7, type: "flyer"}, {x: 9, y: 6, type: "flyer"}, {x: 98, y: 12, type: "tough"}, {x: 96, y: 12, type: "tough"}, {x: 69, y: 12, type: "tough"}, {x: 3, y: 12, type: "tough"}, {x: 159, y: 12, type: "tough"}, {x: 155, y: 12, type: "tough"}, {x: 49, y: 12, type: "tough"}],
+    coins: [{x: 79, y: 8}, {x: 81, y: 10}, {x: 17, y: 9}, {x: 135, y: 8}, {x: 112, y: 8}, {x: 68, y: 9}, {x: 190, y: 10}, {x: 157, y: 8}, {x: 170, y: 8}, {x: 2, y: 8}, {x: 75, y: 8}],
+    powerups: [],
+    platforms: [{x: 45, y: 11, w: 3, moving: true, moveX: 5, moveSpeed: 2}, {x: 69, y: 10, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 45, y: 8, w: 3}, {x: 17, y: 10, w: 4}, {x: 79, y: 8, w: 4}, {x: 2, y: 9, w: 4, moving: true, moveY: 2, moveSpeed: 1}, {x: 118, y: 11, w: 4}, {x: 198, y: 9, w: 3, moving: true, moveY: 2, moveSpeed: 1}, {x: 59, y: 10, w: 5}, {x: 177, y: 10, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 25, y: 10, w: 3}, {x: 27, y: 11, w: 3, moving: true, moveX: 2, moveSpeed: 2}, {x: 55, y: 10, w: 3}, {x: 57, y: 12, w: 4}, {x: 85, y: 12, w: 4, moving: true, moveX: 2, moveSpeed: 2}, {x: 87, y: 12, w: 3}, {x: 115, y: 12, w: 4}, {x: 117, y: 11, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 145, y: 11, w: 4, moving: true, moveX: 2, moveSpeed: 1}, {x: 147, y: 10, w: 3, moving: true, moveX: 3, moveSpeed: 2}, {x: 175, y: 12, w: 3, moving: true, moveY: 3, moveSpeed: 1}, {x: 177, y: 11, w: 4, moving: true, moveX: 2, moveSpeed: 2}],
+    checkpoints: [{x: 113, y: 12}, {x: 167, y: 12}],
+    goalX: 218
+}
+];

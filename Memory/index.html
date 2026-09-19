@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Card Game</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;user-select:none}
+h1{font-size:1.8rem;margin-bottom:8px;background:linear-gradient(135deg,#00ff88,#00cc6a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:#666;font-size:0.85rem;margin-bottom:24px}
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.stat{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:10px 18px;text-align:center;min-width:90px}
+.stat-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:#555;margin-bottom:4px}
+.stat-value{font-size:1.3rem;font-weight:700;color:#00ff88}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+select,button{background:#111;border:1px solid #222;border-radius:8px;padding:10px 16px;color:#e0e0e0;font-size:0.85rem;cursor:pointer;transition:all .2s}
+select:hover,button:hover{border-color:#00ff88;box-shadow:0 0 12px rgba(0,255,136,.15)}
+button.primary{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#0a0a0a;font-weight:700;border:none}
+button.primary:hover{box-shadow:0 0 20px rgba(0,255,136,.3);transform:translateY(-1px)}
+.board{display:grid;gap:10px;padding:10px;max-width:100%}
+.card{position:relative;aspect-ratio:1;cursor:pointer;perspective:600px}
+.card-inner{width:100%;height:100%;transition:transform .4s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.card.matched .card-inner{transform:rotateY(180deg)}
+.card-front,.card-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.card-back{background:linear-gradient(145deg,#1a1a1a,#111);border:1px solid #222}
+.card-back::after{content:'';width:30%;height:30%;border-radius:50%;background:radial-gradient(circle,#00ff88 0%,transparent 70%);opacity:.3}
+.card-front{background:linear-gradient(145deg,#141414,#0f0f0f);border:2px solid #00ff88;transform:rotateY(180deg);font-size:2.2rem}
+.card.matched .card-front{border-color:#00ff88;box-shadow:0 0 20px rgba(0,255,136,.2)}
+.card.matched .card-back{opacity:0}
+.card.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes matchPop{0%{transform:rotateY(180deg) scale(1)}50%{transform:rotateY(180deg) scale(1.15)}100%{transform:rotateY(180deg) scale(1)}}
+.card.match-pop .card-front{animation:matchPop .4s ease}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)}
+.overlay.active{display:flex}
+.win-panel{background:#111;border:1px solid #00ff88;border-radius:20px;padding:40px;text-align:center;max-width:360px;width:90%;box-shadow:0 0 60px rgba(0,255,136,.15)}
+.win-panel h2{font-size:1.6rem;color:#00ff88;margin-bottom:8px}
+.win-panel p{color:#888;margin-bottom:24px;line-height:1.6}
+.win-panel .big{font-size:2rem;color:#00ff88;font-weight:700}
+.difficulty-tabs{display:flex;gap:0;margin-bottom:20px;border-radius:8px;overflow:hidden;border:1px solid #222}
+.difficulty-tabs button{border:none;border-radius:0;background:#111;padding:8px 18px}
+.difficulty-tabs button.active{background:#00ff88;color:#0a0a0a;font-weight:700}
+.card-front .emoji{line-height:1}
+</style>
+</head>
+<body>
+<h1>Memory Card Game</h1>
+<p class="subtitle">Match all the pairs to win</p>
+<div class="stats-bar">
+<div class="stat"><div class="stat-label">Moves</div><div class="stat-value" id="moves">0</div></div>
+<div class="stat"><div class="stat-label">Pairs</div><div class="stat-value" id="pairs">0/0</div></div>
+<div class="stat"><div class="stat-label">Time</div><div class="stat-value" id="timer">0:00</div></div>
+</div>
+<div class="difficulty-tabs" id="diffTabs"></div>
+<div class="controls">
+<select id="themeSelect"></select>
+<button class="primary" onclick="newGame()">New Game</button>
+</div>
+<div class="board" id="board"></div>
+<div class="overlay" id="overlay">
+<div class="win-panel">
+<h2>You Win!</h2>
+<p>All pairs matched!</p>
+<div>Time: <span class="big" id="finalTime">0:00</span></div>
+<div style="margin:12px 0">Moves: <span class="big" id="finalMoves">0</span></div>
+<button class="primary" onclick="newGame();document.getElementById('overlay').classList.remove('active')" style="margin-top:16px">Play Again</button>
+</div>
+</div>
+
+<script>
+const themes=[
+{name:'Animals',cards:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌']},
+{name:'Food',cards:['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🍕','🍔','🌮','🍟','🌭','🍿','🧂','🥚','🍳','🧈','🥞','🧇']},
+{name:'Space',cards:['🌑','🌓','🌕','⭐','🌟','✨','💫','☄️','🪐','🌍','🌎','🌏','🚀','🛸','👨‍🚀','👩‍🚀','🌌','🔭','🛰️','🌑','🌓','🌕','⭐','🌟','✨','💫','☄️','🪐','🌍','🌎']},
+{name:'Sports',cards:['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🏒','🥅','⛳','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🎿','🏂','🎯','🏆','🥇','🥈','🥉','🎖️','🏅']},
+{name:'Vehicles',cards:['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍️','🚲','🛴','🚂','🚆','🚇','🚈','🚊','🚝','🚞','✈️','🛩️','🛸','🚁','⛵']},
+{name:'Flags',cards:['🏁','🚩','🎌','🏴','🏳️','🏳️‍🌈','🏳️‍⚧️','🇺🇸','🇬🇧','🇫🇷','🇩🇪','🇯🇵','🇰🇷','🇨🇳','🇧🇷','🇮🇹','🇪🇸','🇨🇦','🇦🇺','🇮🇳','🇷🇺','🇲🇽','🇦🇷','🇳🇬','🇿🇦','🇹🇷','🇸🇪','🇳🇴','🇩🇰','🇳🇱']}
+];
+const difficulties=[{name:'Easy',pairs:6,cols:4},{name:'Medium',pairs:10,cols:4},{name:'Hard',pairs:15,cols:6},{name:'Expert',pairs:20,cols:8}];
+let currentDiff=0,flipped=[],matched=0,totalPairs=0,moves=0,timerInterval=null,seconds=0,locked=false;
+
+function init(){
+const diffTabs=document.getElementById('diffTabs');
+const themeSelect=document.getElementById('themeSelect');
+difficulties.forEach((d,i)=>{
+const btn=document.createElement('button');
+btn.textContent=d.name;
+if(i===0)btn.classList.add('active');
+btn.onclick=()=>{currentDiff=i;document.querySelectorAll('.difficulty-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');newGame()};
+diffTabs.appendChild(btn);
+});
+themes.forEach((t,i)=>{
+const opt=document.createElement('option');
+opt.value=i;opt.textContent=t.name;
+themeSelect.appendChild(opt);
+});
+newGame();
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+function newGame(){
+clearInterval(timerInterval);
+flipped=[];matched=0;moves=0;seconds=0;locked=false;
+const d=difficulties[currentDiff];totalPairs=d.pairs;
+document.getElementById('moves').textContent='0';
+document.getElementById('pairs').textContent=`0/${totalPairs}`;
+document.getElementById('timer').textContent='0:00';
+const themeIdx=document.getElementById('themeSelect').value;
+const selected=themes[themeIdx];
+const chosen=shuffle([...selected.cards]).slice(0,totalPairs);
+const deck=shuffle([...chosen,...chosen]);
+const board=document.getElementById('board');
+board.innerHTML='';
+board.style.gridTemplateColumns=`repeat(${d.cols},minmax(55px,80px))`;
+deck.forEach((emoji,i)=>{
+const card=document.createElement('div');
+card.className='card';
+card.dataset.emoji=emoji;
+card.dataset.idx=i;
+card.innerHTML=`<div class="card-inner"><div class="card-back"></div><div class="card-front"><span class="emoji">${emoji}</span></div></div>`;
+card.onclick=()=>flipCard(card);
+board.appendChild(card);
+});
+startTimer();
+}
+
+function startTimer(){
+clearInterval(timerInterval);
+seconds=0;
+timerInterval=setInterval(()=>{
+seconds++;
+const m=Math.floor(seconds/60);
+const s=seconds%60;
+document.getElementById('timer').textContent=`${m}:${s<10?'0':''}${s}`;
+},1000);
+}
+
+function flipCard(card){
+if(locked||flipped.length>=2||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+card.classList.add('flipped');
+flipped.push(card);
+if(flipped.length===2){
+moves++;
+document.getElementById('moves').textContent=moves;
+const[a,b]=flipped;
+if(a.dataset.emoji===b.dataset.emoji){
+matched++;
+document.getElementById('pairs').textContent=`${matched}/${totalPairs}`;
+a.classList.add('matched','match-pop');
+b.classList.add('matched','match-pop');
+flipped=[];
+if(matched===totalPairs){
+clearInterval(timerInterval);
+document.getElementById('finalTime').textContent=document.getElementById('timer').textContent;
+document.getElementById('finalMoves').textContent=moves;
+setTimeout(()=>document.getElementById('overlay').classList.add('active'),600);
+}
+}else{
+locked=true;
+setTimeout(()=>{a.classList.add('shake');b.classList.add('shake')},50);
+setTimeout(()=>{a.classList.remove('flipped','shake');b.classList.remove('flipped','shake');locked=false;flipped=[]},700);
+}
+}
+}
+
+init();
+</script>
+</body>
+</html>
