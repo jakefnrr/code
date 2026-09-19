@@ -1,0 +1,12 @@
+to update the repo do:
+
+git add -A    (this will stage all changes)
+
+git commit -m 'commit message'       (this is the commit message)
+
+git push       (this will push the changes to github)
+
+
+
+.gitnore:
+all files added to this it will not be pushed to github.
