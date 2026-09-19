@@ -52,9 +52,7 @@ html, body {
     pointer-events: none;
 }
 
-#hud.active {
-    display: flex;
-}
+#hud.active { display: flex; }
 
 #hud-left, #hud-center, #hud-right {
     display: flex;
@@ -62,13 +60,8 @@ html, body {
     align-items: center;
 }
 
-#hud-center {
-    gap: 20px;
-}
-
-#hud-lives {
-    color: #ff4444;
-}
+#hud-center { gap: 20px; }
+#hud-lives { color: #ff4444; }
 
 .screen {
     position: absolute;
@@ -83,9 +76,7 @@ html, body {
     background: rgba(0, 0, 0, 0.85);
 }
 
-.screen.active {
-    display: flex;
-}
+.screen.active { display: flex; }
 
 .screen-content, .menu-content {
     text-align: center;
@@ -97,17 +88,15 @@ html, body {
 
 .game-title {
     font-size: clamp(28px, 6vw, 56px);
-    color: #ffcc00;
-    text-shadow: 3px 3px 0 #cc6600, 5px 5px 0 rgba(0,0,0,0.3);
-    margin-bottom: 5px;
-    letter-spacing: 2px;
-}
-
-.game-subtitle {
-    font-size: clamp(14px, 3vw, 24px);
-    color: #ff8844;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    color: #e52521;
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #ffcc00, 1px -1px 0 #ffcc00, -1px 1px 0 #ffcc00, 1px 1px 0 #ffcc00;
     margin-bottom: 30px;
+    letter-spacing: 4px;
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
 }
 
 h2 {
@@ -150,66 +139,106 @@ h2 {
     background: linear-gradient(to bottom, #3377cc, #1155aa);
 }
 
-.instructions {
-    text-align: left;
-    max-width: 400px;
-    margin: 0 auto 20px;
-    line-height: 1.6;
-    font-size: clamp(11px, 2vw, 15px);
+.menu-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.instructions p {
-    margin-bottom: 4px;
-}
-
-.settings-options {
+#world-grid {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 20px;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 120px;
 }
 
-#level-select-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-    margin-bottom: 20px;
+.world-box {
+    width: clamp(140px, 25vw, 200px);
+    padding: 20px 10px;
+    border-radius: 12px;
+    border: 3px solid #555;
+    background: #222;
+    color: #aaa;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    position: relative;
 }
 
-.world-group {
-    text-align: center;
+.world-box.unlocked {
+    border-color: #ffcc00;
+    background: linear-gradient(to bottom, #332200, #1a1100);
+    color: #fff;
 }
 
-.world-label {
-    font-size: clamp(14px, 2.5vw, 18px);
-    color: #ffcc00;
-    margin-bottom: 8px;
+.world-box.unlocked:hover {
+    transform: scale(1.08);
+    border-color: #ffe44d;
+}
+
+.world-box.locked {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.world-box .world-num {
+    font-size: clamp(24px, 5vw, 36px);
     font-weight: bold;
+    margin-bottom: 6px;
 }
 
-.level-buttons {
+.world-box .world-name {
+    font-size: clamp(11px, 2vw, 14px);
+    margin-bottom: 8px;
+}
+
+.world-box .world-status {
+    font-size: clamp(10px, 1.5vw, 12px);
+    color: #888;
+}
+
+.world-box.unlocked .world-status {
+    color: #ffcc00;
+}
+
+.world-box .lock-icon {
+    font-size: clamp(20px, 4vw, 28px);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#level-world-name {
+    margin-bottom: 15px;
+}
+
+#level-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
+    margin-bottom: 20px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .level-btn {
-    width: clamp(36px, 6vw, 48px);
-    height: clamp(36px, 6vw, 48px);
-    border-radius: 6px;
+    width: clamp(44px, 8vw, 56px);
+    height: clamp(44px, 8vw, 56px);
+    border-radius: 8px;
     border: 2px solid #555;
     background: #333;
     color: #aaa;
-    font-size: clamp(12px, 2vw, 16px);
+    font-size: clamp(13px, 2vw, 17px);
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: auto;
+    transition: transform 0.1s;
 }
 
 .level-btn.unlocked {
@@ -218,13 +247,17 @@ h2 {
     border-color: #66aaff;
 }
 
+.level-btn.unlocked:hover {
+    transform: scale(1.1);
+}
+
 .level-btn.completed {
     background: linear-gradient(to bottom, #44aa44, #228822);
     color: #fff;
     border-color: #66cc66;
 }
 
-.level-btn.unlocked:hover {
+.level-btn.completed:hover {
     transform: scale(1.1);
 }
 
@@ -248,9 +281,7 @@ h2 {
     pointer-events: none;
 }
 
-#mobile-controls.active {
-    display: flex;
-}
+#mobile-controls.active { display: flex; }
 
 .mobile-btn-group {
     display: flex;
@@ -258,13 +289,8 @@ h2 {
     pointer-events: auto;
 }
 
-.left-group {
-    align-items: flex-end;
-}
-
-.right-group {
-    align-items: flex-end;
-}
+.left-group { align-items: flex-end; }
+.right-group { align-items: flex-end; }
 
 .mobile-btn {
     width: clamp(56px, 14vw, 80px);
@@ -314,9 +340,7 @@ h2 {
     pointer-events: auto;
 }
 
-#pause-btn.active {
-    display: flex;
-}
+#pause-btn.active { display: flex; }
 
 #hud-time.warning {
     color: #ff4444;
@@ -334,19 +358,16 @@ h2 {
         padding: 0 6px;
         height: 32px;
     }
-    #hud-center {
-        gap: 8px;
-    }
+    #hud-center { gap: 8px; }
     .menu-btn {
         padding: 10px 24px;
         min-width: 160px;
     }
+    #world-grid { gap: 12px; margin-top: 100px; }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
-    #mobile-controls {
-        height: 100px;
-    }
+    #mobile-controls { height: 100px; }
     .mobile-btn {
         width: clamp(48px, 12vw, 64px);
         height: clamp(48px, 12vw, 64px);

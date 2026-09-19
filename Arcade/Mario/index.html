@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Plumber Bros - 25th Anniversary</title>
+    <title>Super Mario Bros</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,72 +11,26 @@
         <canvas id="game-canvas"></canvas>
 
         <div id="hud">
-            <div id="hud-left">
-                <span id="hud-lives"></span>
-            </div>
+            <div id="hud-left"><span id="hud-lives"></span></div>
             <div id="hud-center">
                 <span id="hud-score">SCORE: 000000</span>
                 <span id="hud-coins">COINS: 00</span>
             </div>
-            <div id="hud-right">
-                <span id="hud-time">TIME: 300</span>
-            </div>
+            <div id="hud-right"><span id="hud-time">TIME: 300</span></div>
         </div>
 
-        <div id="main-menu" class="screen active">
+        <div id="world-select" class="screen active">
             <div class="menu-content">
-                <h1 class="game-title">SUPER PLUMBER BROS</h1>
-                <h2 class="game-subtitle">25th Anniversary Edition</h2>
-                <div class="menu-buttons">
-                    <button class="menu-btn" id="btn-play">PLAY</button>
-                    <button class="menu-btn" id="btn-level-select">LEVEL SELECT</button>
-                    <button class="menu-btn" id="btn-how-to-play">HOW TO PLAY</button>
-                    <button class="menu-btn" id="btn-settings">SETTINGS</button>
-                </div>
+                <h1 class="game-title">SUPER MARIO BROS</h1>
+                <div id="world-grid"></div>
             </div>
         </div>
 
-        <div id="level-select-screen" class="screen">
+        <div id="level-select" class="screen">
             <div class="screen-content">
-                <h2>LEVEL SELECT</h2>
-                <div id="level-select-grid"></div>
-                <button class="menu-btn" id="btn-back-menu">BACK</button>
-            </div>
-        </div>
-
-        <div id="how-to-play-screen" class="screen">
-            <div class="screen-content">
-                <h2>HOW TO PLAY</h2>
-                <div class="instructions">
-                    <p><strong>Desktop:</strong></p>
-                    <p>A/LEFT - Move Left | D/RIGHT - Move Right</p>
-                    <p>SPACE/W/UP - Jump</p>
-                    <p>SHIFT/DPAD-RIGHT+JUMP - Run + Jump</p>
-                    <p>P or ESC - Pause</p>
-                    <p><strong>Mobile:</strong></p>
-                    <p>Use on-screen buttons</p>
-                    <p><strong>Power-ups:</strong></p>
-                    <p>Mushroom - Grow Big</p>
-                    <p>Fire Flower - Shoot Fireballs</p>
-                    <p>Star - Temporary Invincibility</p>
-                    <p><strong>Tips:</strong></p>
-                    <p>Jump on enemies to defeat them!</p>
-                    <p>Big players can break brown blocks!</p>
-                    <p>Collect coins for extra lives!</p>
-                </div>
-                <button class="menu-btn" id="btn-back-how">BACK</button>
-            </div>
-        </div>
-
-        <div id="settings-screen" class="screen">
-            <div class="screen-content">
-                <h2>SETTINGS</h2>
-                <div class="settings-options">
-                    <button class="menu-btn" id="btn-sound-toggle">SOUND: ON</button>
-                    <button class="menu-btn" id="btn-music-toggle">MUSIC: ON</button>
-                    <button class="menu-btn" id="btn-reset-save">RESET SAVE DATA</button>
-                </div>
-                <button class="menu-btn" id="btn-back-settings">BACK</button>
+                <h2 id="level-world-name"></h2>
+                <div id="level-grid"></div>
+                <button class="menu-btn" id="btn-back-worlds">BACK</button>
             </div>
         </div>
 
@@ -85,16 +39,15 @@
                 <h2>PAUSED</h2>
                 <div class="menu-buttons">
                     <button class="menu-btn" id="btn-resume">RESUME</button>
-                    <button class="menu-btn" id="btn-restart-level">RESTART LEVEL</button>
-                    <button class="menu-btn" id="btn-pause-settings">SETTINGS</button>
-                    <button class="menu-btn" id="btn-pause-menu">MAIN MENU</button>
+                    <button class="menu-btn" id="btn-restart">RESTART LEVEL</button>
+                    <button class="menu-btn" id="btn-quit">WORLD SELECT</button>
                 </div>
             </div>
         </div>
 
         <div id="level-complete-screen" class="screen">
             <div class="screen-content">
-                <h2 id="complete-title">LEVEL COMPLETE!</h2>
+                <h2>LEVEL COMPLETE!</h2>
                 <div id="complete-stats"></div>
                 <button class="menu-btn" id="btn-next-level">NEXT LEVEL</button>
             </div>
@@ -111,21 +64,8 @@
             <div class="screen-content">
                 <h2>GAME OVER</h2>
                 <div class="menu-buttons">
-                    <button class="menu-btn" id="btn-retry-world">RETRY WORLD</button>
-                    <button class="menu-btn" id="btn-gameover-levels">LEVEL SELECT</button>
-                    <button class="menu-btn" id="btn-gameover-menu">MAIN MENU</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="game-complete-screen" class="screen">
-            <div class="screen-content">
-                <h2>GAME COMPLETE!</h2>
-                <div id="game-complete-stats"></div>
-                <div class="menu-buttons">
-                    <button class="menu-btn" id="btn-play-again">PLAY AGAIN</button>
-                    <button class="menu-btn" id="btn-gc-levels">LEVEL SELECT</button>
-                    <button class="menu-btn" id="btn-gc-menu">MAIN MENU</button>
+                    <button class="menu-btn" id="btn-retry">RETRY</button>
+                    <button class="menu-btn" id="btn-gameover-menu">WORLD SELECT</button>
                 </div>
             </div>
         </div>
@@ -135,9 +75,7 @@
                 <h2>TIME UP!</h2>
                 <div class="menu-buttons">
                     <button class="menu-btn" id="btn-timeup-retry">RETRY</button>
-                    <button class="menu-btn" id="btn-timeup-world">RESTART WORLD</button>
-                    <button class="menu-btn" id="btn-timeup-levels">LEVEL SELECT</button>
-                    <button class="menu-btn" id="btn-timeup-menu">MAIN MENU</button>
+                    <button class="menu-btn" id="btn-timeup-menu">WORLD SELECT</button>
                 </div>
             </div>
         </div>

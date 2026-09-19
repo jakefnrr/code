@@ -258,5 +258,23 @@ const AudioManager = {
         notes.forEach((freq, i) => {
             this._osc(freq, 'square', t + i * 0.08, 0.1, 0.07);
         });
+    },
+
+    playStartup() {
+        if (!this.ctx) return;
+        this.resume();
+        const t = this.ctx.currentTime;
+        const notes = [
+            [659, 0.15], [659, 0.15], [0, 0.05],
+            [659, 0.15], [523, 0.15], [659, 0.15], [0, 0.05],
+            [784, 0.3], [0, 0.1], [392, 0.3]
+        ];
+        let offset = 0;
+        notes.forEach(([freq, dur]) => {
+            if (freq > 0) {
+                this._osc(freq, 'square', t + offset, dur, 0.12);
+            }
+            offset += dur;
+        });
     }
 };
