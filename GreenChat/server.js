@@ -362,6 +362,39 @@ app.post('/api/friends/accept', (req, res) => {
   }
 });
 
+// Delete friend
+app.delete('/api/friends/:friendId', (req, res) => {
+  const { friendId } = req.params;
+  const userId = req.session.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  try {
+    const data = readDatabase();
+
+    // Remove both directions of the friendship
+    data.friends = data.friends.filter(f =>
+      !((f.user_id === userId && f.friend_id === parseInt(friendId)) ||
+        (f.user_id === parseInt(friendId) && f.friend_id === userId))
+    );
+
+    // Remove from any friend lists
+    data.friendListMembers = data.friendListMembers.filter(m =>
+      m.friend_id !== parseInt(friendId)
+    );
+
+    if (writeDatabase(data)) {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ error: 'Database error' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 // Get friend requests
 app.get('/api/friends/requests', (req, res) => {
   const userId = req.session.userId;

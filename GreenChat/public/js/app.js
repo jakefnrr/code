@@ -370,14 +370,22 @@ function renderFriends() {
                 <div class="friend-code">Code: ${escapeHtml(friend.friend_code)}</div>
             </div>
             <div class="friend-status ${isOnline ? 'online' : ''}"></div>
-            <div class="friend-actions">
-                <button class="btn-icon" onclick="openAddToListModal(${friend.id})" title="Add to list">
-                    <i class="fas fa-list"></i>
+            <div class="friend-menu-container">
+                <button class="btn-hamburger" onclick="toggleFriendMenu(event, ${friend.id})" title="Menu">
+                    <i class="fas fa-bars"></i>
                 </button>
+                <div class="friend-dropdown" id="friend-dropdown-${friend.id}">
+                    <button class="dropdown-item" onclick="openAddToListModal(${friend.id})">
+                        <i class="fas fa-list"></i> Add to List
+                    </button>
+                    <button class="dropdown-item delete" onclick="deleteFriend(${friend.id})">
+                        <i class="fas fa-trash"></i> Delete Friend
+                    </button>
+                </div>
             </div>
         `;
         friendElement.addEventListener('click', (e) => {
-            if (!e.target.closest('.btn-icon')) {
+            if (!e.target.closest('.friend-menu-container')) {
                 openChat(friend);
             }
         });
@@ -914,6 +922,55 @@ function handleCopyFriendCode() {
     });
 }
 
+// Friend Menu Functions
+function toggleFriendMenu(e, friendId) {
+    e.stopPropagation();
+    const dropdown = document.getElementById(`friend-dropdown-${friendId}`);
+    
+    // Close all other dropdowns
+    document.querySelectorAll('.friend-dropdown.active').forEach(d => {
+        if (d.id !== `friend-dropdown-${friendId}`) {
+            d.classList.remove('active');
+        }
+    });
+    
+    dropdown.classList.toggle('active');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.friend-menu-container')) {
+        document.querySelectorAll('.friend-dropdown.active').forEach(d => {
+            d.classList.remove('active');
+        });
+    }
+});
+
+async function deleteFriend(friendId) {
+    if (!confirm('Are you sure you want to delete this friend?')) return;
+
+    try {
+        const response = await fetch(`/api/friends/${friendId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Friend removed', 'success');
+            if (state.currentChatFriend && state.currentChatFriend.id === friendId) {
+                closeChat();
+            }
+            loadFriends();
+            loadFriendLists();
+        } else {
+            showToast(data.error || 'Failed to delete friend', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to delete friend', 'error');
+    }
+}
+
 // Make functions globally available for onclick handlers
 window.sendFriendRequest = sendFriendRequest;
 window.acceptFriendRequest = acceptFriendRequest;
@@ -921,6 +978,8 @@ window.rejectFriendRequest = rejectFriendRequest;
 window.deleteList = deleteList;
 window.removeFromList = removeFromList;
 window.openAddToListModal = openAddToListModal;
+window.deleteFriend = deleteFriend;
+window.toggleFriendMenu = toggleFriendMenu;
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', init);

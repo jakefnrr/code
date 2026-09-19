@@ -451,9 +451,70 @@ body {
     text-align: center;
 }
 
-.friend-item .friend-actions {
+/* Friend Menu */
+.friend-menu-container {
+    position: relative;
+}
+
+.btn-hamburger {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.btn-hamburger:hover {
+    background: var(--surface-light);
+    color: var(--text-primary);
+}
+
+.friend-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    min-width: 160px;
+    overflow: hidden;
+}
+
+.friend-dropdown.active {
+    display: block;
+}
+
+.dropdown-item {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background: var(--surface-light);
+}
+
+.dropdown-item.delete {
+    color: var(--error);
+}
+
+.dropdown-item.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .btn-icon {
