@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jake's Arcade Hub</title>
+<title>Jake's Arcade Hub - Free To Play!</title>
 
 <style>
 button,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -13,7 +13,6 @@ body {
     background: black;
     color: white;
     font-family: Arial, sans-serif;
-    /* Forces the page to have an extreme scrolling depth immediately */
     min-height: 25000px; 
     overflow-y: auto;
 }
@@ -61,13 +60,28 @@ body {
     margin-bottom: 10px;
 }
 
-.timer-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 25px;
+/* FREE TO PLAY BANNER */
+.free-banner {
+    text-align: center;
+    padding: 12px;
+    background: linear-gradient(90deg, transparent, rgba(0,255,136,0.1), transparent);
+    border-bottom: 2px solid rgba(0,255,136,0.3);
+    margin-bottom: 20px;
+}
+
+.free-banner h2 {
+    color: #00ff88;
+    font-size: 18px;
+    margin: 0;
+    text-shadow: 0 0 10px #00ff88;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.free-banner p {
+    color: #88ccaa;
+    font-size: 13px;
+    margin: 5px 0 0 0;
 }
 
 /* INFINITE GRID CONTAINER */
@@ -81,11 +95,10 @@ body {
 }
 
 /* HUGE INVISIBLE SPACER */
-/* This ensures you must scroll hundreds of screens down to reach the bottom games */
 .infinite-space-driver {
     height: 22000px; 
     width: 100%;
-    pointer-events: none; /* Allows clicking through if needed */
+    pointer-events: none;
 }
 
 /* WEB GAMES SECTION AT THE DEEP BOTTOM */
@@ -104,7 +117,7 @@ body {
 
 .web-games-bottom button {
     width: min(320px, 100%);
-    background: #ff00ff; /* Hot pink to stand out at the bottom */
+    background: #ff00ff;
     color: white;
 }
 
@@ -139,102 +152,25 @@ button:hover {
     transform: scale(1.03);
 }
 
-/* PASSWORD OVERLAY */
-#passwordOverlay {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    background: rgba(0,0,0,0.95);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    color: white;
-    text-align: center;
-    padding: 20px;
+/* SPECIAL BUTTONS */
+.btn-mario {
+    background: #e52521 !important;
+    color: white !important;
 }
 
-#passwordOverlay h1 {
-    color: cyan;
-    text-shadow: 0 0 15px cyan;
-    margin-bottom: 10px;
+.btn-mario:hover {
+    background: #ff6b6b !important;
+    color: white !important;
 }
 
-#passwordOverlay p {
-    max-width: 500px;
-    width: 100%;
-    line-height: 1.4;
-    margin-bottom: 20px;
-    color: #aaa;
+.btn-leveldevil {
+    background: #8b0000 !important;
+    color: #ffcc00 !important;
 }
 
-#passwordOverlay input {
-    padding: 15px;
-    width: 320px;
-    max-width: 100%;
-    box-sizing: border-box;
-    font-size: 20px;
-    border-radius: 8px;
-    border: 2px solid cyan;
-    background: #111;
-    color: white;
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-#passwordOverlay button {
-    width: auto;
-    padding: 12px 40px;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    background: cyan;
-    color: black;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-#passwordOverlay button:hover {
-    background: white;
-    transform: scale(1.03);
-}
-
-#pwError {
-    color: #ff4444;
-    margin-top: 15px;
-    font-size: 16px;
-}
-
-/* RESET TIMER BUTTON */
-#resetTimerBtn {
-    width: auto;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: bold;
-    border: 2px solid #ff4444;
-    border-radius: 8px;
-    background: #331111;
-    color: #ff6666;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-#resetTimerBtn:hover {
-    background: #551111;
-    color: #ff8888;
-    transform: scale(1.03);
-}
-
-#timerDisplay {
-    font-size: 14px;
-    color: #88ff88;
-    font-family: monospace;
-    min-height: 18px;
+.btn-leveldevil:hover {
+    background: #cc0000 !important;
+    color: white !important;
 }
 
 @media (max-width:480px) {
@@ -263,14 +199,6 @@ button:hover {
 
 <body>
 
-<div id="passwordOverlay">
-    <h1>🔒 Password Required</h1>
-    <p>This arcade is locked. Enter the password to unlock all games for 24 hours. If you do not know the password, you can give something to Jake. If he accepts, he will enter the password for you.</p>
-    <input id="pwInput" type="password" placeholder="Enter password...">
-    <button id="pwSubmit">Unlock</button>
-    <p id="pwError"></p>
-</div>
-
 <div class="sidebar">
 
     <!-- ALL PROJECTS BUTTON -->
@@ -282,54 +210,48 @@ button:hover {
 
     <h1>🎮 Arcade Hub</h1>
 
-    <div class="timer-row">
-        <div id="timerDisplay"></div>
-        <button id="resetTimerBtn">Reset Timer</button>
+    <div class="free-banner">
+        <h2>🕹️ FREE TO PLAY FOREVER 🕹️</h2>
+        <p>No password required. Just pick a game and play!</p>
     </div>
 
     <!-- MAIN GRID CONTAINER -->
     <div class="games-grid">
-        <button onclick="checkAuthThenGo('cps.html')">         🖱️ cps test </button>
-        <button onclick="checkAuthThenGo('Simon.html')">       🟥 Simon Game </button>
-        <button onclick="checkAuthThenGo('24.html')">          ❷❹ game </button>
-        <button onclick="checkAuthThenGo('pacman.html')">      🟡 Pac-Man </button>
-        <button onclick="checkAuthThenGo('speedcube.html')">  speed cube timer </button>
-        <button onclick="checkAuthThenGo('15game.html')">      15 Game </button>
-        <button onclick="checkAuthThenGo('neondash.html')">    ⚡ Neon Dash </button>
-        <button onclick="checkAuthThenGo('pianotiles.html')">  🎵 Neon Piano Tiles </button>
-        <button onclick="checkAuthThenGo('Snake.html')">       🐍 Snake </button>
-        <button onclick="checkAuthThenGo('connect4.html')">    🔴 Connect 4 </button>
-        <button onclick="checkAuthThenGo('connectpips.html')"> 🔧 Connect Pipes </button>
-        <button onclick="checkAuthThenGo('breakout.html')">    🧱 Breakout </button>
-        <button onclick="checkAuthThenGo('blockblast.html')">  🟦 Block Blast </button>
-        <button onclick="checkAuthThenGo('fruitninja.html')">  🍉 Fruit Slice </button>
-        <button onclick="checkAuthThenGo('balloon.html')">     🎈 Balloon Pop </button>
-        <button onclick="checkAuthThenGo('leveldevil.html')">  🥷 level devil </button>
-        <button onclick="checkAuthThenGo('floorislava.html')"> 🌋 Floor Is Lava </button>
-        <button onclick="checkAuthThenGo('jetpackcave.html')"> 🚀 Jetpack Cave </button>
-        <button onclick="checkAuthThenGo('crossyroad.html')">  🚗 crossy road </button>
-        <button onclick="checkAuthThenGo('frogger.html')">     🐸 Frogger </button>
-        <button onclick="checkAuthThenGo('flappybird.html')">  🐤 Flappy Bird </button>
-        <button onclick="checkAuthThenGo('doodlejump.html')">  🛸 Doodle Jump </button>
-        <button onclick="checkAuthThenGo('stacktower.html')">  🏗️ Stack Tower </button>
-        <button onclick="checkAuthThenGo('memory.html')">      🃏 Memory </button>
-        <button onclick="checkAuthThenGo('uno.html')">         🔴 UNO </button>
-        <button onclick="checkAuthThenGo('slap.html')">        🃏 Slap </button>
-        <button onclick="checkAuthThenGo('mole.html')">        🔨 Whack-a-Mole </button>
-        <button onclick="checkAuthThenGo('hangman.html')">     🔤 Hangman </button>
-        <button onclick="checkAuthThenGo('tictactoe.html')">   ⭕ Tic-Tac-Toe </button>
-        <button onclick="checkAuthThenGo('2048.html')">        🧩 2048 </button>
-        <button onclick="checkAuthThenGo('minesweeper.html')"> 💣 Minesweeper </button>
-        <button onclick="checkAuthThenGo('Caro.html')">        ⭕ Caro </button>
-        <button onclick="checkAuthThenGo('checkers.html')">    🔴 Checkers </button>
-        <button onclick="checkAuthThenGo('chess.html')">       ♟️ Chess </button>
-        
-        <!-- 
-          [FUTURE EXPANSION ZONE]
-          As you build games over the next 2 years, paste their buttons 
-          right here. They will stack downwards into the blank space!
-        -->
-
+        <button onclick="location.href='cps.html'">         🖱️ cps test </button>
+        <button onclick="location.href='Simon.html'">       🟥 Simon Game </button>
+        <button onclick="location.href='24.html'">          ❷❹ game </button>
+        <button onclick="location.href='pacman.html'">      🟡 Pac-Man </button>
+        <button onclick="location.href='speedcube.html'">  speed cube timer </button>
+        <button onclick="location.href='15game.html'">      15 Game </button>
+        <button onclick="location.href='neondash.html'">    ⚡ Neon Dash </button>
+        <button onclick="location.href='pianotiles.html'">  🎵 Neon Piano Tiles </button>
+        <button onclick="location.href='Snake.html'">       🐍 Snake </button>
+        <button onclick="location.href='connect4.html'">    🔴 Connect 4 </button>
+        <button onclick="location.href='connectpips.html'"> 🔧 Connect Pipes </button>
+        <button onclick="location.href='breakout.html'">    🧱 Breakout </button>
+        <button onclick="location.href='blockblast.html'">  🟦 Block Blast </button>
+        <button onclick="location.href='fruitninja.html'">  🍉 Fruit Slice </button>
+        <button onclick="location.href='balloon.html'">     🎈 Balloon Pop </button>
+        <button onclick="location.href='floorislava.html'"> 🌋 Floor Is Lava </button>
+        <button onclick="location.href='jetpackcave.html'"> 🚀 Jetpack Cave </button>
+        <button onclick="location.href='crossyroad.html'">  🚗 crossy road </button>
+        <button onclick="location.href='frogger.html'">     🐸 Frogger </button>
+        <button onclick="location.href='flappybird.html'">  🐤 Flappy Bird </button>
+        <button onclick="location.href='doodlejump.html'">  🛸 Doodle Jump </button>
+        <button onclick="location.href='stacktower.html'">  🏗️ Stack Tower </button>
+        <button onclick="location.href='memory.html'">      🃏 Memory </button>
+        <button onclick="location.href='uno.html'">         🔴 UNO </button>
+        <button onclick="location.href='slap.html'">        🃏 Slap </button>
+        <button onclick="location.href='mole.html'">        🔨 Whack-a-Mole </button>
+        <button onclick="location.href='hangman.html'">     🔤 Hangman </button>
+        <button onclick="location.href='tictactoe.html'">   ⭕ Tic-Tac-Toe </button>
+        <button onclick="location.href='2048.html'">        🧩 2048 </button>
+        <button onclick="location.href='minesweeper.html'"> 💣 Minesweeper </button>
+        <button onclick="location.href='Caro.html'">        ⭕ Caro </button>
+        <button onclick="location.href='checkers.html'">    🔴 Checkers </button>
+        <button onclick="location.href='chess.html'">       ♟️ Chess </button>
+        <button class="btn-leveldevil" onclick="location.href='LevelDevil/index.html'">  🥷 Level Devil </button>
+        <button class="btn-mario" onclick="location.href='Mario/index.html'">  🔴 Super Plumber Bros </button>
     </div>
 
     <!-- THIS MAKES THE PAGE CRAZY LONG -->
@@ -337,101 +259,11 @@ button:hover {
 
     <!-- WEB GAMES LOCATED AT THE EXTREME BOTTOM -->
     <div class="web-games-bottom">
-        <button onclick="checkAuthThenGo('gulper.io.html')">🌐 Gulper.io</button>
-        <button onclick="checkAuthThenGo('paper.io.html')">📄 paper.io</button>
+        <button onclick="location.href='gulper.io.html'">🌐 Gulper.io</button>
+        <button onclick="location.href='paper.io.html'">📄 paper.io</button>
     </div>
 
 </div>
-
-<script>
-const PASSWORD = "jake"; 
-const PLAY_TIME = 24 * 60 * 60 * 1000; 
-
-const overlay = document.getElementById('passwordOverlay');
-const pwInput = document.getElementById('pwInput');
-const pwSubmit = document.getElementById('pwSubmit');
-const pwError = document.getElementById('pwError');
-const resetBtn = document.getElementById('resetTimerBtn');
-const timerDisplay = document.getElementById('timerDisplay');
-
-function isAuthenticated() {
-    const unlockTime = parseInt(localStorage.getItem('globalUnlockTime')) || 0;
-    return Date.now() < unlockTime;
-}
-
-function checkAuth() {
-    if (isAuthenticated()) {
-        overlay.style.display = 'none';
-        return true;
-    } else {
-        overlay.style.display = 'flex';
-        localStorage.removeItem('globalUnlockTime');
-        return false;
-    }
-}
-
-function checkAuthThenGo(url) {
-    if (isAuthenticated()) {
-        location.href = url;
-    } else {
-        overlay.style.display = 'flex';
-        pwError.textContent = 'Please enter the password to play.';
-    }
-}
-
-pwSubmit.onclick = function() {
-    const val = pwInput.value;
-    if (val === PASSWORD) {
-        const end = Date.now() + PLAY_TIME;
-        localStorage.setItem('globalUnlockTime', end);
-        overlay.style.display = 'none';
-        pwError.textContent = '';
-        pwInput.value = '';
-        updateTimer();
-    } else {
-        pwError.textContent = 'Wrong password.';
-    }
-};
-
-pwInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        pwSubmit.click();
-    }
-});
-
-resetBtn.onclick = function() {
-    localStorage.removeItem('globalUnlockTime');
-    overlay.style.display = 'flex';
-    pwError.textContent = 'Timer reset. Enter the password again.';
-    timerDisplay.textContent = '';
-};
-
-function updateTimer() {
-    const unlockTime = parseInt(localStorage.getItem('globalUnlockTime')) || 0;
-    const remaining = unlockTime - Date.now();
-    if (remaining > 0) {
-        const hrs = Math.floor(remaining / 3600000);
-        const mins = Math.floor((remaining % 3600000) / 60000);
-        const secs = Math.floor((remaining % 60000) / 1000);
-        timerDisplay.textContent = `⏱ ${hrs}h ${mins}m ${secs}s`;
-    } else if (checkAuth()) {
-        timerDisplay.textContent = '';
-    } else {
-        timerDisplay.textContent = '';
-    }
-}
-
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('needauth') === '1') {
-    localStorage.removeItem('globalUnlockTime');
-    overlay.style.display = 'flex';
-    pwError.textContent = 'Your session expired. Please enter the password to continue.';
-}
-
-checkAuth();
-setInterval(updateTimer, 1000);
-updateTimer();
-</script>
 
 </body>
 </html>
