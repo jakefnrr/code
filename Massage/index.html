@@ -4,144 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Massage App</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
-    <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="screen active">
-        <a href="../index.html" class="all-projects-btn">ALL PROJECTS</a>
-        <button class="lang-toggle-btn" id="lang-toggle" onclick="toggleLanguage()">ไทย</button>
-        <div class="auth-container">
-            <h1 data-lang="app-title">Massage App</h1>
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-lang="sign-in" onclick="showAuthTab('signin')">Log In</button>
-                <button class="auth-tab" data-lang="sign-up" onclick="showAuthTab('signup')">Sign Up</button>
+    <a class="all-projects-btn" href="../index.html">ALL PROJECTS</a>
+    <div class="app-container">
+        <!-- Main Screen -->
+        <div id="main-screen" class="screen active">
+            <div class="points-section">
+                <div class="points-label">POINTS</div>
+                <div class="points-value" id="points-display">0</div>
             </div>
 
-            <div id="signin-form" class="auth-form">
-                <input type="text" id="signin-username" placeholder="Username" data-lang="username" autocomplete="off" required>
-                <input type="text" id="signin-password" class="no-save-password" placeholder="Password" data-lang="password" autocomplete="off" required>
-                <button type="button" class="btn-primary" data-lang="sign-in" onclick="handleSignIn()">Log In</button>
+            <div class="section-title">BEGIN SESSION</div>
+
+            <div class="duration-buttons" id="duration-buttons">
+                <button class="duration-btn" data-minutes="5" data-price="10">
+                    <span class="duration">5 MIN</span>
+                    <span class="price">฿10</span>
+                </button>
+                <button class="duration-btn" data-minutes="10" data-price="20">
+                    <span class="duration">10 MIN</span>
+                    <span class="price">฿20</span>
+                </button>
+                <button class="duration-btn" data-minutes="15" data-price="30">
+                    <span class="duration">15 MIN</span>
+                    <span class="price">฿30</span>
+                </button>
+                <button class="duration-btn" data-minutes="20" data-price="40">
+                    <span class="duration">20 MIN</span>
+                    <span class="price">฿40</span>
+                </button>
+                <button class="duration-btn" data-minutes="25" data-price="50">
+                    <span class="duration">25 MIN</span>
+                    <span class="price">฿50</span>
+                </button>
+                <button class="duration-btn" data-minutes="30" data-price="60">
+                    <span class="duration">30 MIN</span>
+                    <span class="price">฿60</span>
+                </button>
             </div>
 
-            <div id="signup-form" class="auth-form hidden">
-                <input type="text" id="signup-username" placeholder="Username" data-lang="username" autocomplete="off" required>
-                <input type="text" id="signup-password" class="no-save-password" placeholder="Password" data-lang="password" autocomplete="off" required>
-                <button type="button" class="btn-primary" data-lang="sign-up" onclick="handleSignUp()">Sign Up</button>
-            </div>
-
-            <p id="auth-error" class="error-text hidden"></p>
-        </div>
-    </div>
-
-    <!-- HOME SCREEN -->
-    <div id="home-screen" class="screen">
-        <a href="../index.html" class="all-projects-btn">ALL PROJECTS</a>
-        <button class="sign-out-btn" data-lang="sign-out" onclick="handleSignOut()">Sign Out</button>
-        <button class="lang-toggle-btn" id="lang-toggle-home" onclick="toggleLanguage()">ไทย</button>
-        <div class="home-container">
-            <div class="header-row">
-                <h1><span data-lang="welcome-prefix">Welcome, </span><span id="current-username"></span></h1>
-            </div>
-
-            <div class="points-display">
-                <span data-lang="points-label">Your Points: </span><strong id="user-points">0</strong>
-            </div>
-
-            <div class="section">
-                <h2 data-lang="choose-duration">Choose Massage Duration</h2>
-                <p class="subtitle" data-lang="subtitle">2 Baht per minute (max 30 min)</p>
-                <div class="duration-selector">
-                    <button class="duration-btn" onclick="setDuration(5, this)"><span data-lang="dur-5">5 min</span><br><small data-lang="baht-10">10 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(10, this)"><span data-lang="dur-10">10 min</span><br><small data-lang="baht-20">20 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(15, this)"><span data-lang="dur-15">15 min</span><br><small data-lang="baht-30">30 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(20, this)"><span data-lang="dur-20">20 min</span><br><small data-lang="baht-40">40 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(25, this)"><span data-lang="dur-25">25 min</span><br><small data-lang="baht-50">50 Baht</small></button>
-                    <button class="duration-btn" onclick="setDuration(30, this)"><span data-lang="dur-30">30 min</span><br><small data-lang="baht-60">60 Baht</small></button>
+            <div class="section-title">CUSTOM MASSAGE</div>
+            <div class="custom-massage">
+                <div class="custom-display">
+                    <span id="custom-minutes">05</span> : <span id="custom-seconds">00</span> : <span id="custom-price">฿10.00</span>
                 </div>
-
-                <div class="custom-card" id="custom-card" onclick="selectCustom()">
-                    <span class="custom-label" data-lang="custom">Custom</span>
-                    <div class="custom-display" id="custom-display"></div>
-                    <div class="custom-controls">
-                        <input type="number" id="custom-min" inputmode="numeric" min="0" max="30" value="5" oninput="customMinChanged()">
-                        <select id="custom-sec" onchange="customSecChanged()">
-                            <option value="0">00</option>
-                            <option value="30">30</option>
-                        </select>
-                        <span class="custom-baht" id="custom-baht">10 Baht</span>
-                    </div>
-                    <input type="range" class="custom-slider" id="custom-slider" min="0" max="1800" step="30" value="300" oninput="customSliderMoved()">
-                    <div class="custom-markers"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div>
-                </div>
+                <input type="range" id="custom-slider" min="60" max="1800" step="60" value="300">
+                <button class="custom-start-btn" id="custom-start-btn">START CUSTOM MASSAGE</button>
             </div>
 
-            <div class="section">
-                <h2 data-lang="redeem-title">Redeem Free Massage</h2>
-                <div class="redeem-options">
-                    <button class="redeem-btn" id="redeem-5" onclick="redeemFree(5, 25)">
-                        <span data-lang="free-5">5 min free</span><br><small data-lang="pts-25">25 points</small>
-                    </button>
-                    <button class="redeem-btn" id="redeem-10" onclick="redeemFree(10, 55)">
-                        <span data-lang="free-10">10 min free</span><br><small data-lang="pts-55">55 points</small>
-                    </button>
-                    <button class="redeem-btn" id="redeem-15" onclick="redeemFree(15, 85)">
-                        <span data-lang="free-15">15 min free</span><br><small data-lang="pts-85">85 points</small>
-                    </button>
-                </div>
+            <div class="section-title">FREE MASSAGES</div>
+            <div class="free-massages">
+                <button class="free-btn" id="free-5min" data-minutes="5" data-points="30">
+                    <span class="free-duration">FREE 5 MIN</span>
+                    <span class="free-points">30 points</span>
+                </button>
+                <button class="free-btn" id="free-10min" data-minutes="10" data-points="60">
+                    <span class="free-duration">FREE 10 MIN</span>
+                    <span class="free-points">60 points</span>
+                </button>
+                <button class="free-btn" id="free-15min" data-minutes="15" data-points="90">
+                    <span class="free-duration">FREE 15 MIN</span>
+                    <span class="free-points">90 points</span>
+                </button>
             </div>
 
-            <button class="btn-primary btn-large" data-lang="begin-session" id="begin-session-btn" onclick="beginSession()" disabled>
-                Begin Session
-            </button>
-        </div>
-    </div>
-
-    <!-- SESSION SCREEN -->
-    <div id="session-screen" class="screen">
-        <div class="session-container">
-            <h1 data-lang="session-title">Massage Session</h1>
-            <p class="session-info"><span data-lang="duration-prefix">Duration: </span><strong id="session-duration"></strong></p>
-            <p class="session-info hidden" id="session-free-label"></p>
-
-            <div id="timer-choice" class="timer-choice">
-                <p data-lang="timer-choice">Do you want to use your own timer or use the timer on this website?</p>
-                <div class="timer-choice-btns">
-                    <button class="btn-secondary" data-lang="your-timer" onclick="chooseTimerMode('my')">My Timer</button>
-                    <button class="btn-primary" data-lang="website-timer" onclick="chooseTimerMode('web')">Website Timer</button>
+            <div class="totals-section">
+                <div class="total-item">
+                    <span class="total-label">Total Massage Time</span>
+                    <span class="total-value" id="total-time">0h 0m 0s</span>
+                </div>
+                <div class="total-item">
+                    <span class="total-label">Money Spent</span>
+                    <span class="total-value" id="total-spent">฿0.00</span>
+                </div>
+                <div class="total-item">
+                    <span class="total-label">Paid Massage Time</span>
+                    <span class="total-value" id="paid-time">0h 0m</span>
+                </div>
+                <div class="total-item">
+                    <span class="total-label">Free Massage Time</span>
+                    <span class="total-value" id="free-time">0h 0m</span>
+                </div>
+                <div class="total-item">
+                    <span class="total-label">Current Points</span>
+                    <span class="total-value" id="total-points">0</span>
                 </div>
             </div>
 
-            <div class="timer-display hidden" id="timer-display">00:00</div>
-            <p class="enjoy-msg hidden" id="enjoy-msg" data-lang="enjoy">Enjoy your massage!</p>
-
-            <div class="session-actions">
-                <button class="btn-primary btn-large hidden" data-lang="start-timer" id="start-timer-btn" onclick="startTimer()">Start Timer</button>
-                <button class="btn-danger btn-large hidden" data-lang="end-session" id="end-session-btn" onclick="endSession()">End Session</button>
+            <div class="section-title">MASSAGE HISTORY</div>
+            <div class="history-section">
+                <div class="history-list" id="paid-history">
+                    <div class="history-empty">No massages yet</div>
+                </div>
             </div>
 
-            <button class="btn-secondary" data-lang="cancel" onclick="cancelSession()">Cancel</button>
+            <button class="clear-all-btn" id="clear-all-btn">CLEAR ALL DATA</button>
+        </div>
+
+        <!-- Session Setup Screen -->
+        <div id="session-setup-screen" class="screen">
+            <button class="back-btn" id="session-setup-back">BACK</button>
+            <div class="session-setup-content">
+                <div class="session-setup-title" id="session-setup-title">START A 10 MINUTE MASSAGE?</div>
+                <div class="session-setup-details">
+                    <div class="session-duration" id="session-setup-duration">10 MIN</div>
+                    <div class="session-price" id="session-setup-price">฿10</div>
+                </div>
+                <button class="start-session-btn" id="start-session-btn">START 10 MIN TIMER</button>
+            </div>
+        </div>
+
+        <!-- Active Session Screen -->
+        <div id="active-session-screen" class="screen">
+            <div class="active-session-content">
+                <div class="session-info">
+                    <div class="session-label">Duration</div>
+                    <div class="session-value" id="active-duration">10 min</div>
+                </div>
+                <div class="timer-message" id="timer-message">Start a 10 min timer</div>
+                <div class="session-info">
+                    <div class="session-label">Price</div>
+                    <div class="session-value" id="active-price">฿10</div>
+                </div>
+                <div class="session-info">
+                    <div class="session-label">Status</div>
+                    <div class="session-value" id="active-status">In Progress</div>
+                </div>
+                <button class="finish-session-btn" id="finish-session-btn">FINISH SESSION</button>
+            </div>
+        </div>
+
+        <!-- Payment Confirmation Screen -->
+        <div id="payment-screen" class="screen">
+            <div class="payment-content">
+                <div class="payment-title" id="payment-title">PAY JAKE ฿10</div>
+                <div class="payment-instruction">Pass the device to Jake so he can enter the password to confirm that you have paid him.</div>
+                <div class="password-input-container">
+                    <label for="password-input">Password</label>
+                    <input type="password" id="password-input" placeholder="Enter password">
+                </div>
+                <button class="confirm-payment-btn" id="confirm-payment-btn">CONFIRM PAYMENT</button>
+                <div class="payment-error" id="payment-error"></div>
+            </div>
+        </div>
+
+        <!-- Free Session Setup Screen -->
+        <div id="free-session-setup-screen" class="screen">
+            <button class="back-btn" id="free-session-setup-back">BACK</button>
+            <div class="session-setup-content">
+                <div class="session-setup-title" id="free-session-setup-title">FREE 5 MIN MASSAGE</div>
+                <button class="start-session-btn" id="start-free-session-btn">START 5 MIN FREE MASSAGE</button>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="success-screen" class="screen">
+            <div class="success-content">
+                <div class="success-icon">✓</div>
+                <div class="success-message" id="success-message">Payment Confirmed!</div>
+                <button class="return-btn" id="return-btn">RETURN TO MAIN</button>
+            </div>
         </div>
     </div>
 
-    <!-- PAYMENT SCREEN -->
-    <div id="payment-screen" class="screen">
-        <div class="payment-container">
-            <h1 data-lang="payment-title">Payment</h1>
-            <p class="payment-amount"><span data-lang="amount-due">Amount Due: </span><strong id="payment-total">0</strong> <span data-lang="baht">Baht</span></p>
-            <p class="payment-points-earned"><span data-lang="you-earned">You earned </span><strong id="points-earned">0</strong> <span data-lang="points-word">points!</span></p>
-
-            <div class="payment-confirm">
-                <p data-lang="hand-phone">Hand the phone to Jake to confirm the payment.</p>
-                <p data-lang="enter-pw">Enter password to confirm:</p>
-                <input type="text" id="payment-password" class="no-save-password" placeholder="Enter password" data-lang="enter-pw-ph" autocomplete="off">
-                <button class="btn-primary" data-lang="confirm-payment" onclick="confirmPayment()">Confirm Payment</button>
-                <p id="payment-error" class="error-text hidden"></p>
-            </div>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/sessions.js"></script>
+    <script src="js/points.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/totals.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
