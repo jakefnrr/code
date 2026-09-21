@@ -227,6 +227,82 @@
             display: grid;
         }
 
+        /* CHAT EMBED VIEW */
+        .chat-view {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+
+            display: none;
+            flex-direction: column;
+            background: #080808;
+        }
+
+        .chat-view.active {
+            display: flex;
+        }
+
+        .chat-island {
+            margin: 16px auto 0;
+            width: calc(100% - 32px);
+            max-width: 1400px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+
+            padding: 12px 20px;
+
+            background: rgba(16, 16, 16, 0.92);
+            border: 1px solid #292929;
+            border-radius: 16px;
+
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .chat-island .chat-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .chat-back-button {
+            padding: 10px 20px;
+            background: #00ff88;
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .chat-back-button:hover {
+            background: white;
+        }
+
+        .chat-frame-wrap {
+            flex: 1;
+            margin: 12px 16px 16px;
+
+            border: 1px solid #292929;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .chat-frame-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #000;
+        }
+
         .project {
             background: #111;
             border: 1px solid #292929;
@@ -527,11 +603,11 @@
     <!-- THE LINE ACROSS THE SCREEN WITH THE TABS -->
     <div class="tab-bar">
 
-        <button class="tab-btn active" onclick="switchTab('big', event)" data-i18n="tab-big">
+        <button class="tab-btn active" data-tab="big" onclick="switchTab('big', event)" data-i18n="tab-big">
             Big Projects
         </button>
 
-        <button class="tab-btn" onclick="switchTab('little', event)" data-i18n="tab-little">
+        <button class="tab-btn" data-tab="little" onclick="switchTab('little', event)" data-i18n="tab-little">
             Other Projects
         </button>
 
@@ -679,34 +755,6 @@
                 </a>
 
             </div>
-            <!-- GREENCHAT -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 06
-                    </div>
-
-                    <h2 data-i18n="greenchat-title">
-                        GreenChat
-                    </h2>
-
-                    <p data-i18n="greenchat-desc">
-                        A place to chat with friends
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="GreenChat/index.html"
-                    data-i18n="greenchat-btn"
-                >
-                    OPEN GREENCHAT
-                </a>
-
-            </div>
 
             <!-- SOUNDBOARD -->
             <div class="project">
@@ -766,36 +814,7 @@
 
             </div>
 
-            <!-- LEVEL DEVIL -->
-            <div class="project">
-
-                <div>
-
-                    <div class="project-number">
-                        PROJECT 09
-                    </div>
-
-                    <h2 data-i18n="leveldevil-title">
-                        Level Devil
-                    </h2>
-
-                    <p data-i18n="leveldevil-desc">
-                        10 worlds, 110 levels. Each world has 11 levels.
-                    </p>
-
-                </div>
-
-                <a
-                    class="project-button"
-                    href="LevelDevil/index.html"
-                    data-i18n="leveldevil-btn"
-                >
-                    OPEN LEVEL DEVIL
-                </a>
-
-            </div>
-
-        </section>
+            </section>
 
 
         <!-- LITTLE PROJECTS -->
@@ -888,7 +907,67 @@
 
             </div>
 
+            <!-- PINGHUG -->
+            <div class="project">
 
+                <div>
+
+                    <div class="project-number">
+                        PROJECT 04
+                    </div>
+
+                    <h2 data-i18n="chat-title">
+                        Pinghug
+                    </h2>
+
+                    <p data-i18n="chat-desc">
+                        Pinghug
+                    </p>
+
+                </div>
+
+                <a
+                    class="project-button"
+                    href="javascript:void(0)"
+                    onclick="openChat()"
+                    data-i18n="chat-btn"
+                >
+                    OPEN PINGHUG
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- CHAT EMBED VIEW -->
+        <section class="chat-view" id="tab-chat">
+
+            <div class="chat-island">
+
+                <div class="chat-title">
+                    Pinghug
+                </div>
+
+                <a
+                    class="chat-back-button"
+                    href="javascript:void(0)"
+                    onclick="showTab('little')"
+                    data-i18n="all-projects"
+                >
+                    ALL PROJECTS
+                </a>
+
+            </div>
+
+            <div class="chat-frame-wrap">
+                <iframe
+                    id="chat-frame"
+                    src="https://pinghug.com"
+                    title="Chat"
+                    allow="fullscreen; autoplay; camera; microphone"
+                    referrerpolicy="no-referrer"
+                ></iframe>
+            </div>
 
         </section>
 
@@ -944,9 +1023,7 @@
         // TAB SWITCHING
         // ==========================================
 
-        function switchTab(tabName, ev) {
-
-            const clicked = ev.currentTarget;
+        function showTab(tabName) {
 
             // Remove active from all buttons and tabs
             document.querySelectorAll('.tab-btn').forEach(function(btn) {
@@ -956,10 +1033,44 @@
                 content.classList.remove('active');
             });
 
-            // Add active to clicked button and its tab
-            clicked.classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
+            // Chat view is not part of the grid tabs
+            document.getElementById('tab-chat').classList.remove('active');
 
+            if (tabName === 'chat') {
+
+                document.getElementById('tab-chat').classList.add('active');
+
+                // Hide the secret code entry while inside Pinghug
+                secretArea.style.display = "none";
+                normalModeButton.style.display = "none";
+
+            } else {
+
+                // Bring the secret code entry back
+                secretArea.style.display = "flex";
+                if (jakeMode) {
+                    normalModeButton.style.display = "block";
+                }
+
+                // Highlight the matching tab button
+                var matchedBtn =
+                    document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+
+                if (matchedBtn) {
+                    matchedBtn.classList.add('active');
+                }
+
+                document.getElementById('tab-' + tabName).classList.add('active');
+            }
+
+        }
+
+        function switchTab(tabName, ev) {
+            showTab(tabName);
+        }
+
+        function openChat() {
+            showTab('chat');
         }
 
 
@@ -1000,9 +1111,10 @@
                 "notes-title": "Notes",
                 "notes-desc": "My notes and information hub.",
                 "notes-btn": "OPEN NOTES",
-                "greenchat-title": "GreenChat",
-                "greenchat-desc": "A place to chat with friends",
-                "greenchat-btn": "OPEN GREENCHAT",
+                "chat-title": "Pinghug",
+                "chat-desc": "Pinghug",
+                "chat-btn": "OPEN PINGHUG",
+                "all-projects": "ALL PROJECTS",
                 "soundboard-title": "SoundBoard",
                 "soundboard-desc": "A Sound Board",
                 "soundboard-btn": "OPEN SOUNDBOARD",
@@ -1018,9 +1130,7 @@
                 "type-title": "Typing Speed Test",
                 "type-desc": "Test your typing speed and accuracy",
                 "type-btn": "OPEN TYPING TEST",
-                "leveldevil-title": "Level Devil",
-                "leveldevil-desc": "10 worlds, 110 levels. Each world has 11 levels.",
-                "leveldevil-btn": "OPEN LEVEL DEVIL",
+                
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "A neon-themed chat app to connect with friends",
                 "neonchat-btn": "OPEN NEONCHAT",
@@ -1051,9 +1161,10 @@
                 "notes-title": "โน้ต",
                 "notes-desc": "โน้ตและศูนย์รวมข้อมูลของฉัน",
                 "notes-btn": "เปิดโน้ต",
-                "greenchat-title": "กรีนแชท",
-                "greenchat-desc": "ที่แชทกับเพื่อน",
-                "greenchat-btn": "เปิดกรีนแชท",
+                "chat-title": "พิงก์ฮัก",
+                "chat-desc": "พิงก์ฮัก",
+                "chat-btn": "เปิดพิงก์ฮัก",
+                "all-projects": "โปรเจกต์ทั้งหมด",
                 "soundboard-title": "ซาวด์บอร์ด",
                 "soundboard-desc": "ซาวด์บอร์ด",
                 "soundboard-btn": "เปิดซาวด์บอร์ด",
@@ -1069,9 +1180,7 @@
                 "type-title": "ทดสอบความเร็วพิมพ์",
                 "type-desc": "ทดสอบความเร็วและความแม่นยำในการพิมพ์ของคุณ",
                 "type-btn": "เปิดทดสอบพิมพ์",
-                "leveldevil-title": "เลเวลเดวิล",
-                "leveldevil-desc": "10 โลก 110 ด่าน แต่ละโลกมี 11 ด่าน",
-                "leveldevil-btn": "เปิดเลเวลเดวิล",
+                
                 "neonchat-title": "เนออนแชท",
                 "neonchat-desc": "แอปแชทธีมเนออนสำหรับคุยกับเพื่อน",
                 "neonchat-btn": "เปิดเนออนแชท",
@@ -1102,9 +1211,10 @@
                 "notes-title": "Notes",
                 "notes-desc": "Mes notes et mon centre d'information.",
                 "notes-btn": "OUVRIR NOTES",
-                "greenchat-title": "GreenChat",
-                "greenchat-desc": "Un endroit pour discuter avec tes amis.",
-                "greenchat-btn": "OUVRIR GREENCHAT",
+                "chat-title": "Pinghug",
+                "chat-desc": "Pinghug",
+                "chat-btn": "OUVRIR PINGHUG",
+                "all-projects": "TOUS LES PROJETS",
                 "soundboard-title": "SoundBoard",
                 "soundboard-desc": "Une table de sons.",
                 "soundboard-btn": "OUVRIR SOUNDBOARD",
@@ -1120,9 +1230,7 @@
                 "type-title": "Test de Vitesse de Frappe",
                 "type-desc": "Teste ta vitesse et ta précision de frappe.",
                 "type-btn": "OUVRIR LE TEST DE FRAPPE",
-                "leveldevil-title": "Level Devil",
-                "leveldevil-desc": "10 mondes, 110 niveaux. Chaque monde compte 11 niveaux.",
-                "leveldevil-btn": "OUVRIR LEVEL DEVIL",
+                
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Une application de chat à thème néon pour discuter avec tes amis",
                 "neonchat-btn": "OUVRIR NEONCHAT",
@@ -1153,9 +1261,10 @@
                 "notes-title": "Notes",
                 "notes-desc": "Mis notas y centro de información.",
                 "notes-btn": "ABRIR NOTES",
-                "greenchat-title": "GreenChat",
-                "greenchat-desc": "Un lugar para chatear con amigos.",
-                "greenchat-btn": "ABRIR GREENCHAT",
+                "chat-title": "Pinghug",
+                "chat-desc": "Pinghug",
+                "chat-btn": "ABRIR PINGHUG",
+                "all-projects": "TODOS LOS PROYECTOS",
                 "soundboard-title": "SoundBoard",
                 "soundboard-desc": "Una tabla de sonidos.",
                 "soundboard-btn": "ABRIR SOUNDBOARD",
@@ -1171,9 +1280,7 @@
                 "type-title": "Test de Velocidad de Escritura",
                 "type-desc": "Pon a prueba tu velocidad y precisión al escribir.",
                 "type-btn": "ABRIR TEST DE ESCRITURA",
-                "leveldevil-title": "Level Devil",
-                "leveldevil-desc": "10 mundos, 110 niveles. Cada mundo tiene 11 niveles.",
-                "leveldevil-btn": "ABRIR LEVEL DEVIL",
+                
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Una aplicación de chat con temática neón para conectarte con amigos",
                 "neonchat-btn": "ABRIR NEONCHAT",
@@ -1204,9 +1311,10 @@
                 "notes-title": "ノート",
                 "notes-desc": "ノートと情報ハブ。",
                 "notes-btn": "ノートを開く",
-                "greenchat-title": "グリーンチャット",
-                "greenchat-desc": "友達とチャットできる場所。",
-                "greenchat-btn": "グリーンチャットを開く",
+                "chat-title": "ピングハグ",
+                "chat-desc": "ピングハグ",
+                "chat-btn": "ピングハグを開く",
+                "all-projects": "すべてのプロジェクト",
                 "soundboard-title": "サウンドボード",
                 "soundboard-desc": "サウンドボード。",
                 "soundboard-btn": "サウンドボードを開く",
@@ -1222,9 +1330,7 @@
                 "type-title": "タイピング速度テスト",
                 "type-desc": "タイピングの速度と正確さをテストします。",
                 "type-btn": "タイピングテストを開く",
-                "leveldevil-title": "レベルデビル",
-                "leveldevil-desc": "10の世界、110レベル。各世界には11レベルあります。",
-                "leveldevil-btn": "レベルデビルを開く",
+                
                 "neonchat-title": "ネオンチャット",
                 "neonchat-desc": "友達とチャットできるネオンテーマのアプリ",
                 "neonchat-btn": "ネオンチャットを開く",
@@ -1255,9 +1361,10 @@
                 "notes-title": "Notes",
                 "notes-desc": "我的笔记和信息中心。",
                 "notes-btn": "打开 Notes",
-                "greenchat-title": "GreenChat",
-                "greenchat-desc": "和朋友聊天的地方。",
-                "greenchat-btn": "打开 GreenChat",
+                "chat-title": "Pinghug",
+                "chat-desc": "Pinghug",
+                "chat-btn": "打开 Pinghug",
+                "all-projects": "所有项目",
                 "soundboard-title": "SoundBoard",
                 "soundboard-desc": "一个音效板。",
                 "soundboard-btn": "打开 SoundBoard",
@@ -1273,9 +1380,7 @@
                 "type-title": "打字速度测试",
                 "type-desc": "测试您的打字速度和准确度。",
                 "type-btn": "打开打字测试",
-                "leveldevil-title": "魔鬼关卡",
-                "leveldevil-desc": "10 个世界，110 个关卡。每个世界有 11 个关卡。",
-                "leveldevil-btn": "打开魔鬼关卡",
+                
                 "neonchat-title": "霓虹聊天",
                 "neonchat-desc": "一个霓虹主题的聊天应用，与朋友保持联系",
                 "neonchat-btn": "打开霓虹聊天",
