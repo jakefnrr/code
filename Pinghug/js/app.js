@@ -1,5 +1,5 @@
 /* ==========================================================
-   PINGHUG — app logic
+   GREENCHAT — app logic
    Accounts + chats are stored in localStorage so the whole
    thing runs offline with no backend.
    ========================================================== */
@@ -237,7 +237,7 @@
 
         $("form-signup").reset();
 
-        banner("Welcome to pinghug, " + display + "!");
+        banner("Welcome to GreenChat, " + display + "!");
 
         startSession(user, true);
     });
@@ -411,7 +411,7 @@
 
             empty.textContent = searchTerm
                 ? "Nobody matches \"" + searchTerm + "\"."
-                : "No chats yet. Tap + NEW CHAT to pinghug someone.";
+                : "No chats yet. Tap + NEW CHAT to add someone.";
 
             wrap.appendChild(empty);
             return;
