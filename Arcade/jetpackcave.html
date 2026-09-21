@@ -23,7 +23,6 @@ body{display:flex;justify-content:center}#app{width:100%;height:100vh;display:gr
 <button id="fly">HOLD TO FLY</button>
 </main>
 <script>
-(function(){const u=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=u){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';return;}setInterval(()=>{const t=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=t){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';}},1000);})();
 const c=document.getElementById('game'),ctx=c.getContext('2d'),distEl=document.getElementById('dist'),bestEl=document.getElementById('best'),gemsEl=document.getElementById('gems'),comboEl=document.getElementById('combo'),msg=document.getElementById('msg'),msgText=document.getElementById('msgText'),playAgain=document.getElementById('playAgain'),shopBtn=document.getElementById('shopBtn'),shop=document.getElementById('shop'),skinsEl=document.getElementById('skins'),walletText=document.getElementById('walletText'),closeShop=document.getElementById('closeShop'),flyBtn=document.getElementById('fly');
 const W=c.width,H=c.height,SKINS=[{id:'blue',name:'Cave Rookie',color:'#36f2ff',cost:0},{id:'fire',name:'Flame Pack',color:'#ff5a2e',cost:2},{id:'gold',name:'Gold Rush',color:'#ffd84a',cost:3},{id:'toxic',name:'Toxic Trail',color:'#5cff8d',cost:4},{id:'void',name:'Void Pilot',color:'#b18cff',cost:10},{id:'ghost',name:'Ghost Jet',color:'#f4f8ff',cost:12}];
 let best=+localStorage.jetpackcave_best||0,wallet=+localStorage.jetpackcave_wallet||0,owned=JSON.parse(localStorage.jetpackcave_skins||'["blue"]'),skinId=localStorage.jetpackcave_skin||'blue';
@@ -88,5 +87,6 @@ function bindHold(el){el.onpointerdown=e=>{e.preventDefault();if(el.setPointerCa
 bindHold(flyBtn);bindHold(c);document.addEventListener('pointerdown',e=>{if(e.target.closest('button')||e.target.closest('#shop'))return;e.preventDefault();setFly(true)},{passive:false});document.addEventListener('pointerup',()=>setFly(false));document.addEventListener('pointercancel',()=>setFly(false));
 playAgain.onclick=()=>reset();shopBtn.onclick=()=>{renderShop();shop.classList.add('open')};closeShop.onclick=()=>shop.classList.remove('open');document.getElementById('back').onclick=()=>location.href='index.html';hud();
 </script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
 </body>
 </html>

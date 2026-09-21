@@ -54,7 +54,6 @@
   <section id="boardWrap"><div id="board"></div></section>
 </main>
 <script>
-(function(){const u=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=u){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';return;}setInterval(()=>{const t=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=t){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';}},1000);})();
 const LEVELS={easy:{rows:9,cols:9,mines:10},medium:{rows:12,cols:14,mines:24},hard:{rows:16,cols:18,mines:45}};
 const boardEl=document.getElementById('board'),statusEl=document.getElementById('status'),flagBtn=document.getElementById('flagMode'),winsEl=document.getElementById('wins'),gamesEl=document.getElementById('games'),bestEl=document.getElementById('best'),streakEl=document.getElementById('streak');
 const levelButtons=[...document.querySelectorAll('[data-level]')];
@@ -83,5 +82,6 @@ levelButtons.forEach(btn=>btn.onclick=()=>{level=btn.dataset.level;levelButtons.
 flagBtn.onclick=()=>{flagMode=!flagMode;flagBtn.classList.toggle('flagging',flagMode);flagBtn.textContent=flagMode?'Flagging On':'Flag Mode'};
 document.getElementById('newGame').onclick=newGame;saveStats();newGame();
 </script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
 </body>
 </html>

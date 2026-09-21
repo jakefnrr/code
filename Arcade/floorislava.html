@@ -23,7 +23,6 @@ body{display:flex;justify-content:center}#app{width:100%;height:100vh;display:gr
 <section id="dpad" aria-label="Touch controls"><div id="dpad-left"><div class="dbtn" id="dbl" data-k="left">◀</div></div><div id="dpad-center"><div class="dbtn" id="dbu" data-k="jump">▲</div><div id="dpad-divider"></div><div class="dbtn" id="dbd" data-k="down">▼</div></div><div id="dpad-right"><div class="dbtn" id="dbr" data-k="right">▶</div></div></section>
 </main>
 <script>
-(function(){const u=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=u){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';return;}setInterval(()=>{const t=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=t){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';}},1000);})();
 const c=document.getElementById('game'),d=c.getContext('2d'),heightEl=document.getElementById('height'),bestEl=document.getElementById('best'),gemsEl=document.getElementById('gems'),msg=document.getElementById('msg'),msgText=document.getElementById('msgText'),playAgain=document.getElementById('playAgain'),shopBtn=document.getElementById('shopBtn'),shop=document.getElementById('shop'),skinsEl=document.getElementById('skins'),walletText=document.getElementById('walletText'),closeShop=document.getElementById('closeShop');
 const W=c.width,H=c.height,START_PLATFORM_Y=Math.floor(H/2)+68,START_PLAYER_Y=START_PLATFORM_Y-34;let p,plats,gems,lava,camera,climbed,startedAt,best=+localStorage.floorislava_best||0,gemCount,state='ready',lastDir=1,keys={left:false,right:false,jump:false,down:false};
 let audioCtx,musicTimer,musicStep=0;
@@ -97,5 +96,6 @@ shopBtn.onclick=()=>{renderShop();shop.classList.add('open')};
 closeShop.onclick=()=>shop.classList.remove('open');
 document.getElementById('back').onclick=()=>location.href='index.html';reset(false);state='ready';
 </script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
 </body>
 </html>

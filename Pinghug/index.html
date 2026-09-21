@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pinghug</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     FLOATING ISLAND
+     ============================================================ -->
+<div class="island">
+
+    <div class="island-left">
+        <div class="island-logo">P</div>
+        <div class="island-text">
+            <div class="island-title">Pinghug</div>
+            <div class="island-sub" id="island-sub">sign in to start chatting</div>
+        </div>
+    </div>
+
+    <div class="island-right">
+        <button class="btn ghost" id="btn-echo" type="button" title="Ping the server">
+            Ping
+        </button>
+        <a class="btn ghost" id="btn-back" href="../index.html">ALL PROJECTS</a>
+        <a class="btn ghost" href="../TeamChat/index.html">TEAMCHAT</a>
+        <button class="btn solid hidden" id="btn-logout" type="button">LOG OUT</button>
+    </div>
+
+</div>
+
+<!-- banner -->
+<div class="banner hidden" id="banner"></div>
+
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<main class="stage" id="auth-stage">
+
+    <div class="card auth-card">
+
+        <div class="brandline">
+            <span class="dot"></span> pinghug<span class="caret"></span>
+            <span class="tag">v1.0</span>
+        </div>
+
+        <p class="lead">
+            Send a hug, send a message. Ping the people you actually want to hear from.
+        </p>
+
+        <div class="switcher" role="tablist">
+            <button class="switch-btn active" data-auth="login" type="button" role="tab">LOG IN</button>
+            <button class="switch-btn" data-auth="signup" type="button" role="tab">CREATE ACCOUNT</button>
+        </div>
+
+        <!-- LOG IN -->
+        <form class="auth-form active" id="form-login" autocomplete="on">
+
+            <label class="field">
+                <span>Username</span>
+                <input type="text" id="login-user" placeholder="jake" autocomplete="username" required>
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input type="password" id="login-pass" placeholder="••" autocomplete="current-password" required>
+            </label>
+
+            <div class="remember">
+                <input type="checkbox" id="login-remember">
+                <label for="login-remember">Keep me signed in</label>
+            </div>
+
+            <div class="form-error" id="login-error"></div>
+
+            <button class="btn solid wide" type="submit">LOG IN</button>
+
+        </form>
+
+        <!-- SIGN UP -->
+        <form class="auth-form" id="form-signup" autocomplete="on">
+
+            <label class="field">
+                <span>Display name</span>
+                <input type="text" id="signup-name" placeholder="Jake" maxlength="24" autocomplete="name" required>
+            </label>
+
+            <label class="field">
+                <span>Username</span>
+                <input type="text" id="signup-user" placeholder="jake" maxlength="18" autocomplete="username" required>
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input type="password" id="signup-pass" placeholder="at least 4 characters" autocomplete="new-password" required>
+            </label>
+
+            <label class="field">
+                <span>Confirm password</span>
+                <input type="password" id="signup-pass2" placeholder="type it again" autocomplete="new-password" required>
+            </label>
+
+            <div class="form-error" id="signup-error"></div>
+
+            <button class="btn solid wide" type="submit">CREATE MY ACCOUNT</button>
+
+        </form>
+
+        <div class="footnote">
+            Accounts live in this browser (localStorage) so the demo works offline.
+            Nothing is uploaded anywhere.
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- ============================================================
+     MESSENGER
+     ============================================================ -->
+<main class="stage hidden" id="app-stage">
+
+    <div class="card app-card">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="side-head">
+                <div class="me">
+                    <div class="avatar" id="me-avatar">?</div>
+                    <div class="me-text">
+                        <div class="me-name" id="me-name">—</div>
+                        <div class="me-status"><span class="dot live"></span> online</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-search">
+                <input type="search" id="search" placeholder="Search people…" autocomplete="off">
+            </div>
+
+            <div class="side-label">Chats</div>
+            <div class="people" id="people"></div>
+
+            <div class="side-foot">
+                <button class="btn ghost wide" id="btn-new" type="button">+ NEW CHAT</button>
+            </div>
+
+        </aside>
+
+        <!-- CONVERSATION -->
+        <section class="convo" id="convo">
+
+            <div class="convo-empty" id="convo-empty">
+                <div class="wave">👋</div>
+                <h2>Pick a chat</h2>
+                <p>Select a person on the left, or start a new chat.</p>
+            </div>
+
+            <div class="convo-live hidden" id="convo-live">
+
+                <header class="convo-head">
+                    <div class="avatar" id="peer-avatar" data-peer="">?</div>
+                    <div class="convo-who">
+                        <h2 id="peer-name">—</h2>
+                        <div class="me-status"><span class="dot"></span> last ping just now</div>
+                    </div>
+                    <div class="typing" id="typing">typing…</div>
+                </header>
+
+                <div class="thread" id="thread"></div>
+
+                <form class="composer" id="composer" autocomplete="off">
+                    <input
+                        type="text"
+                        id="message-input"
+                        placeholder="Write a message…"
+                        maxlength="500"
+                        autocomplete="off"
+                    >
+                    <button class="btn solid" type="submit">HUG IT</button>
+                </form>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- ============================================================
+     NEW CHAT MODAL
+     ============================================================ -->
+<div class="modal hidden" id="modal">
+
+    <div class="modal-box">
+
+        <h2>Start a new chat</h2>
+        <p class="lead">Type a name and pinghug will add them to your list.</p>
+
+        <label class="field">
+            <span>Their name</span>
+            <input type="text" id="new-name" placeholder="Sam" maxlength="24" autocomplete="off">
+        </label>
+
+        <div class="form-error" id="new-error"></div>
+
+        <div class="modal-actions">
+            <button class="btn ghost" id="new-cancel" type="button">CANCEL</button>
+            <button class="btn solid" id="new-create" type="button">START CHAT</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

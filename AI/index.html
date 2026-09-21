@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI Chatbot Builder</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2a7 7 0 0 1 7 7c0 2.1-1 4-2.5 5.2V17a2 2 0 0 1-2 2h-1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2h-1a2 2 0 0 1-2-2v-2.8C6 13 5 11.1 5 9a7 7 0 0 1 7-7z"/><path d="M9 9h.01M15 9h.01M10 12.5c1 .9 3 .9 4 0"/></svg>
+    </div>
+    <div>
+      <h1>AI Chatbot Builder</h1>
+      <small>conversation flow studio</small>
+    </div>
+  </div>
+  <div class="tools">
+    <button class="btn ghost" id="btnMenu" title="File menu">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <button class="btn" id="btnSettings" title="Bot settings &amp; AI">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+      <span class="sp">Settings</span>
+    </button>
+    <button class="btn primary" id="btnTest" title="Run your flow">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 3v18l14-9z"/></svg>
+      <span class="sp">Test</span>
+    </button>
+  </div>
+  <div class="menumore">
+    <div class="dropdown" id="dropdown">
+      <button data-a="sample"><b>Load sample</b><span class="desc">Store assistant template with AI wiring</span></button>
+      <button data-a="new"><b>New blank bot</b><span class="desc">Start from a single entry node</span></button>
+      <hr>
+      <button data-a="import"><b>Import</b><span class="desc">Load a flow from JSON or a file</span></button>
+      <button data-a="export"><b>Export JSON</b><span class="desc">Download or copy your flow</span></button>
+      <hr>
+      <button data-a="help">How it works</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="backdrop" id="backdrop"></div>
+  <button class="fab" id="fab" title="Add node">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <aside class="left" id="palette">
+    <div class="sect">Build your flow</div>
+    <div id="palList"></div>
+    <div class="pal-foot">
+      <button class="btn sm" id="btnCenter">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h4M17 12h4M12 3v4M12 17v4M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0"/></svg>
+        Fit view
+      </button>
+      <div class="stats" id="statsBox"></div>
+    </div>
+  </aside>
+
+  <section class="canvas-wrap" id="cwrap">
+    <div id="world"></div>
+    <div class="empty-hint hidden" id="emptyHint">
+      <div class="big">Start building your bot</div>
+      <p>Pick a node type from the palette, then click anywhere on the canvas to drop it. Drag the green output dot onto another node to connect the conversation.</p>
+    </div>
+    <div class="zoom">
+      <button id="zin" title="Zoom in">+</button>
+      <button id="zout" title="Zoom out">&#8722;</button>
+      <button id="zreset" title="Reset zoom">&#8635;</button>
+    </div>
+  </section>
+
+  <aside class="right closed" id="inspector">
+    <div id="inspContent"></div>
+  </aside>
+</main>
+
+<footer>
+  <span id="footFlow">Empty flow</span>
+  <span class="ai-pill" id="aiPill" title="AI brain status">
+    <span class="ai-dot"></span><span id="aiPillText">AI offline NLU</span>
+  </span>
+  <span class="save" id="saveBox"><span class="dot-live"></span><span id="saveText">Autosave on</span></span>
+</footer>
+
+<div class="overlay" id="ovTest">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><span id="testTitle">Live test</span></h3>
+      <div class="mini-badge" id="testBadge"></div>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="chat" id="chat"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="chatRestart">Restart</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovSettings">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Bot settings</h3>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div><label>Bot name</label><input id="sName" placeholder="My assistant"></div>
+        <div><label>Reply speed</label><select id="sSpeed">
+          <option value="200">Fast</option>
+          <option value="600" selected>Normal</option>
+          <option value="1100">Thoughtful</option>
+        </select></div>
+        <div class="full"><label>Fallback reply (when the AI is off and nothing matches)</label><textarea id="sFallback" rows="2"></textarea></div>
+      </div>
+
+      <div class="sectline">Free AI brain</div>
+      <div class="form-grid">
+        <div><label>AI mode</label><select id="sAIMode">
+          <option value="hybrid" selected>Hybrid — cloud, offline backup</option>
+          <option value="cloud">Cloud AI only</option>
+          <option value="rule">On-device NLU only</option>
+          <option value="off">Off</option>
+        </select></div>
+        <div><label>Cloud model</label><select id="sAIModel">
+          <option value="openai">openai</option>
+          <option value="mistral">mistral</option>
+        </select></div>
+      </div>
+      <label>Knowledge base — the AI uses this to know your business (optional)</label>
+      <textarea id="sKB" rows="3" placeholder="e.g. Prices: Standard plan $19/mo, Pro $49/mo. Shipping same-day. Refunds within 30 days."></textarea>
+      <div class="hintline">Cloud mode uses the free, keyless <b>Pollinations</b> text API — no account, no API key. Replies fall back to on-device NLU when it can't be reached, so your bot never freezes.</div>
+
+      <div class="sectline">Automation triggers</div>
+      <label>Global keyword rules that fire on any free-text input</label>
+      <div id="trigRows"></div>
+      <button class="btn sm primary" id="trigAdd">+ Add trigger</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" data-close>Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovAI">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>AI writer<span class="sub">generate copy for this node</span></h3>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <label>Describe the step in plain words</label>
+      <textarea id="aiDesc" rows="3" placeholder="e.g. Ask if they want order tracking, a refund, or to talk to a human"></textarea>
+      <label>Target length</label>
+      <select id="aiLen">
+        <option value="30">Short — one line</option>
+        <option value="70" selected>Medium — paragraph</option>
+        <option value="140">Long</option>
+      </select>
+      <div class="hintline" id="aiBusy" style="display:none">Generating with free cloud AI&#8230;</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="aiGo">Generate &amp; insert</button>
+      <button class="btn" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovExport">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Export flow</h3>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="code" id="exportText" readonly></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="expCopy">Copy</button>
+      <button class="btn" id="expDl">Download .json</button>
+      <button class="btn primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovImport">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Import flow</h3>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <label>Paste JSON or pick a file</label>
+      <textarea class="import" id="importText" placeholder='{ "nodes": [ ... ] }'></textarea>
+      <button class="btn sm" id="pickFile" style="margin-top:9px">Choose file&#8230;</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="doImport">Import</button>
+      <button class="btn" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovHelp">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>How it works</h3>
+      <button class="x" data-close title="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="hintline" style="margin-bottom:12px"><b>Nodes</b> are the steps of a conversation. Drag one from the palette and click the canvas to place it.</div>
+      <div class="hintline" style="margin-bottom:12px"><b>Connections</b> — grab the green dot on a node's right edge and drag to another node. For <b>Question</b> nodes each connection becomes an option or a keyword route.</div>
+      <div class="hintline" style="margin-bottom:12px"><b>Question</b> nodes work two ways: fixed multiple-choice options, or free text matched against keyword rules. Anything the rules miss goes to the <b>AI brain</b>, which answers from your knowledge base using free cloud AI (Pollinations) or on-device NLU.</div>
+      <div class="hintline" style="margin-bottom:12px"><b>Action</b> nodes are automation: fire webhook POSTs or send emails when the flow reaches them.</div>
+      <div class="hintline" style="margin-bottom:12px"><b>AI writer</b> — pick any message or question, click <b>AI</b> in the inspector, type what the step should do, and it writes the copy for you.</div>
+      <div class="hintline" style="margin-bottom:12px"><b>Automation triggers</b> (Settings) listen globally — type "human" and any question hands off to your agent node.</div>
+      <div class="hintline">Everything autosaves in your browser. Use <b>Test</b> to run the flow, and <b>Export</b> to share it as JSON.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" data-close>Got it</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/ai.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/app.js"></script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
+</body>
+</html>

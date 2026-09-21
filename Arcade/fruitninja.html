@@ -18,7 +18,6 @@ button{border:0;border-radius:8px;background:#fb7185;color:#2b0610;font-weight:9
 <body>
 <main id="app"><header id="hud"><div id="title">FRUIT SLICE</div><div class="stats"><span id="score">Score 0</span><span id="best">Best 0</span><span id="lives">Lives 3</span><span id="combo">Combo x1</span></div><div><button id="newGame">New Game</button><button id="back">Back to Hub</button></div></header><section id="wrap"><canvas id="game" width="920" height="518"></canvas><div id="msg">Press New Game</div></section></main>
 <script>
-(function(){const u=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=u){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';return;}setInterval(()=>{const t=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=t){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';}},1000);})();
 const c=document.getElementById('game'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),livesEl=document.getElementById('lives'),comboEl=document.getElementById('combo'),msg=document.getElementById('msg'),newGameBtn=document.getElementById('newGame'),backBtn=document.getElementById('back'),W=c.width,H=c.height;
 let items=[],slashes=[],score=0,best=+localStorage.fruitninja_best||0,lives=3,combo=1,comboTimer=0,state='ready',spawnTimer=0,drag=false,lastPt=null,audioCtx,musicTimer,musicStep=0;
 function audio(){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
@@ -38,5 +37,6 @@ setInterval(update,1000/60);requestAnimationFrame(draw);
 c.addEventListener('pointerdown',e=>{e.preventDefault();drag=true;lastPt=pos(e);if(c.setPointerCapture)c.setPointerCapture(e.pointerId);if(state!=='play')reset()},{passive:false});c.addEventListener('pointermove',e=>{e.preventDefault();if(drag)slashTo(pos(e))},{passive:false});function stop(e){e.preventDefault();drag=false;lastPt=null}c.addEventListener('pointerup',stop,{passive:false});c.addEventListener('pointercancel',stop,{passive:false});c.addEventListener('touchstart',e=>{e.preventDefault();drag=true;lastPt=pos(e);if(state!=='play')reset()},{passive:false});c.addEventListener('touchmove',e=>{e.preventDefault();if(drag)slashTo(pos(e))},{passive:false});c.addEventListener('touchend',stop,{passive:false});
 newGameBtn.onclick=reset;backBtn.onclick=()=>location.href='index.html';hud();
 </script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
 </body>
 </html>

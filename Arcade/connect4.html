@@ -27,7 +27,6 @@ button{border:0;border-radius:7px;background:#38bdf8;color:#07131d;font-weight:9
 </main>
 <div id="colorModal"><div id="colorPanel"><h2>Colors</h2><div class="colorRow"><strong>You:</strong><div id="p1Colors" class="swatches"></div></div><div class="colorRow"><strong>Other:</strong><div id="p2Colors" class="swatches"></div></div><div id="colorError" class="err"></div><div class="actions"><button id="cancelColors" class="secondary">Cancel</button><button id="saveColors">Save</button></div></div></div>
 <script>
-(function(){const u=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=u){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';return;}setInterval(()=>{const t=parseInt(localStorage.getItem('globalUnlockTime'))||0;if(Date.now()>=t){localStorage.removeItem('globalUnlockTime');location.href='index.html?needauth=1';}},1000);})();
 const ROWS=6,COLS=7,EMPTY=0,P1=1,P2=2,boardEl=document.getElementById('board'),statusEl=document.getElementById('status'),winsEl=document.getElementById('wins'),totalEl=document.getElementById('total'),streakEl=document.getElementById('streak'),pvpBtn=document.getElementById('pvp'),newGameBtn=document.getElementById('newGame'),backBtn=document.getElementById('back'),colorsBtn=document.getElementById('colorsBtn'),colorModal=document.getElementById('colorModal'),p1Colors=document.getElementById('p1Colors'),p2Colors=document.getElementById('p2Colors'),colorError=document.getElementById('colorError'),cancelColorsBtn=document.getElementById('cancelColors'),saveColorsBtn=document.getElementById('saveColors');
 const colors=[['Red','#ef4444'],['Yellow','#facc15'],['Blue','#2563eb'],['Green','#22c55e'],['Purple','#a855f7'],['Orange','#f97316'],['Pink','#ec4899'],['Cyan','#06b6d4'],['White','#f8fafc'],['Black','#111827'],['Teal','#14b8a6'],['Gray','#64748b']];
 let grid=[],turn=P1,game=false,pvp=false,diff='easy',selectedCol=3,stats=JSON.parse(localStorage.connect4_stats||'{"wins":0,"total":0,"streak":0}'),pieceColors=loadColors(),draft={...pieceColors},audioCtx;
@@ -58,5 +57,6 @@ document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{diff=b.datase
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')selectedCol=Math.max(0,selectedCol-1);if(e.key==='ArrowRight')selectedCol=Math.min(COLS-1,selectedCol+1);if(e.key==='Enter'||e.key===' ')play(selectedCol)});
 makeSwatches(p1Colors,'p1');makeSwatches(p2Colors,'p2');makeBoard();grid=Array.from({length:ROWS},()=>Array(COLS).fill(EMPTY));saveStats();render();
 </script>
+<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
 </body>
 </html>

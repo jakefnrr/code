@@ -227,82 +227,6 @@
             display: grid;
         }
 
-        /* CHAT EMBED VIEW */
-        .chat-view {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-
-            display: none;
-            flex-direction: column;
-            background: #080808;
-        }
-
-        .chat-view.active {
-            display: flex;
-        }
-
-        .chat-island {
-            margin: 16px auto 0;
-            width: calc(100% - 32px);
-            max-width: 1400px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-
-            padding: 12px 20px;
-
-            background: rgba(16, 16, 16, 0.92);
-            border: 1px solid #292929;
-            border-radius: 16px;
-
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-        }
-
-        .chat-island .chat-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-
-        .chat-back-button {
-            padding: 10px 20px;
-            background: #00ff88;
-            color: #000;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .chat-back-button:hover {
-            background: white;
-        }
-
-        .chat-frame-wrap {
-            flex: 1;
-            margin: 12px 16px 16px;
-
-            border: 1px solid #292929;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #000;
-        }
-
-        .chat-frame-wrap iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            display: block;
-            background: #000;
-        }
-
         .project {
             background: #111;
             border: 1px solid #292929;
@@ -814,6 +738,34 @@
 
             </div>
 
+            <!-- TEAM CHAT -->
+            <div class="project">
+
+                <div>
+
+                    <div class="project-number">
+                        PROJECT 09
+                    </div>
+
+                    <h2>
+                        Team Chat
+                    </h2>
+
+                    <p>
+                        Real-time team messaging with channels and DMs, peer to peer
+                    </p>
+
+                </div>
+
+                <a
+                    class="project-button"
+                    href="TeamChat/index.html"
+                >
+                    OPEN TEAM CHAT
+                </a>
+
+            </div>
+
             </section>
 
 
@@ -928,45 +880,12 @@
 
                 <a
                     class="project-button"
-                    href="javascript:void(0)"
-                    onclick="openChat()"
+                    href="Pinghug/index.html"
                     data-i18n="chat-btn"
                 >
                     OPEN PINGHUG
                 </a>
 
-            </div>
-
-        </section>
-
-        <!-- CHAT EMBED VIEW -->
-        <section class="chat-view" id="tab-chat">
-
-            <div class="chat-island">
-
-                <div class="chat-title">
-                    Pinghug
-                </div>
-
-                <a
-                    class="chat-back-button"
-                    href="javascript:void(0)"
-                    onclick="showTab('little')"
-                    data-i18n="all-projects"
-                >
-                    ALL PROJECTS
-                </a>
-
-            </div>
-
-            <div class="chat-frame-wrap">
-                <iframe
-                    id="chat-frame"
-                    src="https://pinghug.com"
-                    title="Chat"
-                    allow="fullscreen; autoplay; camera; microphone"
-                    referrerpolicy="no-referrer"
-                ></iframe>
             </div>
 
         </section>
@@ -1033,44 +952,26 @@
                 content.classList.remove('active');
             });
 
-            // Chat view is not part of the grid tabs
-            document.getElementById('tab-chat').classList.remove('active');
-
-            if (tabName === 'chat') {
-
-                document.getElementById('tab-chat').classList.add('active');
-
-                // Hide the secret code entry while inside Pinghug
-                secretArea.style.display = "none";
-                normalModeButton.style.display = "none";
-
-            } else {
-
-                // Bring the secret code entry back
-                secretArea.style.display = "flex";
-                if (jakeMode) {
-                    normalModeButton.style.display = "block";
-                }
-
-                // Highlight the matching tab button
-                var matchedBtn =
-                    document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
-
-                if (matchedBtn) {
-                    matchedBtn.classList.add('active');
-                }
-
-                document.getElementById('tab-' + tabName).classList.add('active');
+            // Bring the secret code entry back
+            secretArea.style.display = "flex";
+            if (jakeMode) {
+                normalModeButton.style.display = "block";
             }
+
+            // Highlight the matching tab button
+            var matchedBtn =
+                document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+
+            if (matchedBtn) {
+                matchedBtn.classList.add('active');
+            }
+
+            document.getElementById('tab-' + tabName).classList.add('active');
 
         }
 
         function switchTab(tabName, ev) {
             showTab(tabName);
-        }
-
-        function openChat() {
-            showTab('chat');
         }
 
 
@@ -1130,7 +1031,7 @@
                 "type-title": "Typing Speed Test",
                 "type-desc": "Test your typing speed and accuracy",
                 "type-btn": "OPEN TYPING TEST",
-                
+
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "A neon-themed chat app to connect with friends",
                 "neonchat-btn": "OPEN NEONCHAT",
@@ -1180,7 +1081,7 @@
                 "type-title": "ทดสอบความเร็วพิมพ์",
                 "type-desc": "ทดสอบความเร็วและความแม่นยำในการพิมพ์ของคุณ",
                 "type-btn": "เปิดทดสอบพิมพ์",
-                
+
                 "neonchat-title": "เนออนแชท",
                 "neonchat-desc": "แอปแชทธีมเนออนสำหรับคุยกับเพื่อน",
                 "neonchat-btn": "เปิดเนออนแชท",
@@ -1230,7 +1131,7 @@
                 "type-title": "Test de Vitesse de Frappe",
                 "type-desc": "Teste ta vitesse et ta précision de frappe.",
                 "type-btn": "OUVRIR LE TEST DE FRAPPE",
-                
+
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Une application de chat à thème néon pour discuter avec tes amis",
                 "neonchat-btn": "OUVRIR NEONCHAT",
@@ -1280,7 +1181,7 @@
                 "type-title": "Test de Velocidad de Escritura",
                 "type-desc": "Pon a prueba tu velocidad y precisión al escribir.",
                 "type-btn": "ABRIR TEST DE ESCRITURA",
-                
+
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Una aplicación de chat con temática neón para conectarte con amigos",
                 "neonchat-btn": "ABRIR NEONCHAT",
@@ -1330,7 +1231,7 @@
                 "type-title": "タイピング速度テスト",
                 "type-desc": "タイピングの速度と正確さをテストします。",
                 "type-btn": "タイピングテストを開く",
-                
+
                 "neonchat-title": "ネオンチャット",
                 "neonchat-desc": "友達とチャットできるネオンテーマのアプリ",
                 "neonchat-btn": "ネオンチャットを開く",
@@ -1380,7 +1281,7 @@
                 "type-title": "打字速度测试",
                 "type-desc": "测试您的打字速度和准确度。",
                 "type-btn": "打开打字测试",
-                
+
                 "neonchat-title": "霓虹聊天",
                 "neonchat-desc": "一个霓虹主题的聊天应用，与朋友保持联系",
                 "neonchat-btn": "打开霓虹聊天",
