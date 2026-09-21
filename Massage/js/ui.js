@@ -33,6 +33,7 @@ class UIManager {
         }
 
         const award = this.pendingPointsAward;
+        const stepInterval = award <= 10 ? 200 : 100;
 
         this.pointsBurstTimeout = setTimeout(() => {
             let count = 0;
@@ -51,7 +52,7 @@ class UIManager {
                     clearInterval(this.pointsBurstInterval);
                     this.pointsBurstInterval = null;
                 }
-            }, 100);
+            }, stepInterval);
         }, 300);
     }
 
