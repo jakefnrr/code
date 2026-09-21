@@ -120,6 +120,9 @@
     var activePeer = null;    // username key of the open chat
     var searchTerm = "";
 
+    // -1 means "rebuild the suggestion list next time it is needed"
+    var pendingSuggestions = -1;
+
     /* ------------------------------------------------------
        TINY SIMULATED FRIEND REPLIES
        ------------------------------------------------------ */
@@ -564,6 +567,7 @@
         fail("new-error", "");
         $("new-name").value = "";
         modal.classList.remove("hidden");
+        renderSuggestions();
         $("new-name").focus();
     });
 
@@ -579,9 +583,15 @@
         if (e.key === "Escape") modal.classList.add("hidden");
     });
 
-    $("new-create").addEventListener("click", createChat);
-    $("new-name").addEventListener("keydown", function (e) {
-        if (e.key === "Enter") createChat();
+    // submitting the form works with both the button and Enter
+    $("new-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        createChat();
+    });
+
+    $("btn-new").addEventListener("click", function () {
+        // refresh the suggestions next time the modal opens
+        pendingSuggestions = -1;
     });
 
     function createChat() {
@@ -589,27 +599,61 @@
         fail("new-error", "");
 
         var name = pretty($("new-name").value);
+        var rawUser = norm($("new-user").value);
 
         if (name.length < 2) {
             return fail("new-error", "Give them a name with at least 2 characters.");
         }
 
+        var username = "";
+
+        if (rawUser) {
+            if (!/^[a-z0-9_.]+$/.test(rawUser)) {
+                return fail(
+                    "new-error",
+                    "Usernames can only use letters, numbers, _ and ."
+                );
+            }
+            username = rawUser;
+        }
+
+        addPerson(name, username, false);
+    }
+
+    /* ------------------------------------------------------
+       ADD A PERSON
+       Used by both the form and the one-click suggestion
+       chips, so adding someone always behaves the same.
+       ------------------------------------------------------ */
+
+    function addPerson(name, username, fromSuggestion) {
+
         var chats = myChats();
 
-        // reuse an existing chat if the name matches
+        // already added? don't make a duplicate
         var existing = Object.keys(chats).filter(function (k) {
+            if (username && chats[k].username) {
+                return chats[k].username === username;
+            }
             return norm(chats[k].name) === norm(name);
         })[0];
 
         if (existing) {
+            resetNewForm();
             modal.classList.add("hidden");
+
+            searchTerm = "";
+            $("search").value = "";
+
+            renderPeople();
             openChatWith(existing);
-            banner("You already have a chat with " + name);
-            return;
+
+            banner(name + " is already in your chats");
+            return existing;
         }
 
         // stable, readable key
-        var base = norm(name).replace(/[^a-z0-9_.]/g, "");
+        var base = username || norm(name).replace(/[^a-z0-9_.]/g, "");
         if (!base) base = "friend";
 
         var key = base;
@@ -621,6 +665,7 @@
 
         chats[key] = {
             name: name,
+            username: username || "",
             created: nowStamp(),
             pendingReply: false,
             messages: [
@@ -634,13 +679,112 @@
 
         saveDB();
 
-        $("new-name").value = "";
+        resetNewForm();
         modal.classList.add("hidden");
+
+        // clear the search so the new person is definitely visible
+        searchTerm = "";
+        $("search").value = "";
 
         renderPeople();
         openChatWith(key);
 
-        banner("Chat started with " + name);
+        banner(
+            fromSuggestion
+                ? "Added " + name + " — say hi!"
+                : "Added " + name + " to your chats"
+        );
+
+        return key;
+    }
+
+    function resetNewForm() {
+        $("new-name").value = "";
+        $("new-user").value = "";
+        fail("new-error", "");
+        pendingSuggestions = -1;
+    }
+
+    /* ------------------------------------------------------
+       WHO ELSE HAS AN ACCOUNT ON THIS DEVICE
+       Anyone who has signed up here can be added in one
+       click, without typing their name by hand.
+       ------------------------------------------------------ */
+
+    function knownPeople() {
+
+        var chats = myChats();
+
+        return Object.keys(db.users)
+
+            // not you
+            .filter(function (user) { return user !== currentUser; })
+
+            // not somebody you already added
+            .filter(function (user) { return !chats[user]; })
+
+            .map(function (user) {
+                return {
+                    username: user,
+                    display: db.users[user].display || user
+                };
+            });
+    }
+
+    function renderSuggestions() {
+
+        var list = $("suggest-list");
+        var people = knownPeople();
+
+        pendingSuggestions = people.length;
+
+        list.innerHTML = "";
+
+        if (!people.length) {
+            $("suggest-wrap").classList.add("hidden");
+            return;
+        }
+
+        $("suggest-wrap").classList.remove("hidden");
+
+        people.forEach(function (person) {
+
+            var chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "suggest-chip";
+
+            var av = document.createElement("span");
+            av.className = "suggest-avatar";
+            av.textContent = initials(person.display);
+
+            var text = document.createElement("span");
+            text.className = "suggest-text";
+
+            var nm = document.createElement("span");
+            nm.className = "suggest-name";
+            nm.textContent = person.display;
+
+            var un = document.createElement("span");
+            un.className = "suggest-user";
+            un.textContent = "@" + person.username;
+
+            text.appendChild(nm);
+            text.appendChild(un);
+
+            var plus = document.createElement("span");
+            plus.className = "suggest-plus";
+            plus.textContent = "+ ADD";
+
+            chip.appendChild(av);
+            chip.appendChild(text);
+            chip.appendChild(plus);
+
+            chip.addEventListener("click", function () {
+                addPerson(person.display, person.username, true);
+            });
+
+            list.appendChild(chip);
+        });
     }
 
     /* ------------------------------------------------------

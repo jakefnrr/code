@@ -200,24 +200,37 @@
      ============================================================ -->
 <div class="modal hidden" id="modal">
 
-    <div class="modal-box">
+    <form class="modal-box" id="new-form">
 
-        <h2>Start a new chat</h2>
-        <p class="lead">Type a name and pinghug will add them to your list.</p>
+        <h2>Add someone new</h2>
+        <p class="lead">
+            Add a person by name or username and green chat will start a
+            conversation with them.
+        </p>
 
         <label class="field">
             <span>Their name</span>
-            <input type="text" id="new-name" placeholder="Sam" maxlength="24" autocomplete="off">
+            <input type="text" id="new-name" placeholder="Sam" maxlength="24" autocomplete="off" required>
         </label>
+
+        <label class="field">
+            <span>Username <em class="opt">(optional)</em></span>
+            <input type="text" id="new-user" placeholder="sam" maxlength="18" autocomplete="off">
+        </label>
+
+        <div class="suggest" id="suggest-wrap">
+            <div class="suggest-label">People on this device</div>
+            <div class="suggest-list" id="suggest-list"></div>
+        </div>
 
         <div class="form-error" id="new-error"></div>
 
         <div class="modal-actions">
             <button class="btn ghost" id="new-cancel" type="button">CANCEL</button>
-            <button class="btn solid" id="new-create" type="button">START CHAT</button>
+            <button class="btn solid" type="submit">ADD PERSON</button>
         </div>
 
-    </div>
+    </form>
 
 </div>
 
