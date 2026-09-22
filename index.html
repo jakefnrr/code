@@ -111,6 +111,34 @@
             color: #fff;
         }
 
+        /* MONEY BUTTON (JAKE MODE) */
+        #money-button {
+            display: none;
+            align-items: center;
+
+            padding: 7px 14px;
+
+            background: #111;
+            color: #00ff88;
+
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        #money-button:hover {
+            background: #00ff88;
+            color: #000;
+        }
+
         .lang-arrows {
             color: #888;
             font-size: 8px;
@@ -514,6 +542,11 @@
                 </div>
 
             </div>
+
+            <!-- MONEY BUTTON (JAKE MODE) -->
+            <a id="money-button" href="Money/index.html">
+                Money
+            </a>
 
         </div>
 
@@ -1338,6 +1371,9 @@
         const grindDescription =
             document.getElementById("grind-description");
 
+        const moneyButton =
+            document.getElementById("money-button");
+
         let jakeMode = false;
         const CODE_ENTERED_KEY = "project-hub-code-entered";
 
@@ -1400,6 +1436,9 @@
 
                 // SHOW NORMAL MODE BUTTON
                 normalModeButton.style.display = "block";
+
+                // SHOW MONEY BUTTON
+                moneyButton.style.display = "flex";
 
                 if (showMessage) {
                     // Show Jake Mode message
@@ -1485,6 +1524,9 @@
 
                 // HIDE NORMAL MODE BUTTON
                 normalModeButton.style.display = "none";
+
+                // HIDE MONEY BUTTON
+                moneyButton.style.display = "none";
 
                 // SHOW CODE SPOT AGAIN
                 secretArea.style.display = "flex";
