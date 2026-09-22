@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#080808;color:#eee;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:20;height:46px;display:flex;justify-content:space-between;align-items:center;background:#222;border-bottom:1px solid #3a3a3a;padding:0 16px}
+.money-logo{font-size:15px;font-weight:800;letter-spacing:2px;color:#eee}
+.all-projects{display:inline-block;color:#00ff88;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;text-decoration:none;border:1px solid #00ff88;border-radius:8px;padding:8px 16px;transition:all .2s}
+.all-projects:hover{background:#00ff88;color:#000}
+.tabs{display:flex;background:#111;border-bottom:2px solid #00ff88;position:sticky;top:46px;z-index:10}
+.tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:15px;color:#888;transition:all .2s}
+.tab.active{color:#00ff88;border-bottom:3px solid #00ff88;margin-bottom:-2px}
+.tab:hover{color:#ccc}
+.container{max-width:700px;margin:0 auto;padding:16px}
+.panel{background:#111;border-radius:12px;padding:16px;margin-bottom:16px}
+.total-box{text-align:center;padding:20px;background:linear-gradient(135deg,#111,#1a1a1a);border:2px solid #00ff88;border-radius:12px;margin-bottom:16px}
+.total-label{font-size:13px;color:#888;margin-bottom:4px}
+.total-amount{font-size:36px;font-weight:800;color:#00ff88}
+.section-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title.blue{color:#4488ff}
+.section-title.purple{color:#aa66ff}
+.section-title.green{color:#00ff88}
+.section-title.red{color:#ff4444}
+.add-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.add-row select,.add-row input{background:#1a1a1a;border:1px solid #333;color:#eee;padding:10px 12px;border-radius:8px;font-size:14px;outline:none}
+.add-row select:focus,.add-row input:focus{border-color:#00ff88}
+.add-row select{flex:1;min-width:110px}
+.add-row input.amount{flex:1;min-width:100px}
+.add-row input.note{flex:2;min-width:120px}
+.btn{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;transition:all .2s}
+.btn:active{transform:scale(0.95)}
+.btn-green{background:#00ff88;color:#000}
+.btn-green:hover{background:#00cc6a}
+.btn-blue{background:#4488ff;color:#fff}
+.btn-blue:hover{background:#3377ee}
+.btn-purple{background:#aa66ff;color:#fff}
+.btn-purple:hover{background:#9955ee}
+.btn-red{background:#ff4444;color:#fff}
+.btn-red:hover{background:#dd2222}
+.btn-gray{background:#333;color:#ccc}
+.btn-gray:hover{background:#444}
+.btn-sm{padding:6px 10px;font-size:11px}
+.entry-list{max-height:400px;overflow-y:auto}
+.entry-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:#1a1a1a;flex-wrap:wrap;gap:6px}
+.entry-info{flex:1;min-width:120px}
+.entry-amount{font-weight:700;font-size:15px}
+.entry-amount.green{color:#00ff88}
+.entry-amount.blue{color:#4488ff}
+.entry-amount.purple{color:#aa66ff}
+.entry-note{font-size:12px;color:#888;margin-top:2px}
+.entry-date{font-size:11px;color:#555}
+.entry-actions{display:flex;gap:4px;flex-wrap:wrap}
+.empty-msg{color:#555;text-align:center;padding:16px;font-size:13px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.backup-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+input[type=file]{display:none}
+@media(max-width:500px){
+.add-row{flex-direction:column}
+.add-row select,.add-row input{width:100%}
+.entry-item{flex-direction:column;align-items:flex-start}
+.entry-actions{width:100%}
+.entry-actions .btn{flex:1}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+<div class="money-logo">MONEY</div>
+<a href="../index.html" class="all-projects">ALL PROJECTS</a>
+</div>
+<div class="tabs">
+<div class="tab active" data-tab="all" onclick="switchTab('all')">All</div>
+<div class="tab" data-tab="massage" onclick="switchTab('massage')">Massage</div>
+<div class="tab" data-tab="smarthome" onclick="switchTab('smarthome')">SmartHome</div>
+<div class="tab" data-tab="lucky" onclick="switchTab('lucky')">Lucky</div>
+<div class="tab" data-tab="other" onclick="switchTab('other')">Other</div>
+</div>
+<div class="container">
+<div class="tab-content active" id="tab-all"></div>
+<div class="tab-content" id="tab-massage"></div>
+<div class="tab-content" id="tab-smarthome"></div>
+<div class="tab-content" id="tab-lucky"></div>
+<div class="tab-content" id="tab-other"></div>
+<div class="panel">
+<div class="backup-row">
+<button class="btn btn-gray" onclick="backupData()">Backup JSON</button>
+<button class="btn btn-gray" onclick="document.getElementById('restoreFile').click()">Restore JSON</button>
+<input type="file" id="restoreFile" accept=".json" onchange="restoreData(event)">
+</div>
+</div>
+</div>
+<script>
+window.DB_NAME='MoneyTrackerDB';
+window.DB_VERSION=1;
+window.STORE_NAME='entries';
+window.db=null;
+window.currentTab='massage';
+window.tabs=['massage','smarthome','lucky','other'];
+window.initDB=function(){
+return new Promise(function(resolve,reject){
+var req=indexedDB.open(DB_NAME,DB_VERSION);
+req.onupgradeneeded=function(e){
+var db=e.target.result;
+if(!db.objectStoreNames.contains(STORE_NAME)){
+var store=db.createObjectStore(STORE_NAME,{keyPath:'id',autoIncrement:true});
+store.createIndex('tab','tab',{unique:false});
+store.createIndex('type','type',{unique:false});
+store.createIndex('tab_type','tab_type',{unique:false});
+}
+};
+req.onsuccess=function(e){
+db=e.target.result;
+resolve(db);
+};
+req.onerror=function(e){
+reject(e);
+};
+});
+};
+window.getAllEntries=function(){
+return new Promise(function(resolve,reject){
+var tx=db.transaction(STORE_NAME,'readonly');
+var store=tx.objectStore(STORE_NAME);
+var req=store.getAll();
+req.onsuccess=function(){resolve(req.result);};
+req.onerror=function(){reject(req.error);};
+});
+};
+window.addEntry=function(tab,type,amount,note){
+return new Promise(function(resolve,reject){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+var entry={tab:tab,type:type,tab_type:tab+'_'+type,amount:parseFloat(amount),note:note||'',date:new Date().toISOString()};
+var req=store.add(entry);
+req.onsuccess=function(){resolve(req.result);};
+req.onerror=function(){reject(req.error);};
+});
+};
+window.deleteEntry=function(id){
+return new Promise(function(resolve,reject){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+var req=store.delete(id);
+req.onsuccess=function(){resolve();};
+req.onerror=function(){reject(req.error);};
+});
+};
+window.updateEntry=function(id,data){
+return new Promise(function(resolve,reject){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+var req=store.put(data);
+req.onsuccess=function(){resolve();};
+req.onerror=function(){reject(req.error);};
+});
+};
+window.switchTab=function(tab){
+window.currentTab=tab;
+document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
+document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active')});
+document.getElementById('tab-'+tab).classList.add('active');
+renderAll();
+};
+window.renderAll=function(){
+getAllEntries().then(function(entries){
+tabs.forEach(function(tab){
+renderTab(tab,entries);
+});
+renderAllTab(entries);
+});
+};
+window.renderTab=function(tab,entries){
+var tabEntries=entries.filter(function(e){return e.tab===tab;}).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+var earnings=tabEntries.filter(function(e){return e.type==='earning';});
+var banks=tabEntries.filter(function(e){return e.type==='bank';});
+var mommies=tabEntries.filter(function(e){return e.type==='mommy';});
+var totalEarned=earnings.reduce(function(s,e){return s+e.amount;},0);
+var totalBank=banks.reduce(function(s,e){return s+e.amount;},0);
+var totalMommy=mommies.reduce(function(s,e){return s+e.amount;},0);
+var el=document.getElementById('tab-'+tab);
+var html='<div class="total-box">';
+html+='<div class="total-label">Total Earned</div>';
+html+='<div class="total-amount">฿'+totalEarned.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='<div class="panel">';
+html+='<div class="section-title green">➕ Add Entry</div>';
+html+='<div class="add-row">';
+html+='<select id="type-'+tab+'">';
+html+='<option value="earning">Earning</option>';
+html+='<option value="bank">Bank</option>';
+html+='<option value="mommy">Mommy</option>';
+html+='</select>';
+html+='<input type="number" class="amount" id="amount-'+tab+'" placeholder="Amount (฿)" step="0.01" min="0">';
+html+='<input type="text" class="note" id="note-'+tab+'" placeholder="Note">';
+html+='<button class="btn btn-green" onclick="handleAdd(\''+tab+'\')">Add</button>';
+html+='</div>';
+html+='</div>';
+if(banks.length>0){
+html+='<div class="panel">';
+html+='<div class="section-title blue">🏦 Bank (฿'+totalBank.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+')</div>';
+html+='<div class="entry-list">';
+banks.forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount blue">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='<div class="entry-actions">';
+html+='<button class="btn btn-gray btn-sm" onclick="handleRestore('+e.id+')">Restore</button>';
+html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
+html+='</div></div>';
+});
+html+='</div></div>';
+}
+if(mommies.length>0){
+html+='<div class="panel">';
+html+='<div class="section-title purple">💜 Mommy (฿'+totalMommy.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+')</div>';
+html+='<div class="entry-list">';
+mommies.forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount purple">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='<div class="entry-actions">';
+html+='<button class="btn btn-gray btn-sm" onclick="handleRestore('+e.id+')">Restore</button>';
+html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
+html+='</div></div>';
+});
+html+='</div></div>';
+}
+html+='<div class="panel">';
+html+='<div class="section-title green">📋 History</div>';
+html+='<div class="entry-list">';
+if(earnings.length===0){
+html+='<div class="empty-msg">No entries yet</div>';
+}
+earnings.forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount green">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='<div class="entry-actions">';
+html+='<button class="btn btn-blue btn-sm" onclick="handleToBank('+e.id+','+e.amount+')">Bank</button>';
+html+='<button class="btn btn-purple btn-sm" onclick="handleToMommy('+e.id+','+e.amount+')">Mommy</button>';
+html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
+html+='</div></div>';
+});
+html+='</div></div>';
+el.innerHTML=html;
+};
+window.renderAllTab=function(entries){
+var el=document.getElementById('tab-all');
+var earnings=entries.filter(function(e){return e.type==='earning';});
+var banks=entries.filter(function(e){return e.type==='bank';});
+var mommies=entries.filter(function(e){return e.type==='mommy';});
+var totalEarned=earnings.reduce(function(s,e){return s+e.amount;},0);
+var totalBank=banks.reduce(function(s,e){return s+e.amount;},0);
+var totalMommy=mommies.reduce(function(s,e){return s+e.amount;},0);
+var totalLost=totalBank+totalMommy;
+var html='<div class="total-box">';
+html+='<div class="total-label">Total Earned (All Categories)</div>';
+html+='<div class="total-amount">฿'+totalEarned.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='<div class="panel">';
+html+='<div class="section-title red">💸 Total Lost</div>';
+html+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+html+='<div style="flex:1;min-width:120px;background:#1a1a1a;border-radius:8px;padding:12px;text-align:center">';
+html+='<div style="font-size:12px;color:#4488ff;margin-bottom:4px">🏦 Bank</div>';
+html+='<div style="font-size:20px;font-weight:700;color:#4488ff">฿'+totalBank.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div style="font-size:11px;color:#555">'+banks.length+' entries</div>';
+html+='</div>';
+html+='<div style="flex:1;min-width:120px;background:#1a1a1a;border-radius:8px;padding:12px;text-align:center">';
+html+='<div style="font-size:12px;color:#aa66ff;margin-bottom:4px">💜 Mommy</div>';
+html+='<div style="font-size:20px;font-weight:700;color:#aa66ff">฿'+totalMommy.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div style="font-size:11px;color:#555">'+mommies.length+' entries</div>';
+html+='</div>';
+html+='<div style="flex:1;min-width:120px;background:#1a1a1a;border-radius:8px;padding:12px;text-align:center">';
+html+='<div style="font-size:12px;color:#ff4444;margin-bottom:4px">Sum Lost</div>';
+html+='<div style="font-size:20px;font-weight:700;color:#ff4444">฿'+totalLost.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div style="font-size:11px;color:#555">'+(banks.length+mommies.length)+' entries</div>';
+html+='</div>';
+html+='</div></div>';
+html+='<div class="panel">';
+html+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+html+='<div style="flex:1;min-width:140px;background:#1a1a1a;border-radius:8px;padding:14px;text-align:center">';
+html+='<div style="font-size:12px;color:#888;margin-bottom:4px">Massage</div>';
+html+='<div style="font-size:18px;font-weight:700;color:#00ff88">฿'+entries.filter(function(e){return e.tab==='massage'&&e.type==='earning'}).reduce(function(s,e){return s+e.amount;},0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='<div style="flex:1;min-width:140px;background:#1a1a1a;border-radius:8px;padding:14px;text-align:center">';
+html+='<div style="font-size:12px;color:#888;margin-bottom:4px">SmartHome</div>';
+html+='<div style="font-size:18px;font-weight:700;color:#00ff88">฿'+entries.filter(function(e){return e.tab==='smarthome'&&e.type==='earning'}).reduce(function(s,e){return s+e.amount;},0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='<div style="flex:1;min-width:140px;background:#1a1a1a;border-radius:8px;padding:14px;text-align:center">';
+html+='<div style="font-size:12px;color:#888;margin-bottom:4px">Lucky</div>';
+html+='<div style="font-size:18px;font-weight:700;color:#00ff88">฿'+entries.filter(function(e){return e.tab==='lucky'&&e.type==='earning'}).reduce(function(s,e){return s+e.amount;},0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='<div style="flex:1;min-width:140px;background:#1a1a1a;border-radius:8px;padding:14px;text-align:center">';
+html+='<div style="font-size:12px;color:#888;margin-bottom:4px">Other</div>';
+html+='<div style="font-size:18px;font-weight:700;color:#00ff88">฿'+entries.filter(function(e){return e.tab==='other'&&e.type==='earning'}).reduce(function(s,e){return s+e.amount;},0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='</div>';
+html+='</div></div>';
+html+='<div class="panel">';
+html+='<div class="section-title green">📋 All Earnings</div>';
+html+='<div class="entry-list">';
+if(earnings.length===0){html+='<div class="empty-msg">No entries yet</div>';}
+earnings.sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount green">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div class="entry-note" style="color:#888">'+escapeHtml(e.tab.charAt(0).toUpperCase()+e.tab.slice(1))+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='</div>';
+});
+html+='</div></div>';
+if(banks.length>0){
+html+='<div class="panel">';
+html+='<div class="section-title blue">🏦 All Bank Entries</div>';
+html+='<div class="entry-list">';
+banks.sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount blue">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div class="entry-note" style="color:#888">'+escapeHtml(e.tab.charAt(0).toUpperCase()+e.tab.slice(1))+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='</div>';
+});
+html+='</div></div>';
+}
+if(mommies.length>0){
+html+='<div class="panel">';
+html+='<div class="section-title purple">💜 All Mommy Entries</div>';
+html+='<div class="entry-list">';
+mommies.sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(e){
+html+='<div class="entry-item">';
+html+='<div class="entry-info"><div class="entry-amount purple">฿'+e.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
+html+='<div class="entry-note" style="color:#888">'+escapeHtml(e.tab.charAt(0).toUpperCase()+e.tab.slice(1))+'</div>';
+if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
+html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
+html+='</div>';
+});
+html+='</div></div>';
+}
+el.innerHTML=html;
+};
+window.handleAdd=function(tab){
+var typeEl=document.getElementById('type-'+tab);
+var amountEl=document.getElementById('amount-'+tab);
+var noteEl=document.getElementById('note-'+tab);
+var type=typeEl.value;
+var amount=amountEl.value;
+var note=noteEl.value.trim();
+if(!amount||isNaN(amount)||parseFloat(amount)<=0){return;}
+addEntry(tab,type,amount,note).then(function(){
+amountEl.value='';
+noteEl.value='';
+renderAll();
+});
+};
+window.handleDelete=function(id){
+deleteEntry(id).then(function(){renderAll();});
+};
+window.handleToBank=function(id,amount){
+var note='Transferred to bank';
+addEntry(currentTab,'bank',amount,note).then(function(){
+return deleteEntry(id);
+}).then(function(){renderAll();});
+};
+window.handleToMommy=function(id,amount){
+var note='Transferred to mommy';
+addEntry(currentTab,'mommy',amount,note).then(function(){
+return deleteEntry(id);
+}).then(function(){renderAll();});
+};
+window.handleRestore=function(id){
+getAllEntries().then(function(entries){
+var entry=entries.find(function(e){return e.id===id;});
+if(!entry)return;
+addEntry(entry.tab,'earning',entry.amount,entry.note).then(function(){
+return deleteEntry(id);
+}).then(function(){renderAll();});
+});
+};
+window.escapeHtml=function(str){
+var div=document.createElement('div');
+div.appendChild(document.createTextNode(str));
+return div.innerHTML;
+};
+window.formatDate=function(iso){
+var d=new Date(iso);
+var day=d.getDate().toString().padStart(2,'0');
+var month=(d.getMonth()+1).toString().padStart(2,'0');
+var year=d.getFullYear();
+var hours=d.getHours().toString().padStart(2,'0');
+var mins=d.getMinutes().toString().padStart(2,'0');
+return day+'/'+month+'/'+year+' '+hours+':'+mins;
+};
+window.backupData=function(){
+getAllEntries().then(function(entries){
+var blob=new Blob([JSON.stringify(entries,null,2)],{type:'application/json'});
+var url=URL.createObjectURL(blob);
+var a=document.createElement('a');
+a.href=url;
+a.download='money-tracker-backup-'+new Date().toISOString().slice(0,10)+'.json';
+a.click();
+URL.revokeObjectURL(url);
+});
+};
+window.restoreData=function(event){
+var file=event.target.files[0];
+if(!file)return;
+var reader=new FileReader();
+reader.onload=function(e){
+try{
+var entries=JSON.parse(e.target.result);
+if(!Array.isArray(entries)){alert('Invalid backup file');return;}
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+store.clear();
+entries.forEach(function(entry){
+store.add(entry);
+});
+tx.oncomplete=function(){renderAll();};
+tx.onerror=function(){alert('Error restoring data');};
+}catch(err){
+alert('Error parsing JSON file');
+}
+};
+reader.readAsText(file);
+event.target.value='';
+};
+initDB().then(function(){renderAll();});
+</script></body>
+</html>
