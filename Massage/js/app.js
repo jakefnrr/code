@@ -65,9 +65,9 @@ function setupEventListeners() {
     });
 
     // Free massage buttons
-    document.getElementById('free-5min').addEventListener('click', () => startFreeMassage(5, 30));
-    document.getElementById('free-10min').addEventListener('click', () => startFreeMassage(10, 60));
-    document.getElementById('free-15min').addEventListener('click', () => startFreeMassage(15, 90));
+    document.getElementById('free-5min').addEventListener('click', () => startFreeMassage(5));
+    document.getElementById('free-10min').addEventListener('click', () => startFreeMassage(10));
+    document.getElementById('free-15min').addEventListener('click', () => startFreeMassage(15));
 
     // Session setup back button
     document.getElementById('session-setup-back').addEventListener('click', () => {
@@ -84,8 +84,7 @@ function setupEventListeners() {
 
     // Start free session button
     document.getElementById('start-free-session-btn').addEventListener('click', () => {
-        const minutes = parseInt(document.getElementById('free-session-setup-title').textContent.match(/\d+/)[0]);
-        startFreeSession(minutes);
+        startFreeSession(ui.pendingFreeSessionMin);
     });
 
     // Finish session button
@@ -105,34 +104,6 @@ function setupEventListeners() {
             confirmPayment();
         }
     });
-
-    // Clear all data button
-    document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
-}
-
-async function clearAllData() {
-    const confirmed = confirm('Are you sure you want to clear ALL data? This cannot be undone.');
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-        if (sessionManager.timerInterval) {
-            clearInterval(sessionManager.timerInterval);
-            sessionManager.timerInterval = null;
-        }
-        sessionManager.clearCurrentSession();
-
-        await storage.clearAllData();
-        await pointsManager.initialize();
-        await historyManager.initialize();
-        await totalsManager.initialize();
-        await ui.refreshAllDisplays();
-        alert('All data cleared.');
-    } catch (error) {
-        console.error('Failed to clear data:', error);
-        alert('Failed to clear data. Please try again.');
-    }
 }
 
 async function startPaidSession() {
@@ -154,39 +125,20 @@ async function startPaidSession() {
     }
 }
 
-async function startFreeMassage(minutes, requiredPoints) {
-    try {
-        const points = await pointsManager.getPoints();
-        if (points < requiredPoints) {
-            alert(`You need ${requiredPoints} points for a free ${minutes} minute massage.`);
-            return;
-        }
-
-        ui.showFreeSessionSetup(minutes);
-    } catch (error) {
-        console.error('Failed to check points:', error);
-        alert('Failed to check points. Please try again.');
-    }
+async function startFreeMassage(minutes) {
+    ui.showFreePasswordScreen(minutes);
 }
 
 async function startFreeSession(minutes) {
     try {
-        const requiredPoints = minutes * 6; // 5 min = 30 points, so 1 min = 6 points
         const durationSeconds = minutes * 60;
-
-        // Deduct points
-        await pointsManager.deductPoints(requiredPoints);
 
         // Start session
         await sessionManager.startSession(durationSeconds, 0, false);
         ui.showActiveSession(minutes, 0, false);
     } catch (error) {
         console.error('Failed to start free session:', error);
-        if (error.message === 'Insufficient points') {
-            alert('Not enough points for this free massage.');
-        } else {
-            alert('Failed to start free session. Please try again.');
-        }
+        alert('Failed to start free session. Please try again.');
     }
 }
 
@@ -201,15 +153,14 @@ async function finishSession() {
         } else {
             // Free session - just record and return to main
             const minutes = session.duration / 60;
-            const pointsUsed = minutes * 6; // 1 min = 6 points for free massages
 
-            await historyManager.addFreeEntry(minutes, pointsUsed);
+            await historyManager.addFreeEntry(minutes, 0);
             await totalsManager.updateTotals(minutes, 0, false);
             
             // Clear session data
             sessionManager.clearCurrentSession();
 
-            ui.showSuccessScreen('Free Massage Completed!');
+            ui.showSuccessScreen('Free Massage Completed!\nJake will update the Notes app later. He will update your points and massage history.');
         }
     } catch (error) {
         console.error('Failed to finish session:', error);
@@ -234,7 +185,16 @@ async function confirmPayment() {
     try {
         if (password !== PAYMENT_PASSWORD) {
             ui.showPaymentError('Incorrect password. Please try again.');
-            isProcessingPayment = false;
+            return;
+        }
+
+        // Free massage confirmation (no money involved, just confirms you can use it)
+        if (ui.pendingFreeMassage !== null) {
+            const minutes = ui.pendingFreeMassage;
+            ui.pendingFreeMassage = null;
+            document.getElementById('password-input').value = '';
+            document.getElementById('payment-error').textContent = '';
+            ui.showFreeSessionSetup(minutes);
             return;
         }
 
@@ -242,7 +202,6 @@ async function confirmPayment() {
         const session = sessionManager.getCurrentSession();
         if (!session) {
             ui.showPaymentError('Session data not found. Please try again.');
-            isProcessingPayment = false;
             return;
         }
 
@@ -262,7 +221,7 @@ async function confirmPayment() {
         // Clear session data
         sessionManager.clearCurrentSession();
 
-        ui.showSuccessScreen('Payment Confirmed!');
+        ui.showSuccessScreen('Payment Confirmed!\nJake will update the Notes app later. He will update your points and massage history.');
     } catch (error) {
         console.error('Payment confirmation failed:', error);
         if (error.message === 'Duplicate entry') {

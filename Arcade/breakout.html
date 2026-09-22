@@ -40,7 +40,5 @@ setInterval(update,1000/60);requestAnimationFrame(draw);
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')keys.left=true;if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')keys.right=true;if(e.key===' '&&state!=='play')reset()});document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')keys.left=false;if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')keys.right=false});
 c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();paddle&&(paddle.x=(e.clientX-r.left)/r.width*W-paddle.w/2)});function bind(btn,key){const press=e=>{e.preventDefault();keys[key]=true;btn.classList.add('down');if(state!=='play')reset()},rel=e=>{e.preventDefault();keys[key]=false;btn.classList.remove('down')};btn.addEventListener('pointerdown',press,{passive:false});btn.addEventListener('pointerup',rel,{passive:false});btn.addEventListener('pointercancel',rel,{passive:false});btn.addEventListener('pointerleave',rel,{passive:false});btn.addEventListener('touchstart',press,{passive:false});btn.addEventListener('touchend',rel,{passive:false});btn.addEventListener('touchcancel',rel,{passive:false})}bind(leftBtn,'left');bind(rightBtn,'right');
 newGameBtn.onclick=reset;backBtn.onclick=()=>location.href='index.html';hud();
-</script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+</script></body>
 </html>

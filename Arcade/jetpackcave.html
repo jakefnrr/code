@@ -86,7 +86,5 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')location.href='index
 function bindHold(el){el.onpointerdown=e=>{e.preventDefault();if(el.setPointerCapture)el.setPointerCapture(e.pointerId);setFly(true)};el.onpointerup=el.onpointercancel=el.onlostpointercapture=e=>{setFly(false)};el.onpointerleave=e=>{if(e.pointerType==='mouse')setFly(false)};el.ontouchstart=e=>e.preventDefault()}
 bindHold(flyBtn);bindHold(c);document.addEventListener('pointerdown',e=>{if(e.target.closest('button')||e.target.closest('#shop'))return;e.preventDefault();setFly(true)},{passive:false});document.addEventListener('pointerup',()=>setFly(false));document.addEventListener('pointercancel',()=>setFly(false));
 playAgain.onclick=()=>reset();shopBtn.onclick=()=>{renderShop();shop.classList.add('open')};closeShop.onclick=()=>shop.classList.remove('open');document.getElementById('back').onclick=()=>location.href='index.html';hud();
-</script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+</script></body>
 </html>

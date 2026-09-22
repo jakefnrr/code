@@ -44,32 +44,36 @@ function singleTarget(n){return n.branches[0]?n.branches[0].target:null;}
 function setSingle(n,t){if(!n.branches[0])n.branches.push(br("",t));else n.branches[0].target=t;}
 function actName(t){return t==="email"?"email":t==="log"?"log":"webhook";}
 
-function seed(){
- nodes=[
-  {id:"s1",type:"start",label:"Start",x:100,y:210,content:"Hi, I'm Nova — your store assistant. I can track orders, share hours and run refunds.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s2")]},
-  {id:"s2",type:"message",label:"Intro",x:400,y:210,content:"Ask me about an order, store hours, or returns. Type 'human' anytime to talk to a person.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s3")]},
-  {id:"s3",type:"question",label:"Main menu",x:700,y:210,content:"What would you like help with today?",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("Check my order","s4"),br("Store hours","s5"),br("Start a refund","s6"),br("Just browsing","s7")]},
-  {id:"s4",type:"question",label:"Order lookup",x:1000,y:120,content:"Please type your order number, e.g. ORD-1024.",hint:"It starts with ORD-",mode:"free",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("found","s8","ord-")]},
-  {id:"s5",type:"message",label:"Store hours",x:1000,y:420,content:"We're open Mon–Sat 9am–8pm and Sun 10am–6pm. Closed public holidays.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s10")]},
-  {id:"s6",type:"question",label:"Refunds",x:700,y:470,content:"Tell me a bit about the issue. Including your ORD- number speeds things up.",hint:"Include the ORD- number if you have it",mode:"free",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("refund route","s11","ord-")]},
-  {id:"s7",type:"message",label:"Browsing",x:700,y:760,content:"Feel free to browse. Ask me for product details or check out this week's deals.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s10")]},
-  {id:"s8",type:"action",label:"Fetch order",x:1300,y:100,content:"Fetching your order from the warehouse system…",hint:"",mode:"options",action:{type:"webhook",url:"https://api.example.com/orders",email:"",subject:"",message:"ORDER_LOOKUP"},branches:[br("","s12")]},
-  {id:"s9",type:"message",label:"Bad input",x:1300,y:320,content:"That doesn't look like a valid order number — please double-check it.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s4")]},
-  {id:"s10",type:"message",label:"Anything else?",x:1000,y:620,content:"Anything else I can help you with?",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s3")]},
-  {id:"s11",type:"action",label:"Refund request",x:1000,y:720,content:"Submitting your refund request…",hint:"",mode:"options",action:{type:"webhook",url:"https://api.example.com/refunds",email:"support@example.com",subject:"Refund request",message:"REFUND_REQUEST"},branches:[br("","s13")]},
-  {id:"s12",type:"message",label:"Order found",x:1600,y:100,content:"Found it! Your order shipped today and should arrive in 2–3 business days.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s10")]},
-  {id:"s13",type:"message",label:"Refund submitted",x:1300,y:800,content:"Your refund request is in. You'll get a confirmation email within the hour.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[br("","s10")]},
-  {id:"t1",type:"message",label:"Human handoff",x:1300,y:540,content:"No problem — connecting you with a human agent now. Please hold on the line.",hint:"",mode:"options",action:{type:"webhook",url:"",email:"",subject:"",message:""},branches:[]}
- ];
- store.name="Nova Assistant";
- store.fallback="Sorry, I didn't quite catch that. Could you rephrase it?";
- store.speed=600;
- store.ai={mode:"hybrid",model:"openai",kb:"Nova Store. Hours: Mon–Sat 9am–8pm, Sun 10am–6pm.\nShipping: free over $50, same-day dispatch, 2–3 business days.\nRefunds: accepted within 30 days, no questions asked.\nPlans: Standard $19/mo, Pro $49/mo with priority support.\nOrders: start with ORD-, e.g. ORD-1024."};
- store.triggers=[
-  {keywords:"human,agent,representative,person",nodeId:"t1",message:"One moment, I'll get you a real human."},
-  {keywords:"hi,hello,hey,yo,sup",nodeId:"s2",message:""}
- ];
+function normalizeFlow(d){
+ var out=[];
+ for(var i=0;i<d.nodes.length;i++){
+  var n=d.nodes[i];
+  var nn=mk(n.type||"message",n.x||100,n.y||100);
+  nn.id=n.id;nn.label=n.label||"";nn.content=n.content||"";nn.hint=n.hint||"";nn.mode=n.mode||"options";
+  nn.branches=(n.branches||[]).map(function(b){return br(b.label,b.target,b.match);});
+  nn.action=Object.assign({type:"webhook",url:"",email:"",subject:"",message:""},n.action||{});
+  out.push(nn);
+ }
+ return out;
 }
+
+function applyExample(key,confirmMsg){
+ var ex=window.EXAMPLES&&window.EXAMPLES[key];
+ if(!ex){toast("Example not found.",true);return;}
+ if(confirmMsg&&!confirm(confirmMsg))return;
+ var d=ex.store||{};
+ store.name=d.name||"Untitled";
+ store.fallback=d.fallback||store.fallback;
+ if(d.speed)store.speed=d.speed;
+ store.ai=Object.assign({mode:"hybrid",model:"openai",kb:""},d.ai||{});
+ store.triggers=(d.triggers||[]).map(function(t){return {keywords:t.keywords||"",nodeId:t.nodeId||"",message:t.message||""};});
+ nodes=normalizeFlow(ex);
+ sel=null;esel=null;
+ fitView();renderCanvas();renderInspector();updateAIPill();save();
+ toast("Loaded: "+ex.name);
+}
+
+function seed(){ applyExample("nova"); }
 
 function save(){
  try{localStorage.setItem(KEY,JSON.stringify({store:store,nodes:nodes,view:view}));}catch(e){}
@@ -626,7 +630,7 @@ function closeOverlays(){
  closeLeft();
 }
 
-function openTest(){ window.openTest(); }
+function runTest(){ if(window.flowRunner) window.flowRunner.openTest(); }
 
 function boot(){
  loadStore();
@@ -636,11 +640,17 @@ function boot(){
  renderCanvas();
  renderInspector();
  fitView();
+ try{
+  if(!localStorage.getItem("abc_tour_done")){
+   localStorage.setItem("abc_tour_done","1");
+   setTimeout(openTutorial,500);
+  }
+ }catch(e){}
 }
 boot();
 
-$("#btnTest").addEventListener("click",openTest);
-$("#chatRestart").addEventListener("click",function(){$("#chat").innerHTML="";openTest();});
+$("#btnTest").addEventListener("click",runTest);
+$("#chatRestart").addEventListener("click",function(){$("#chat").innerHTML="";runTest();});
 $("#btnSettings").addEventListener("click",openSettings);
 $("#btnCenter").addEventListener("click",fitView);
 $("#zin").addEventListener("click",function(){zoomAt($("#cwrap").clientWidth/2,$("#cwrap").clientHeight/2,1.18);});
@@ -657,20 +667,24 @@ document.addEventListener("click",function(e){if(!e.target.closest(".menumore"))
 $("#fab").addEventListener("click",function(){$("#palette").classList.toggle("open");syncBackdrop();});
 $("#backdrop").addEventListener("click",function(){closeInspector();closeLeft();});
 
+function openTutorial(){$("#ovHelp").classList.add("open");closeLeft();}
+
 document.querySelectorAll("#dropdown [data-a]").forEach(function(b){
  b.addEventListener("click",function(){
   $("#dropdown").classList.remove("open");
   var a=b.dataset.a;
   if(a==="sample"){
-   if(confirm("Replace the current flow with the sample template?")){seed();sel=null;esel=null;fitView();renderCanvas();renderInspector();updateAIPill();save();toast("Sample loaded.");}
+   applyExample("nova","Replace the current flow with the Nova example?");
+  }else if(a==="pizza"){
+   applyExample("pizza","Replace the current flow with the Pizza Bandit example?");
   }else if(a==="new"){
    if(confirm("Start a fresh blank flow? This replaces what's on the canvas.")){
     nodes=[];store.triggers=[];var st=mk("start",300,220);st.content="Hi! This is your new bot.";nodes.push(st);
     sel=st.id;esel=null;fitView();renderCanvas();renderInspector();save();toast("Blank flow created.");
    }
-  }else if(a==="import"){$("#importText").value="";$("#ovImport").classList.add("open");closeLeft();}
-  else if(a==="export"){$("#exportText").value=exportJson();$("#ovExport").classList.add("open");closeLeft();}
-  else if(a==="help"){$("#ovHelp").classList.add("open");closeLeft();}
+  }else if(a==="export"){$("#exportText").value=exportJson();$("#ovExport").classList.add("open");closeLeft();}
+  else if(a==="import"){$("#importText").value="";$("#ovImport").classList.add("open");closeLeft();}
+  else if(a==="tutorial"){openTutorial();}
  });
 });
 

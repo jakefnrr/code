@@ -33,13 +33,13 @@
   </div>
   <div class="menumore">
     <div class="dropdown" id="dropdown">
-      <button data-a="sample"><b>Load sample</b><span class="desc">Store assistant template with AI wiring</span></button>
+      <button data-a="sample"><b>Load example: Nova</b><span class="desc">Store assistant with AI + webhooks</span></button>
+      <button data-a="pizza"><b>Load example: Pizza Bandit</b><span class="desc">Order-taking bot with a loop</span></button>
       <button data-a="new"><b>New blank bot</b><span class="desc">Start from a single entry node</span></button>
       <hr>
-      <button data-a="import"><b>Import</b><span class="desc">Load a flow from JSON or a file</span></button>
+      <button data-a="tutorial"><b>Tutorial</b><span class="desc">Step-by-step how to build a bot</span></button>
       <button data-a="export"><b>Export JSON</b><span class="desc">Download or copy your flow</span></button>
-      <hr>
-      <button data-a="help">How it works</button>
+      <button data-a="import"><b>Import</b><span class="desc">Load a flow from JSON or a file</span></button>
     </div>
   </div>
 </header>
@@ -212,20 +212,44 @@
 <div class="overlay" id="ovHelp">
   <div class="modal">
     <div class="modal-head">
-      <h3>How it works</h3>
+      <h3>Tutorial<span class="sub">how to build a working chat bot in ~5 minutes</span></h3>
       <button class="x" data-close title="Close">&#10005;</button>
     </div>
     <div class="modal-body">
-      <div class="hintline" style="margin-bottom:12px"><b>Nodes</b> are the steps of a conversation. Drag one from the palette and click the canvas to place it.</div>
-      <div class="hintline" style="margin-bottom:12px"><b>Connections</b> — grab the green dot on a node's right edge and drag to another node. For <b>Question</b> nodes each connection becomes an option or a keyword route.</div>
-      <div class="hintline" style="margin-bottom:12px"><b>Question</b> nodes work two ways: fixed multiple-choice options, or free text matched against keyword rules. Anything the rules miss goes to the <b>AI brain</b>, which answers from your knowledge base using free cloud AI (Pollinations) or on-device NLU.</div>
-      <div class="hintline" style="margin-bottom:12px"><b>Action</b> nodes are automation: fire webhook POSTs or send emails when the flow reaches them.</div>
-      <div class="hintline" style="margin-bottom:12px"><b>AI writer</b> — pick any message or question, click <b>AI</b> in the inspector, type what the step should do, and it writes the copy for you.</div>
-      <div class="hintline" style="margin-bottom:12px"><b>Automation triggers</b> (Settings) listen globally — type "human" and any question hands off to your agent node.</div>
-      <div class="hintline">Everything autosaves in your browser. Use <b>Test</b> to run the flow, and <b>Export</b> to share it as JSON.</div>
+      <div class="tut-num">1</div>
+      <h4 class="tut-h">Run a finished bot first</h4>
+      <p class="tut-p">A full example is already loaded ("Nova"). Hit <b>Test</b> top-right and click through it — type "human" or an order number like <b>ORD-1024</b>. See how every reply maps to a node on the canvas.</p>
+
+      <div class="tut-num">2</div>
+      <h4 class="tut-h">Start your own</h4>
+      <p class="tut-p">Hamburger menu → <b>New blank bot</b>. You get a single Start node. The flow always begins there, and it always runs from Start when you press Test.</p>
+
+      <div class="tut-num">3</div>
+      <h4 class="tut-h">Drop nodes</h4>
+      <p class="tut-p">In the left palette click a type, then click the canvas to place it. <b>Message</b> says something. <b>Question</b> asks and routes. <b>Action</b> fires a webhook/email (automation). <b>End</b> stops the bot.</p>
+
+      <div class="tut-num">4</div>
+      <h4 class="tut-h">Connect them</h4>
+      <p class="tut-p">Drag the <b>green dot</b> on a node's right edge onto another node. For Question nodes, each line you draw becomes an option button or a keyword route.</p>
+
+      <div class="tut-num">5</div>
+      <h4 class="tut-h">Edit a node</h4>
+      <p class="tut-p">Click a node → edit in the right Inspector: label, the message it says, options/keywords, webhook URL. Message nodes have a <b>Next step</b> dropdown there too. Click an arrow line on the canvas to rename a route.</p>
+
+      <div class="tut-num">6</div>
+      <h4 class="tut-h">Make it smart</h4>
+      <p class="tut-p">In <b>Settings</b>, paste a short <b>Knowledge base</b> about your business. Any free-text reply your rules miss is answered by the free AI brain (cloud AI with an on-device fallback). The <b>AI write</b> button in the inspector writes message copy for you.</p>
+
+      <div class="tut-num">7</div>
+      <h4 class="tut-h">Keep it in a loop</h4>
+      <p class="tut-p">Every chain should end at End, or loop back to your main menu Question (drag a line back to it) so the chat never dies.</p>
+
+      <div class="tut-num">8</div>
+      <h4 class="tut-h">Save and share</h4>
+      <p class="tut-p">Everything autosaves in this browser. Use <b>Export JSON</b> to download your flow, and <b>Import</b> to load one later or on another computer. Need another starting point? Hamburger menu → <b>Load example: Pizza Bandit</b> — an order-taking bot with a loop.</p>
     </div>
     <div class="modal-foot">
-      <button class="btn primary" data-close>Got it</button>
+      <button class="btn primary" data-close>Got it — let's build</button>
     </div>
   </div>
 </div>
@@ -234,7 +258,6 @@
 
 <script src="js/ai.js"></script>
 <script src="js/flow.js"></script>
-<script src="js/app.js"></script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+<script src="js/examples.js"></script>
+<script src="js/app.js"></script></body>
 </html>

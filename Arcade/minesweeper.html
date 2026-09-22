@@ -81,7 +81,5 @@ function formatTime(s){const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
 levelButtons.forEach(btn=>btn.onclick=()=>{level=btn.dataset.level;levelButtons.forEach(b=>b.classList.toggle('active',b===btn));saveStats();newGame()});
 flagBtn.onclick=()=>{flagMode=!flagMode;flagBtn.classList.toggle('flagging',flagMode);flagBtn.textContent=flagMode?'Flagging On':'Flag Mode'};
 document.getElementById('newGame').onclick=newGame;saveStats();newGame();
-</script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+</script></body>
 </html>

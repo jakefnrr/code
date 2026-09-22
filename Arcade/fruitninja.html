@@ -36,7 +36,5 @@ function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#241126';ctx.fillRect(0,0,
 setInterval(update,1000/60);requestAnimationFrame(draw);
 c.addEventListener('pointerdown',e=>{e.preventDefault();drag=true;lastPt=pos(e);if(c.setPointerCapture)c.setPointerCapture(e.pointerId);if(state!=='play')reset()},{passive:false});c.addEventListener('pointermove',e=>{e.preventDefault();if(drag)slashTo(pos(e))},{passive:false});function stop(e){e.preventDefault();drag=false;lastPt=null}c.addEventListener('pointerup',stop,{passive:false});c.addEventListener('pointercancel',stop,{passive:false});c.addEventListener('touchstart',e=>{e.preventDefault();drag=true;lastPt=pos(e);if(state!=='play')reset()},{passive:false});c.addEventListener('touchmove',e=>{e.preventDefault();if(drag)slashTo(pos(e))},{passive:false});c.addEventListener('touchend',stop,{passive:false});
 newGameBtn.onclick=reset;backBtn.onclick=()=>location.href='index.html';hud();
-</script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+</script></body>
 </html>

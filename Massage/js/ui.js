@@ -5,6 +5,8 @@ class UIManager {
         this.customDuration = 300; // 5 minutes in seconds
         this.currentScreen = 'main';
         this.pendingSessionSetup = null;
+        this.pendingFreeSessionMin = null;
+        this.pendingFreeMassage = null;
         this.currentPoints = 0;
         this.pendingPointsAward = 0;
         this.pointsBurstTimeout = null;
@@ -41,9 +43,6 @@ class UIManager {
                 count++;
                 pointsManager.currentPoints += 1;
                 this.pendingPointsAward -= 1;
-                this.updatePointsDisplay(pointsManager.currentPoints);
-                this.updateFreeMassageButtons(pointsManager.currentPoints);
-                this.animatePointsPop();
                 storage.setPoints(pointsManager.currentPoints).catch(err => {
                     console.error('Failed to save points:', err);
                 });
@@ -66,30 +65,13 @@ class UIManager {
             this.pointsBurstInterval = null;
         }
 
-        // Make sure any remaining points aren't lost
         if (this.pendingPointsAward > 0) {
             pointsManager.currentPoints += this.pendingPointsAward;
             this.pendingPointsAward = 0;
-            this.updatePointsDisplay(pointsManager.currentPoints);
-            this.updateFreeMassageButtons(pointsManager.currentPoints);
             storage.setPoints(pointsManager.currentPoints).catch(err => {
                 console.error('Failed to save points:', err);
             });
         }
-    }
-
-    animatePointsPop() {
-        ['points-display', 'total-points'].forEach(id => {
-            const el = document.getElementById(id);
-            el.classList.remove('points-bump');
-            void el.offsetWidth;
-            el.classList.add('points-bump');
-        });
-    }
-
-    updatePointsDisplay(points) {
-        document.getElementById('points-display').textContent = points;
-        document.getElementById('total-points').textContent = points;
     }
 
     selectDuration(minutes, price) {
@@ -119,6 +101,7 @@ class UIManager {
     }
 
     showFreeSessionSetup(minutes) {
+        this.pendingFreeSessionMin = minutes;
         document.getElementById('free-session-setup-title').textContent = `FREE ${minutes} MIN MASSAGE`;
         document.getElementById('start-free-session-btn').textContent = 'START MASSAGE';
         this.showScreen('free-session-setup-screen');
@@ -130,13 +113,28 @@ class UIManager {
         document.getElementById('active-price').textContent = isPaid ? `฿${price.toFixed(2)}` : 'FREE';
         document.getElementById('timer-message').textContent = isPaid
             ? `Start a ${durationDisplay} min timer`
-            : `Start a ${durationDisplay} min free massage`;
+            : `Start a ${durationDisplay} min timer for the free massage`;
         document.getElementById('active-status').textContent = 'In Progress';
         this.showScreen('active-session-screen');
     }
 
     showPaymentScreen(price) {
+        this.pendingFreeMassage = null;
         document.getElementById('payment-title').textContent = `PAY JAKE ฿${price}`;
+        document.getElementById('payment-instruction').textContent = 'Pass the device to Jake so he can enter the password to confirm that you have paid him.';
+        document.getElementById('points-needed').textContent = '';
+        document.getElementById('confirm-payment-btn').textContent = 'CONFIRM PAYMENT';
+        document.getElementById('password-input').value = '';
+        document.getElementById('payment-error').textContent = '';
+        this.showScreen('payment-screen');
+    }
+
+    showFreePasswordScreen(minutes) {
+        this.pendingFreeMassage = minutes;
+        document.getElementById('payment-title').textContent = `FREE ${minutes} MIN MASSAGE`;
+        document.getElementById('payment-instruction').textContent = `Pass the device to Jake so he can enter the password to confirm you have enough points for the free ${minutes} min massage.`;
+        document.getElementById('points-needed').textContent = `${minutes * 10} POINTS`;
+        document.getElementById('confirm-payment-btn').textContent = 'CONFIRM FREE MASSAGE';
         document.getElementById('password-input').value = '';
         document.getElementById('payment-error').textContent = '';
         this.showScreen('payment-screen');
@@ -163,85 +161,20 @@ class UIManager {
         this.customDuration = seconds;
     }
 
-    updateFreeMassageButtons(points) {
+    updateFreeMassageButtons() {
         const free5Min = document.getElementById('free-5min');
         const free10Min = document.getElementById('free-10min');
         const free15Min = document.getElementById('free-15min');
 
-        // 5 min = 30 points
-        if (points >= 30) {
-            free5Min.disabled = false;
-            free5Min.classList.remove('locked');
-            free5Min.classList.add('unlocked');
-        } else {
-            free5Min.disabled = true;
-            free5Min.classList.add('locked');
-            free5Min.classList.remove('unlocked');
-        }
-
-        // 10 min = 60 points
-        if (points >= 60) {
-            free10Min.disabled = false;
-            free10Min.classList.remove('locked');
-            free10Min.classList.add('unlocked');
-        } else {
-            free10Min.disabled = true;
-            free10Min.classList.add('locked');
-            free10Min.classList.remove('unlocked');
-        }
-
-        // 15 min = 90 points
-        if (points >= 90) {
-            free15Min.disabled = false;
-            free15Min.classList.remove('locked');
-            free15Min.classList.add('unlocked');
-        } else {
-            free15Min.disabled = true;
-            free15Min.classList.add('locked');
-            free15Min.classList.remove('unlocked');
-        }
-    }
-
-    updateHistory(history) {
-        const container = document.getElementById('paid-history');
-        
-        if (history.length === 0) {
-            container.innerHTML = '<div class="history-empty">No massages yet</div>';
-            return;
-        }
-
-        container.innerHTML = history.map(entry => {
-            if (entry.pointsUsed !== undefined) {
-                return `
-                    <div class="history-item">
-                        <div class="history-date">${historyManager.formatDate(entry.date)}</div>
-                        <div class="history-details">
-                            <span class="history-duration">${historyManager.formatDuration(entry.duration)}</span>
-                            <span class="history-amount">FREE</span>
-                            <span class="history-points">${historyManager.formatPoints(entry.duration)}</span>
-                        </div>
-                    </div>
-                `;
-            }
-            return `
-                <div class="history-item">
-                    <div class="history-date">${historyManager.formatDate(entry.date)}</div>
-                    <div class="history-details">
-                        <span class="history-duration">${historyManager.formatDuration(entry.duration)}</span>
-                        <span class="history-amount">${historyManager.formatPrice(entry.price)}</span>
-                        <span class="history-points">${historyManager.formatPoints(entry.points)}</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    updateTotals(totals) {
-        document.getElementById('total-time').textContent = totalsManager.formatTime(totals.totalTime);
-        document.getElementById('total-spent').textContent = totalsManager.formatMoney(totals.moneySpent);
-        document.getElementById('paid-time').textContent = totalsManager.formatTimeMinutes(totals.paidTime);
-        document.getElementById('free-time').textContent = totalsManager.formatTimeMinutes(totals.freeTime);
-        document.getElementById('total-points').textContent = this.currentPoints || 0;
+        free5Min.disabled = false;
+        free5Min.classList.remove('locked');
+        free5Min.classList.add('unlocked');
+        free10Min.disabled = false;
+        free10Min.classList.remove('locked');
+        free10Min.classList.add('unlocked');
+        free15Min.disabled = false;
+        free15Min.classList.remove('locked');
+        free15Min.classList.add('unlocked');
     }
 
     initializeCustomDisplay() {
@@ -253,21 +186,9 @@ class UIManager {
         await pointsManager.refreshPoints();
         const points = await pointsManager.getPoints();
         this.currentPoints = points;
-        this.updatePointsDisplay(points);
-
-        // Refresh history
-        await historyManager.refreshHistory();
-        const allHistory = historyManager.getPaidHistory()
-            .concat(historyManager.getFreeHistory())
-            .sort((a, b) => b.timestamp - a.timestamp);
-        this.updateHistory(allHistory);
-
-        // Refresh totals
-        await totalsManager.refreshTotals();
-        this.updateTotals(totalsManager.getTotals());
 
         // Update free massage buttons
-        this.updateFreeMassageButtons(points);
+        this.updateFreeMassageButtons();
     }
 
     async returnToMain() {

@@ -56,7 +56,5 @@ colorsBtn.onclick=()=>{draft={...pieceColors};colorError.textContent='';paintSwa
 document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{diff=b.dataset.diff;pvp=false;document.querySelectorAll('[data-diff]').forEach(x=>x.classList.toggle('active',x===b));pvpBtn.textContent='PvP';game=false;statusEl.textContent='Press New Game to start'});pvpBtn.onclick=()=>{pvp=!pvp;pvpBtn.textContent=pvp?'AI Mode':'PvP';game=false;statusEl.textContent='Press New Game to start'};newGameBtn.onclick=newGame;backBtn.onclick=()=>location.href='index.html';
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')selectedCol=Math.max(0,selectedCol-1);if(e.key==='ArrowRight')selectedCol=Math.min(COLS-1,selectedCol+1);if(e.key==='Enter'||e.key===' ')play(selectedCol)});
 makeSwatches(p1Colors,'p1');makeSwatches(p2Colors,'p2');makeBoard();grid=Array.from({length:ROWS},()=>Array(COLS).fill(EMPTY));saveStats();render();
-</script>
-<a href="../TeamChat/index.html" title="Team chat" style="position:fixed;right:14px;bottom:14px;z-index:99999;display:inline-block;background:#00ff88;color:#06130c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:800;letter-spacing:.6px;text-decoration:none;padding:11px 16px;border-radius:99px;box-shadow:0 4px 20px rgba(0,255,136,.45)">TEAMCHAT</a>
-</body>
+</script></body>
 </html>

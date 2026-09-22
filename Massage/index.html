@@ -8,15 +8,9 @@
 </head>
 <body>
     <a class="all-projects-btn" href="../index.html">ALL PROJECTS</a>
-    <a class="all-projects-btn" href="../TeamChat/index.html" style="right:128px;background:#00ff88;color:#06130c">TEAMCHAT</a>
     <div class="app-container">
         <!-- Main Screen -->
         <div id="main-screen" class="screen active">
-            <div class="points-section">
-                <div class="points-label">POINTS</div>
-                <div class="points-value" id="points-display">0</div>
-            </div>
-
             <div class="section-title">BEGIN SESSION</div>
 
             <div class="duration-buttons" id="duration-buttons">
@@ -57,51 +51,19 @@
 
             <div class="section-title">FREE MASSAGES</div>
             <div class="free-massages">
-                <button class="free-btn" id="free-5min" data-minutes="5" data-points="30">
+                <button class="free-btn" id="free-5min" data-minutes="5">
                     <span class="free-duration">FREE 5 MIN</span>
-                    <span class="free-points">30 points</span>
+                    <span class="free-points">50 points</span>
                 </button>
-                <button class="free-btn" id="free-10min" data-minutes="10" data-points="60">
+                <button class="free-btn" id="free-10min" data-minutes="10">
                     <span class="free-duration">FREE 10 MIN</span>
-                    <span class="free-points">60 points</span>
+                    <span class="free-points">100 points</span>
                 </button>
-                <button class="free-btn" id="free-15min" data-minutes="15" data-points="90">
+                <button class="free-btn" id="free-15min" data-minutes="15">
                     <span class="free-duration">FREE 15 MIN</span>
-                    <span class="free-points">90 points</span>
+                    <span class="free-points">150 points</span>
                 </button>
             </div>
-
-            <div class="totals-section">
-                <div class="total-item">
-                    <span class="total-label">Total Massage Time</span>
-                    <span class="total-value" id="total-time">0h 0m 0s</span>
-                </div>
-                <div class="total-item">
-                    <span class="total-label">Money Spent</span>
-                    <span class="total-value" id="total-spent">฿0.00</span>
-                </div>
-                <div class="total-item">
-                    <span class="total-label">Paid Massage Time</span>
-                    <span class="total-value" id="paid-time">0h 0m</span>
-                </div>
-                <div class="total-item">
-                    <span class="total-label">Free Massage Time</span>
-                    <span class="total-value" id="free-time">0h 0m</span>
-                </div>
-                <div class="total-item">
-                    <span class="total-label">Current Points</span>
-                    <span class="total-value" id="total-points">0</span>
-                </div>
-            </div>
-
-            <div class="section-title">MASSAGE HISTORY</div>
-            <div class="history-section">
-                <div class="history-list" id="paid-history">
-                    <div class="history-empty">No massages yet</div>
-                </div>
-            </div>
-
-            <button class="clear-all-btn" id="clear-all-btn">CLEAR ALL DATA</button>
         </div>
 
         <!-- Session Setup Screen -->
@@ -141,7 +103,8 @@
         <div id="payment-screen" class="screen">
             <div class="payment-content">
                 <div class="payment-title" id="payment-title">PAY JAKE ฿10</div>
-                <div class="payment-instruction">Pass the device to Jake so he can enter the password to confirm that you have paid him.</div>
+                <div class="payment-instruction" id="payment-instruction">Pass the device to Jake so he can enter the password to confirm that you have paid him.</div>
+                <div class="points-needed" id="points-needed"></div>
                 <div class="password-input-container">
                     <label for="password-input">Password</label>
                     <input type="password" id="password-input" placeholder="Enter password">
