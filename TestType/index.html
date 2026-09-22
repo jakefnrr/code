@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Speed Test</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--panel:#111;--border:#1a1a1a;--green:#00ff88;--green-glow:rgba(0,255,136,.15);--text:#e0e0e0;--text-dim:#888;--red:#ff4444}
+html,body{height:100%}
+body{font-family:'SF Mono',Monaco,'Cascadia Code',Consolas,monospace;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;padding:20px}
+.all-projects{position:fixed;top:16px;right:16px;display:inline-block;font-family:inherit;background:transparent;color:var(--green);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;text-decoration:none;border:1px solid var(--green);border-radius:8px;padding:9px 18px;transition:all .2s;z-index:10}
+.all-projects:hover{background:var(--green);color:var(--bg);box-shadow:0 0 20px var(--green-glow)}
+h1{font-size:1.6rem;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 20px var(--green-glow)}
+.subtitle{color:var(--text-dim);font-size:.8rem;margin-bottom:24px;letter-spacing:1px}
+.container{width:100%;max-width:720px}
+.ph-msg{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.5}
+.ph-msg b{color:var(--green)}
+.stats-bar{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:100px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
+.stat-label{font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.stat-value{font-size:1.5rem;font-weight:700;color:var(--green)}
+.text-display{background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:18px 22px;height:clamp(180px,30vh,280px);overflow:hidden;overflow-x:hidden;margin-bottom:14px;position:relative;font-size:1.8rem;line-height:1.9;cursor:text;transition:border-color .3s,box-shadow .3s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.text-display.active{border-color:var(--green);box-shadow:0 0 24px var(--green-glow)}
+#stream{display:block;white-space:pre-wrap;overflow-wrap:anywhere;position:relative;will-change:transform}
+.char{display:inline;transition:color .05s}
+.char.correct{color:var(--green)}
+.char.incorrect{color:var(--red);text-decoration:underline;text-decoration-thickness:2px}
+.char.current{color:var(--text-dim)}
+.char.pending{color:var(--text-dim)}
+.char.shake{display:inline-block;animation:shake .45s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.input-area{width:100%;background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:16px 20px;font-family:inherit;font-size:1.1rem;color:var(--text);caret-color:var(--green);resize:none;outline:none;line-height:1.5;transition:border-color .3s;touch-action:manipulation}
+.input-area:focus{border-color:var(--green);box-shadow:0 0 18px var(--green-glow)}
+.input-area:disabled{opacity:.4}
+.input-area::placeholder{color:var(--text-dim);opacity:.7}
+.controls{display:flex;gap:10px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.btn{font-family:inherit;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;padding:12px 30px;border:1px solid var(--green);background:transparent;color:var(--green);border-radius:8px;cursor:pointer;transition:all .2s;font-weight:600;touch-action:manipulation}
+.btn:hover{background:var(--green);color:var(--bg);box-shadow:0 0 20px var(--green-glow)}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.danger:hover{background:var(--red);color:var(--bg);box-shadow:0 0 20px rgba(255,68,68,.2)}
+.hint{text-align:center;color:var(--text-dim);font-size:.7rem;margin-top:12px;letter-spacing:.5px}
+.results-panel{display:none;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px}
+.results-panel.show{display:block;animation:fadeUp .4s ease}
+.results-title{font-size:1.1rem;color:var(--green);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:16px}
+.results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+.result-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 10px;text-align:center}
+.result-box .val{font-size:1.7rem;font-weight:700;color:var(--green);display:block}
+.result-box .lbl{font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:4px;display:block}
+.results-actions{display:flex;justify-content:center}
+.history-panel{margin-top:24px}
+.history-title{font-size:1rem;color:var(--green);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:16px}
+.history-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.history-actions{display:flex;justify-content:center}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:500px){
+body{padding:12px}
+h1{font-size:1.2rem}
+.subtitle{margin-bottom:16px}
+.stats-bar{gap:8px}
+.stat-box{padding:10px 6px;min-width:68px}
+.stat-value{font-size:1.2rem}
+.text-display{padding:14px 16px;height:clamp(160px,28vh,240px);font-size:1.55rem;line-height:1.8}
+.input-area{padding:14px 16px;font-size:1rem}
+.btn{padding:12px 24px;font-size:.7rem}
+.history-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<a href="../index.html" class="all-projects" title="Back to all projects">ALL PROJECTS</a>
+<h1>Typing Speed Test</h1>
+<p class="subtitle">Find your speed, type normal sentences, beat your best time</p>
+<div class="container">
+<div class="ph-msg" id="phaseMsg"></div>
+<div class="stats-bar">
+<div class="stat-box"><div class="stat-label">WPM</div><div class="stat-value" id="wpm">0</div></div>
+<div class="stat-box"><div class="stat-label">Time</div><div class="stat-value" id="time">0s</div></div>
+<div class="stat-box"><div class="stat-label">Sentences</div><div class="stat-value" id="sentences">0</div></div>
+<div class="stat-box"><div class="stat-label">Characters</div><div class="stat-value" id="chars">0</div></div>
+</div>
+<div class="text-display" id="textDisplay"><span id="stream"></span></div>
+<textarea class="input-area" id="inputArea" placeholder="Tap here, then start typing..." rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+<div class="controls">
+<button class="btn" id="startTestBtn" style="display:none">Start Test</button>
+<button class="btn" id="restartBtn">Restart</button>
+<button class="btn danger" id="endRaceBtn" style="display:none">End Race</button>
+</div>
+<div class="results-panel" id="resultsPanel">
+<div class="results-title">Test Complete</div>
+<div class="results-grid">
+<div class="result-box"><span class="val" id="finalWpm">0</span><span class="lbl">WPM</span></div>
+<div class="result-box"><span class="val" id="finalTime">0s</span><span class="lbl">Time</span></div>
+<div class="result-box"><span class="val" id="finalSentences">0</span><span class="lbl">Sentences</span></div>
+<div class="result-box"><span class="val" id="finalChars">0</span><span class="lbl">Characters</span></div>
+</div>
+<div class="results-actions">
+<button class="btn" id="againBtn" style="display:none">Start Again</button>
+</div>
+</div>
+<div class="history-panel">
+<div class="history-title">Your History</div>
+<div class="history-grid">
+<div class="result-box"><span class="val" id="histBestTime">-</span><span class="lbl">Best Time</span></div>
+<div class="result-box"><span class="val" id="histWorstTime">-</span><span class="lbl">Worst Time</span></div>
+<div class="result-box"><span class="val" id="histBestWpm">-</span><span class="lbl">Best WPM</span></div>
+<div class="result-box"><span class="val" id="histWorstWpm">-</span><span class="lbl">Worst WPM</span></div>
+<div class="result-box"><span class="val" id="histAvgWpm">-</span><span class="lbl">Average WPM</span></div>
+<div class="result-box"><span class="val" id="histTests">0</span><span class="lbl">Tests Taken</span></div>
+</div>
+<div class="history-actions">
+<button class="btn danger" id="clearBtn">Clear All Data</button>
+</div>
+</div>
+<p class="hint">Tap the box and type, or press Enter on a computer.</p>
+</div>
+<script src="sentences.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
