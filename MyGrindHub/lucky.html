@@ -2499,10 +2499,10 @@
         buildDefaultTask(
           "Check Lucky's water",
           "Water",
-          "1",
-          "00",
-          "PM",
-          [1, 3, 5, 0]
+          "",
+          "",
+          "",
+          daily
         ),
 
         buildDefaultTask(
@@ -2610,6 +2610,56 @@
           }
 
         });
+
+
+        /*
+          Upgrade saved water task: every day, no time.
+        */
+
+        if (
+          !data.waterDailyUpgrade
+        ) {
+
+          let upgraded =
+            false;
+
+
+          data.tasks.forEach(task => {
+
+            if (
+              task.category ===
+                "Water" &&
+              task.name ===
+                "Check Lucky's water"
+            ) {
+
+              task.hour = "";
+
+              task.minute = "";
+
+              task.ampm = "";
+
+              task.repeatDays =
+                [0, 1, 2, 3, 4, 5, 6];
+
+              upgraded =
+                true;
+
+            }
+
+          });
+
+
+          if (upgraded) {
+
+            data.waterDailyUpgrade =
+              true;
+
+            saveData(data);
+
+          }
+
+        }
 
 
         /*
