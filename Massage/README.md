@@ -9,7 +9,7 @@ A complete massage booking and session management app with persistent storage, p
 - **Real-time Timer**: Accurate countdown with session recovery after page refresh or browser close
 - **Payment System**: Password-protected payment confirmation (password: `jjaakkeelol`)
 - **Points System**: Earn 1 point per minute of paid massage
-- **Free Massages**: Redeem points for free massages (5 min = 80 points, 10 min = 170 points, 15 min = 280 points)
+- **Free Massages**: Redeem points for free massages (5 min = 80 points, 10 min = 170 points, 15 min = 260 points)
 - **History Tracking**: Separate paid and free massage history with timestamps
 - **Statistics**: Total massage time, money spent, paid/free time breakdown
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
@@ -52,7 +52,7 @@ A complete massage booking and session management app with persistent storage, p
 
 - **Preset Massages**: 5 min = ฿10, 10 min = ฿20, 15 min = ฿30, 20 min = ฿40, 25 min = ฿50, 30 min = ฿60
 - **Custom Massages**: 30 seconds = ฿1, 1 minute = ฿2 (proportional pricing)
-- **Free Massages**: Unlockable with points (5 min = 80 points, 10 min = 170 points, 15 min = 280 points)
+- **Free Massages**: Unlockable with points (5 min = 80 points, 10 min = 170 points, 15 min = 260 points)
 
 ## Persistence
 
