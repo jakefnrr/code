@@ -1,4 +1,11 @@
 // UI Manager
+function freeMassageCost(minutes) {
+    if (minutes === 5) return 80;
+    if (minutes === 10) return 170;
+    if (minutes === 15) return 280;
+    return minutes * 17;
+}
+
 class UIManager {
     constructor() {
         this.selectedDuration = null;
@@ -133,7 +140,7 @@ class UIManager {
         this.pendingFreeMassage = minutes;
         document.getElementById('payment-title').textContent = `FREE ${minutes} MIN MASSAGE`;
         document.getElementById('payment-instruction').textContent = `Pass the device to Jake so he can enter the password to confirm you have enough points for the free ${minutes} min massage.`;
-        document.getElementById('points-needed').textContent = `${minutes * 10} POINTS`;
+        document.getElementById('points-needed').textContent = `${freeMassageCost(minutes)} POINTS`;
         document.getElementById('confirm-payment-btn').textContent = 'CONFIRM FREE MASSAGE';
         document.getElementById('password-input').value = '';
         document.getElementById('payment-error').textContent = '';
