@@ -8,7 +8,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#080808;color:#eee;min-height:100vh}
 .topbar{position:sticky;top:0;z-index:20;height:46px;display:flex;justify-content:space-between;align-items:center;background:#222;border-bottom:1px solid #3a3a3a;padding:0 16px}
-.money-logo{font-size:15px;font-weight:800;letter-spacing:2px;color:#eee}
+.money-logo{font-size:15px;font-weight:800;letter-spacing:1px;white-space:nowrap;color:#eee}
 .all-projects{display:inline-block;color:#00ff88;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;text-decoration:none;border:1px solid #00ff88;border-radius:8px;padding:8px 16px;transition:all .2s}
 .all-projects:hover{background:#00ff88;color:#000}
 .tabs{display:flex;background:#111;border-bottom:2px solid #00ff88;position:sticky;top:46px;z-index:10}
@@ -44,6 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-gray{background:#333;color:#ccc}
 .btn-gray:hover{background:#444}
 .btn-sm{padding:6px 10px;font-size:11px}
+.type-select{padding:6px 8px;font-size:11px;font-weight:700;background:#2a2a2a;border:1px solid #444;color:#eee;border-radius:8px;outline:none;cursor:pointer}
 .entry-list{max-height:400px;overflow-y:auto}
 .entry-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:#1a1a1a;flex-wrap:wrap;gap:6px}
 .entry-info{flex:1;min-width:120px}
@@ -65,12 +66,13 @@ input[type=file]{display:none}
 .entry-item{flex-direction:column;align-items:flex-start}
 .entry-actions{width:100%}
 .entry-actions .btn{flex:1}
+.entry-actions .type-select{flex:1;width:100%}
 }
 </style>
 </head>
 <body>
 <div class="topbar">
-<div class="money-logo">MONEY</div>
+<div class="money-logo">MONEY AT HOME</div>
 <a href="../index.html" class="all-projects">ALL PROJECTS</a>
 </div>
 <div class="tabs">
@@ -211,7 +213,7 @@ html+='<div class="entry-info"><div class="entry-amount blue">฿'+e.amount.toLo
 if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
 html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
 html+='<div class="entry-actions">';
-html+='<button class="btn btn-gray btn-sm" onclick="handleRestore('+e.id+')">Restore</button>';
+html+=typeOptions(e.id,'bank');
 html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
 html+='</div></div>';
 });
@@ -227,7 +229,7 @@ html+='<div class="entry-info"><div class="entry-amount purple">฿'+e.amount.to
 if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
 html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
 html+='<div class="entry-actions">';
-html+='<button class="btn btn-gray btn-sm" onclick="handleRestore('+e.id+')">Restore</button>';
+html+=typeOptions(e.id,'mommy');
 html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
 html+='</div></div>';
 });
@@ -245,8 +247,7 @@ html+='<div class="entry-info"><div class="entry-amount green">฿'+e.amount.toL
 if(e.note)html+='<div class="entry-note">'+escapeHtml(e.note)+'</div>';
 html+='<div class="entry-date">'+formatDate(e.date)+'</div></div>';
 html+='<div class="entry-actions">';
-html+='<button class="btn btn-blue btn-sm" onclick="handleToBank('+e.id+','+e.amount+')">Bank</button>';
-html+='<button class="btn btn-purple btn-sm" onclick="handleToMommy('+e.id+','+e.amount+')">Mommy</button>';
+html+=typeOptions(e.id,'earning');
 html+='<button class="btn btn-red btn-sm" onclick="handleDelete('+e.id+')">Delete</button>';
 html+='</div></div>';
 });
@@ -383,6 +384,23 @@ if(!entry)return;
 addEntry(entry.tab,'earning',entry.amount,entry.note).then(function(){
 return deleteEntry(id);
 }).then(function(){renderAll();});
+});
+};
+window.typeOptions=function(id,current){
+var html='<select class="type-select" onchange="handleChangeType('+id+',this.value)">';
+html+='<option value="earning"'+(current==='earning'?' selected':'')+'>Earning</option>';
+html+='<option value="bank"'+(current==='bank'?' selected':'')+'>Bank</option>';
+html+='<option value="mommy"'+(current==='mommy'?' selected':'')+'>Mommy</option>';
+html+='</select>';
+return html;
+};
+window.handleChangeType=function(id,newType){
+getAllEntries().then(function(entries){
+var entry=entries.find(function(e){return e.id===id;});
+if(!entry||entry.type===newType)return;
+entry.type=newType;
+entry.tab_type=entry.tab+'_'+newType;
+updateEntry(id,entry).then(function(){renderAll();});
 });
 };
 window.escapeHtml=function(str){
