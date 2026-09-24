@@ -193,7 +193,7 @@ h1 {
 
     overflow: hidden;
 
-    white-space: pre-wrap;
+    white-space: pre;
 
     word-break: break-word;
 
@@ -1343,6 +1343,84 @@ function getPlainText(html) {
 
 
 /* ================================= */
+/* PREVIEW TRUNCATION */
+/* ================================= */
+
+let previewCtx = null;
+
+
+function getPreviewCtx() {
+
+    if (!previewCtx) {
+
+        previewCtx =
+            document.createElement("canvas")
+                .getContext("2d");
+
+    }
+
+    return previewCtx;
+
+}
+
+
+function truncateLineToWidth(line, maxWidth) {
+
+    const ctx =
+        getPreviewCtx();
+
+    if (
+        ctx.measureText(line).width <= maxWidth
+    ) {
+
+        return line;
+
+    }
+
+    const ellipsis = "…";
+
+    let clipped = line;
+
+    while (
+        clipped.length > 0 &&
+        ctx.measureText(clipped + ellipsis).width > maxWidth
+    ) {
+
+        clipped =
+            clipped.slice(0, -1);
+
+    }
+
+    return clipped + ellipsis;
+
+}
+
+
+function fillPreview(preview, text) {
+
+    const ctx =
+        getPreviewCtx();
+
+    ctx.font =
+        window.getComputedStyle(preview).font;
+
+    const maxWidth =
+        Math.max(10, preview.clientWidth - 4);
+
+
+    preview.textContent =
+        text.split("\n")
+            .map(function(line) {
+
+                return truncateLineToWidth(line, maxWidth);
+
+            })
+            .join("\n");
+
+}
+
+
+/* ================================= */
 /* RENDER NOTES */
 /* ================================= */
 
@@ -1424,10 +1502,6 @@ function renderNotes() {
         }
 
 
-        preview.textContent =
-            previewText;
-
-
         const openButton =
             document.createElement("button");
 
@@ -1481,6 +1555,8 @@ function renderNotes() {
         card.appendChild(deleteButton);
 
         container.appendChild(card);
+
+        fillPreview(preview, previewText);
 
     });
 
