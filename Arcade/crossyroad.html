@@ -411,7 +411,7 @@ function lerp(a,b,t){return a+(b-a)*t;}
 function w2s(row){return(cameraTopRow-row)*CELL;}  // world row → screen Y
 function seed(row,col){return Math.abs(Math.sin(row*127.1+col*311.7)*43758.5453)%1;}
 function getLane(row){return lanes.find(l=>l.row===row)||null;}
-function diff(){return Math.min(1,maxNorth/35);}
+function diff(){return Math.min(1,maxNorth/60);}
 
 // ===== GENERATION =====
 function mkTrees(row) {
@@ -424,22 +424,26 @@ function mkTrees(row) {
 }
 
 function mkCars(dir) {
-  const d=diff(), count=2+Math.floor(d*3);
-  const spd=(1.5+d*2.5)*dir, gap=W/count;
+  // Difficulty only adds up to 4 cars per lane, and jitter is bounded so the
+  // gap between cars is ALWAYS wide enough for the player to hop through.
+  const d=diff(), count=2+Math.floor(d*2);
+  const spd=(1.2+d*1.6)*dir, space=W/count;
+  const w=CELL*1.4, jmax=40;
   const arr=[];
   for(let i=0;i<count;i++) {
-    arr.push({x:i*gap+Math.random()*gap*0.5, w:CELL*1.8, h:CELL-14,
+    // min gap = space - jmax - w ; at 4 cars that's 200-40-90 = 70px (> player)
+    arr.push({x:i*space+Math.random()*jmax, w, h:CELL-14,
       spd, col:C.car[Math.floor(Math.random()*C.car.length)]});
   }
   return arr;
 }
 
 function mkLogs(dir) {
-  const d=diff(), count=2+Math.floor(Math.random()*2);
-  const spd=(1.0+d*1.5)*dir, gap=W/count;
+  const d=diff(), count=3+Math.floor(Math.random()*2);
+  const spd=(1.0+d*1.2)*dir, gap=W/count;
   const arr=[];
   for(let i=0;i<count;i++) {
-    const w=CELL*(1.5+Math.random()*1.2);
+    const w=CELL*(2.0+Math.random()*1.2);
     arr.push({x:i*gap+Math.random()*gap*0.3, w, h:CELL-12, spd});
   }
   return arr;
@@ -458,7 +462,7 @@ function genLane(row) {
     else if(r<0.60){type='road';size=2+Math.floor(Math.random()*2);hazStreak++;}
     else if(r<0.82){
       type=(genType==='river')?'grass':'river';
-      size=type==='grass'?1:1+Math.floor(Math.random()*(1+Math.floor(d*2)));
+      size=type==='grass'?1:1+Math.floor(Math.random()*(1+Math.floor(d)));
       if(type==='grass') hazStreak=0; else hazStreak++;
     } else {type='track';size=1;hazStreak++;}
     genType=type; genLeft=size-1;
@@ -470,7 +474,7 @@ function genLane(row) {
   else if(lane.type==='road') lane.ent=mkCars(dir);
   else if(lane.type==='river') lane.ent=mkLogs(dir);
   else if(lane.type==='track') {
-    lane.trainSpd=(6+diff()*6)*dir;
+    lane.trainSpd=(4+diff()*5)*dir;
     lane.warnTimer=150+Math.floor(Math.random()*180);
     lane.warnOn=false;
   }
@@ -508,7 +512,7 @@ function initGame() {
   lanes=[]; nextGenRow=0;
   genType='grass'; genLeft=0; hazStreak=0;
   particles=[]; deathTimer=0; runCoins=0;
-  maxNorth=0; scrollRate=activeAbils.includes('slowscroll')?0.0010:0.0020;
+  maxNorth=0; scrollRate=activeAbils.includes('slowscroll')?0.0008:0.0016;
   cameraTopRow=SCREEN_ROW;
   resetPl();
   // Apply abilities
@@ -523,6 +527,14 @@ function initGame() {
 document.addEventListener('keydown',e=>{
   keys[e.key]=true;
   initAc();
+
+  // Restart with Space (or Enter) on the game over screen, and even during
+  // the death animation.
+  if((gs==='gameOver'||(gs==='playing'&&!pl.alive))&&(e.key===' '||e.key==='Enter'||e.key==='Spacebar')){
+    e.preventDefault();
+    startGame();
+    return;
+  }
 
   if(gs==='title'){
     startGame();
@@ -867,8 +879,8 @@ function updCam() {
   // Auto-scroll upward every frame
   cameraTopRow += scrollRate;
   // Gradually speed up as score increases
-  const baseRate = activeAbils.includes('slowscroll') ? 0.0010 : 0.0020;
-  scrollRate = Math.min(0.0050, baseRate + maxNorth * 0.000065);
+  const baseRate = activeAbils.includes('slowscroll') ? 0.0008 : 0.0016;
+  scrollRate = Math.min(0.0040, baseRate + maxNorth * 0.00005);
   // If player is ahead of auto-scroll, snap camera to follow them
   const playerTarget = maxNorth + SCREEN_ROW;
   if(playerTarget > cameraTopRow) cameraTopRow = lerp(cameraTopRow, playerTarget, 0.15);
