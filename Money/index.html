@@ -266,7 +266,7 @@ var totalMommy=mommies.reduce(function(s,e){return s+e.amount;},0);
 var totalLost=totalBank+totalMommy;
 var netWorth=totalEarned-totalLost;
 var html='<div class="total-box">';
-html+='<div class="total-label">Net Worth (All Categories)</div>';
+html+='<div class="total-label">net worth at home</div>';
 html+='<div class="total-amount">฿'+netWorth.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>';
 html+='</div>';
 html+='<div class="panel">';
