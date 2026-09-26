@@ -1,9 +1,9 @@
 // UI Manager
 function freeMassageCost(minutes) {
-    if (minutes === 5) return 80;
-    if (minutes === 10) return 170;
-    if (minutes === 15) return 260;
-    return minutes * 17;
+    if (minutes === 5) return 50;
+    if (minutes === 10) return 120;
+    if (minutes === 15) return 220;
+    return minutes * 10;
 }
 
 class UIManager {
