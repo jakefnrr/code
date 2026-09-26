@@ -162,6 +162,7 @@ function inputHandler() {
   }
 
   const oldLen = typed.length;
+  let shakeIndex = -1;
 
   if (val.length < typed.length) {
     typed = val;
@@ -175,12 +176,29 @@ function inputHandler() {
       }
     }
   } else {
-    typed = val.slice(0, target.length);
-    if (typed.length !== val.length) inputArea.value = typed;
+    let k = 0;
+    while (k < val.length && k < target.length && val[k] === target[k]) k++;
+    if (k < val.length && k < target.length) {
+      shakeIndex = k;
+      typed = val.slice(0, k + 1);
+      inputArea.value = typed;
+    } else {
+      typed = val.slice(0, target.length);
+      if (typed.length !== val.length) inputArea.value = typed;
+    }
   }
 
   repaint();
   updateScroll();
+
+  if (shakeIndex >= 0) {
+    const sp = spans[shakeIndex];
+    if (sp) {
+      sp.classList.remove("shake");
+      void sp.offsetWidth;
+      sp.classList.add("shake");
+    }
+  }
 
   if (typed.length >= target.length) {
     updateStats();

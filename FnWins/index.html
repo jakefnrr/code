@@ -1,0 +1,3308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0e15">
+<title>FnWins — Fortnite Win Tracker</title>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --void: #0d0e15;
+  --charcoal: #12131a;
+  --panel: rgba(13, 14, 21, 0.62);
+  --panel-solid: #11121a;
+  --pink: #ff0055;
+  --cyan: #00f0ff;
+  --green: #39ff14;
+  --text: #f7f6ff;
+  --muted: #8a91a5;
+  --line: rgba(0, 240, 255, 0.18);
+  --cut: 16px;
+  --mouse-x: 50vw;
+  --mouse-y: 30vh;
+  color-scheme: dark;
+  font-family: "Arial Narrow", "Roboto Condensed", "Segoe UI", Arial, sans-serif;
+}
+
+body[data-theme="matrix"] {
+  --void: #020802;
+  --charcoal: #071007;
+  --panel: rgba(3, 14, 5, 0.62);
+  --panel-solid: #061007;
+  --pink: #00ff9d;
+  --cyan: #39ff14;
+  --green: #b6ff00;
+  --text: #effff0;
+  --muted: #6f9274;
+  --line: rgba(57, 255, 20, 0.28);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(57, 255, 20, 0.13), transparent 34%),
+    #020802;
+}
+
+body[data-theme="neon-noir"] {
+  --void: #0d0e15;
+  --charcoal: #12131a;
+  --panel: rgba(13, 14, 21, 0.62);
+  --panel-solid: #11121a;
+  --pink: #ff0055;
+  --cyan: #00f0ff;
+  --green: #39ff14;
+  --text: #f7f6ff;
+  --muted: #8a91a5;
+  --line: rgba(0, 240, 255, 0.18);
+  background:
+    radial-gradient(circle at 8% 4%, rgba(255, 0, 85, 0.16), transparent 27%),
+    radial-gradient(circle at 94% 34%, rgba(0, 240, 255, 0.12), transparent 28%),
+    #0d0e15;
+}
+
+body[data-theme="cyber-city"] {
+  --void: #050617;
+  --charcoal: #0d1026;
+  --panel: rgba(7, 10, 27, 0.6);
+  --panel-solid: #0a0d20;
+  --pink: #ff2bd6;
+  --cyan: #00e5ff;
+  --green: #b8ff3d;
+  --text: #eef8ff;
+  --muted: #8290b5;
+  --line: rgba(0, 229, 255, 0.24);
+  background:
+    radial-gradient(circle at 74% 18%, rgba(255, 43, 214, 0.14), transparent 25%),
+    linear-gradient(#050617, #080b22 65%, #03040c);
+}
+
+body[data-theme="solar-flare"] {
+  --void: #120507;
+  --charcoal: #1c090a;
+  --panel: rgba(27, 7, 9, 0.62);
+  --panel-solid: #1a0809;
+  --pink: #ff174f;
+  --cyan: #ffc400;
+  --green: #ff6d00;
+  --text: #fff3df;
+  --muted: #b58a7c;
+  --line: rgba(255, 109, 0, 0.3);
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255, 196, 0, 0.34), transparent 38%),
+    radial-gradient(circle at 15% 90%, rgba(255, 23, 79, 0.2), transparent 32%),
+    #120507;
+}
+
+body[data-theme="toxic-abyss"] {
+  --void: #00100f;
+  --charcoal: #03201f;
+  --panel: rgba(2, 26, 25, 0.64);
+  --panel-solid: #03201f;
+  --pink: #00ffc8;
+  --cyan: #00b7ff;
+  --green: #a8ff3e;
+  --text: #eafffb;
+  --muted: #6f9b98;
+  --line: rgba(0, 255, 200, 0.24);
+  background:
+    radial-gradient(circle at 50% 105%, rgba(168, 255, 62, 0.18), transparent 38%),
+    linear-gradient(#00100f, #001b25 58%, #00100f);
+}
+
+html {
+  min-height: 100%;
+  background: var(--void);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(420px circle at var(--mouse-x) var(--mouse-y), rgba(0, 240, 255, 0.08), transparent 65%),
+    radial-gradient(circle at 8% 4%, rgba(255, 0, 85, 0.16), transparent 27%),
+    radial-gradient(circle at 94% 34%, rgba(0, 240, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 55% 110%, rgba(57, 255, 20, 0.07), transparent 30%),
+    var(--void);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+  transform: perspective(500px) rotateX(0.01deg) scale(1.08);
+  animation: gridDrift 18s linear infinite;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .22;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(255, 255, 255, 0.018) 4px
+  );
+}
+
+#theme-background {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+body.theme-changing #theme-background {
+  opacity: 0.18;
+}
+
+body,
+.panel,
+.stat-card,
+.control-panel,
+.lifetime-chip,
+.theme-menu,
+.theme-option {
+  transition:
+    color 320ms ease,
+    background 320ms ease,
+    border-color 320ms ease,
+    box-shadow 320ms ease;
+}
+
+body[data-theme] .control-panel {
+  border-color: color-mix(in srgb, var(--cyan) 24%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel-solid) 46%, transparent), var(--panel));
+}
+
+body[data-theme] .stat-card,
+body[data-theme] .panel {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--panel-solid) 42%, transparent), var(--panel));
+}
+
+body[data-theme] .neon-button,
+body[data-theme] .filter-toggle,
+body[data-theme] .mode-button,
+body[data-theme] .today-button,
+body[data-theme] .clear-button {
+  background: color-mix(in srgb, var(--panel-solid) 38%, transparent);
+}
+
+body[data-theme] .theme-menu {
+  background: color-mix(in srgb, var(--panel-solid) 82%, transparent);
+}
+
+body[data-theme] .lifetime-chip {
+  border-color: color-mix(in srgb, var(--green) 30%, transparent);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
+}
+
+body[data-theme] input,
+body[data-theme] textarea {
+  border-color: color-mix(in srgb, var(--cyan) 22%, transparent);
+  background: color-mix(in srgb, var(--panel-solid) 48%, transparent);
+}
+
+body[data-theme] input:focus,
+body[data-theme] textarea:focus {
+  background: color-mix(in srgb, var(--panel-solid) 66%, var(--cyan) 3%);
+}
+
+body[data-theme] .record-item {
+  background: color-mix(in srgb, var(--pink) 6%, transparent);
+}
+
+body[data-theme] .control-panel,
+body[data-theme] .stat-card,
+body[data-theme] .panel,
+body[data-theme] .neon-button,
+body[data-theme] .filter-toggle,
+body[data-theme] .mode-button,
+body[data-theme] .today-button,
+body[data-theme] .clear-button,
+body[data-theme] input,
+body[data-theme] textarea,
+body[data-theme] .theme-option {
+  --surface-x: 50%;
+  --surface-y: 50%;
+}
+
+body[data-theme] .control-panel {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.14), transparent 32%),
+    linear-gradient(135deg, color-mix(in srgb, var(--panel-solid) 46%, transparent), var(--panel));
+}
+
+body[data-theme] .stat-card,
+body[data-theme] .panel {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.12), transparent 30%),
+    linear-gradient(145deg, color-mix(in srgb, var(--panel-solid) 42%, transparent), var(--panel));
+}
+
+body[data-theme] .neon-button,
+body[data-theme] .filter-toggle,
+body[data-theme] .mode-button,
+body[data-theme] .today-button,
+body[data-theme] .clear-button {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.16), transparent 34%),
+    color-mix(in srgb, var(--panel-solid) 38%, transparent);
+}
+
+body[data-theme] input,
+body[data-theme] textarea {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.13), transparent 36%),
+    color-mix(in srgb, var(--panel-solid) 48%, transparent);
+}
+
+body[data-theme] input:focus,
+body[data-theme] textarea:focus {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.2), transparent 38%),
+    color-mix(in srgb, var(--panel-solid) 66%, var(--cyan) 3%);
+}
+
+body[data-theme] .theme-option {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.16), transparent 38%),
+    rgba(255, 255, 255, 0.025);
+}
+
+body[data-theme] .theme-option:hover,
+body[data-theme] .theme-option.active {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.22), transparent 40%),
+    var(--option-color);
+}
+
+body[data-theme] .control-panel:hover,
+body[data-theme] .stat-card:hover,
+body[data-theme] .panel:hover,
+body[data-theme] .neon-button:hover,
+body[data-theme] .filter-toggle:hover,
+body[data-theme] .mode-button:hover,
+body[data-theme] .today-button:hover,
+body[data-theme] .clear-button:hover,
+body[data-theme] .theme-option:hover {
+  backdrop-filter: blur(10px) saturate(1.35);
+}
+
+body[data-theme] .neon-button:hover,
+body[data-theme] .mode-button:hover,
+body[data-theme] .today-button:hover,
+body[data-theme] .clear-button:hover {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.24), transparent 40%),
+    var(--control-color, var(--cyan));
+}
+
+body[data-theme] .mode-button.active {
+  background:
+    radial-gradient(circle at var(--surface-x) var(--surface-y), rgba(255, 255, 255, 0.24), transparent 40%),
+    var(--green);
+}
+
+body[data-theme] .control-panel::before,
+body[data-theme] .stat-card::before,
+body[data-theme] .panel::before {
+  animation: surfaceSignal 4.8s ease-in-out infinite;
+}
+
+body[data-theme] .panel::after {
+  animation: panelOrbit 9s ease-in-out infinite;
+}
+
+body[data-theme="matrix"] .title {
+  background-image: linear-gradient(105deg, #f1fff0 0%, var(--green) 38%, #f1fff0 52%, var(--cyan) 84%);
+}
+
+body[data-theme="cyber-city"] .title {
+  background-image: linear-gradient(105deg, #ffffff 0%, var(--cyan) 34%, #ffffff 50%, var(--pink) 82%);
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.25)) drop-shadow(0 0 28px rgba(255, 43, 214, 0.18));
+}
+
+body[data-theme="solar-flare"] .title {
+  background-image: linear-gradient(105deg, #fff8d8 0%, var(--green) 36%, #ffffff 52%, var(--pink) 84%);
+}
+
+body[data-theme="toxic-abyss"] .title {
+  background-image: linear-gradient(105deg, #effffb 0%, var(--cyan) 34%, #ffffff 52%, var(--pink) 84%);
+}
+
+body[data-theme="matrix"]::before {
+  background-image:
+    linear-gradient(rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.04) 1px, transparent 1px);
+}
+
+body[data-theme="cyber-city"]::before {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 43, 214, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+body[data-theme="solar-flare"]::before {
+  background:
+    repeating-radial-gradient(
+      circle at 50% 0,
+      transparent 0,
+      transparent 48px,
+      rgba(255, 109, 0, 0.05) 50px,
+      transparent 52px
+    );
+  animation: solarGridPulse 5s ease-in-out infinite alternate;
+}
+
+body[data-theme="toxic-abyss"]::before {
+  background-image:
+    linear-gradient(rgba(0, 255, 200, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 183, 255, 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  transform: perspective(600px) rotateX(58deg) scale(1.6) translateY(-18%);
+  transform-origin: center bottom;
+  animation: abyssGridDrift 8s linear infinite;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  position: relative;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: 30px 24px 80px;
+}
+
+.app::before,
+.app::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  filter: blur(90px);
+  opacity: 0.1;
+}
+
+.app::before {
+  top: 8%;
+  left: -140px;
+  background: var(--pink);
+  animation: driftPink 12s ease-in-out infinite alternate;
+}
+
+.app::after {
+  right: -150px;
+  bottom: 5%;
+  background: var(--cyan);
+  animation: driftCyan 15s ease-in-out infinite alternate;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.header > div:first-child {
+  min-width: 0;
+}
+
+.header-actions {
+  align-self: start;
+  justify-self: end;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 8px;
+  color: var(--green);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(57, 255, 20, 0.55);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 28px;
+  height: 2px;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 66px);
+  font-weight: 950;
+  font-style: italic;
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  background: linear-gradient(105deg, #ffffff 0%, var(--cyan) 34%, #ffffff 50%, var(--pink) 82%);
+  background-size: 230% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.2)) drop-shadow(0 0 28px rgba(255, 0, 85, 0.14));
+  animation: titleSignal 6s linear infinite;
+}
+
+.subtitle {
+  margin: 11px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.lifetime-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(57, 255, 20, 0.25);
+  background: rgba(57, 255, 20, 0.045);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lifetime-chip strong {
+  color: var(--green);
+  font-size: 20px;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+}
+
+.neon-button,
+.mode-button,
+.today-button,
+.delete-button,
+.clear-button {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--control-color, var(--cyan));
+  border-radius: 0;
+  color: var(--control-color, var(--cyan));
+  background: rgba(9, 10, 16, 0.88);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  box-shadow:
+    inset 0 0 14px color-mix(in srgb, var(--control-color, var(--cyan)) 7%, transparent),
+    0 0 14px color-mix(in srgb, var(--control-color, var(--cyan)) 13%, transparent);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.neon-button::before,
+.mode-button::before,
+.today-button::before,
+.delete-button::before,
+.clear-button::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--control-color, var(--cyan));
+  clip-path: inherit;
+  opacity: 0;
+  transform: scaleX(0.25);
+  transform-origin: right center;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.neon-button:hover,
+.mode-button:hover,
+.today-button:hover,
+.clear-button:hover {
+  color: #06070b;
+  border-color: var(--control-color, var(--cyan));
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 rgba(0, 0, 0, 0),
+    0 0 18px var(--control-color, var(--cyan)),
+    0 0 44px color-mix(in srgb, var(--control-color, var(--cyan)) 58%, transparent);
+}
+
+.neon-button:hover::before,
+.mode-button:hover::before,
+.today-button:hover::before,
+.clear-button:hover::before {
+  opacity: 1;
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.neon-button:active,
+.mode-button:active,
+.today-button:active,
+.delete-button:active,
+.clear-button:active {
+  transform: translateY(1px) scale(0.965);
+  box-shadow: 0 0 30px var(--control-color, var(--cyan));
+}
+
+.neon-button:focus-visible,
+.mode-button:focus-visible,
+.today-button:focus-visible,
+.delete-button:focus-visible,
+.clear-button:focus-visible,
+.theme-option:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+.secondary-button {
+  --control-color: var(--cyan);
+  min-height: 44px;
+  padding: 0 17px;
+  font-size: 10px;
+}
+
+.all-projects-button {
+  --control-color: var(--pink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 17px;
+  font-size: 10px;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.all-projects-button .arrow {
+  color: var(--green);
+  font-size: 15px;
+  text-shadow: 0 0 9px var(--green);
+  transition: transform 160ms ease;
+}
+
+.all-projects-button:hover .arrow {
+  color: #06070b;
+  transform: translateX(4px);
+}
+
+.theme-picker {
+  position: relative;
+  z-index: 1000;
+}
+
+.theme-toggle {
+  gap: 10px;
+}
+
+.theme-toggle-arrow {
+  color: var(--green);
+  font-size: 13px;
+  text-shadow: 0 0 9px var(--green);
+  transition: transform 180ms ease;
+}
+
+.theme-toggle[aria-expanded="true"] .theme-toggle-arrow {
+  transform: rotate(180deg);
+}
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 350px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 38%, transparent);
+  background: rgba(5, 6, 12, 0.94);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--cyan) 14%, transparent),
+    0 28px 70px rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(22px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: 180ms ease;
+}
+
+.theme-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.theme-menu-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px 11px;
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.theme-menu-heading strong {
+  color: var(--green);
+  text-shadow: 0 0 9px var(--green);
+}
+
+.theme-list {
+  display: grid;
+  gap: 6px;
+}
+
+.theme-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px 1fr 20px;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 62px;
+  padding: 7px 10px 7px 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.025);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-option::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.08) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 500ms ease;
+}
+
+.theme-option:hover::after,
+.theme-option.active::after {
+  transform: translateX(120%);
+}
+
+.theme-option:hover,
+.theme-option.active {
+  color: #06070b;
+  border-color: var(--option-color);
+  background: var(--option-color);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--option-color) 42%, transparent);
+}
+
+.theme-preview {
+  position: relative;
+  width: 54px;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #05060b;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+.theme-preview::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: translateX(-80%);
+  animation: themePreviewScan 2.8s linear infinite;
+}
+
+.theme-preview[data-theme="matrix"] {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(57, 255, 20, 0.26) 6px 7px),
+    linear-gradient(#020802, #071807);
+}
+
+.theme-preview[data-theme="neon-noir"] {
+  background:
+    linear-gradient(115deg, transparent 42%, rgba(0, 240, 255, 0.65) 43% 45%, transparent 46%),
+    radial-gradient(circle at 20% 30%, #ff0055, transparent 34%),
+    radial-gradient(circle at 80% 70%, #00f0ff, transparent 38%),
+    #090b16;
+}
+
+.theme-preview[data-theme="cyber-city"] {
+  background:
+    linear-gradient(90deg, transparent 47%, rgba(0, 229, 255, 0.32) 48% 52%, transparent 53%),
+    repeating-linear-gradient(90deg, #07091b 0 9px, #11162c 9px 12px),
+    linear-gradient(#050617, #0a0d22);
+}
+
+.theme-preview[data-theme="solar-flare"] {
+  background:
+    repeating-radial-gradient(circle at 50% 110%, transparent 0 5px, rgba(255, 109, 0, 0.45) 6px 7px, transparent 8px 11px),
+    radial-gradient(circle at 50% 110%, #ffdf5d, #ff174f 32%, #120507 72%);
+}
+
+.theme-preview[data-theme="toxic-abyss"] {
+  background:
+    radial-gradient(ellipse at 50% 110%, rgba(168, 255, 62, 0.75), transparent 48%),
+    repeating-radial-gradient(ellipse at 50% 120%, transparent 0 7px, rgba(0, 255, 200, 0.25) 8px 9px, transparent 10px 14px),
+    #001b20;
+}
+
+.theme-copy {
+  min-width: 0;
+}
+
+.theme-copy strong,
+.theme-copy small {
+  display: block;
+}
+
+.theme-copy strong {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-copy small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.theme-option:hover .theme-copy small,
+.theme-option.active .theme-copy small {
+  color: rgba(6, 7, 11, 0.7);
+}
+
+.theme-check {
+  color: var(--option-color);
+  font-size: 16px;
+  font-weight: 950;
+  opacity: 0;
+  text-shadow: 0 0 9px currentColor;
+}
+
+.theme-option.active .theme-check {
+  color: #06070b;
+  opacity: 1;
+  text-shadow: none;
+}
+
+.control-panel {
+  position: relative;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  background: linear-gradient(135deg, rgba(18, 19, 26, 0.9), rgba(13, 14, 21, 0.72));
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  backdrop-filter: blur(18px);
+  box-shadow:
+    inset 0 0 34px rgba(0, 240, 255, 0.025),
+    0 18px 60px rgba(0, 0, 0, 0.26);
+}
+
+.control-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 28px;
+  width: 150px;
+  height: 1px;
+  background: var(--cyan);
+  box-shadow: 0 0 14px var(--cyan);
+}
+
+.control-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.045), transparent);
+}
+
+.filter-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-toggle {
+  --control-color: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 46px;
+  padding: 5px;
+  border-color: color-mix(in srgb, var(--control-color) 45%, transparent);
+  background: rgba(5, 7, 12, 0.82);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+}
+
+.filter-toggle.pink-control {
+  --control-color: var(--pink);
+}
+
+.filter-toggle::before {
+  opacity: 0.09;
+  transform: scaleX(1);
+  transform-origin: center;
+}
+
+.filter-toggle:hover::before {
+  opacity: 0.9;
+  transform: scaleX(1);
+}
+
+.filter-option {
+  position: relative;
+  z-index: 1;
+  min-width: 84px;
+  padding: 9px 13px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: 150ms ease;
+}
+
+.filter-option.active {
+  color: #06070b;
+  background: var(--control-color);
+  box-shadow: 0 0 12px var(--control-color), 0 0 26px color-mix(in srgb, var(--control-color) 35%, transparent);
+  text-shadow: none;
+}
+
+.filter-toggle:hover .filter-option:not(.active) {
+  color: var(--control-color);
+}
+
+.filter-divider {
+  position: relative;
+  z-index: 1;
+  color: color-mix(in srgb, var(--control-color) 60%, transparent);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-weight: 900;
+}
+
+.modes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 240, 255, 0.09);
+}
+
+.mode-button {
+  --control-color: var(--green);
+  min-width: 90px;
+  min-height: 42px;
+  padding: 0 15px;
+  border-color: rgba(57, 255, 20, 0.24);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.mode-button::before {
+  background: var(--green);
+}
+
+.mode-button.active {
+  color: #050807;
+  border-color: var(--green);
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.45), 0 0 35px rgba(57, 255, 20, 0.16);
+}
+
+.mode-button.active::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.mode-button:hover {
+  color: #050807;
+  border-color: var(--green);
+  box-shadow: 0 0 18px rgba(57, 255, 20, 0.8), 0 0 42px rgba(57, 255, 20, 0.25);
+}
+
+.mode-button[hidden] {
+  display: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.stat-card,
+.panel {
+  position: relative;
+  border: 1px solid var(--border-color, rgba(0, 240, 255, 0.2));
+  background:
+    linear-gradient(145deg, rgba(22, 23, 32, 0.9), rgba(12, 13, 19, 0.88)),
+    var(--panel);
+  backdrop-filter: blur(16px);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  box-shadow:
+    inset 0 0 30px rgba(0, 240, 255, 0.018),
+    0 16px 40px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.stat-card {
+  min-height: 126px;
+  padding: 19px;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  width: 52px;
+  height: 2px;
+  background: var(--stat-color, var(--cyan));
+  box-shadow: 0 0 13px var(--stat-color, var(--cyan));
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -55%;
+  width: 42%;
+  height: 220%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--stat-color, var(--cyan)) 10%, transparent), transparent);
+  transform: rotate(18deg);
+  transition: left 500ms ease;
+}
+
+.stat-card:hover {
+  z-index: 1;
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--stat-color, var(--cyan)) 55%, transparent);
+  box-shadow:
+    inset 0 0 35px color-mix(in srgb, var(--stat-color, var(--cyan)) 4%, transparent),
+    0 0 24px color-mix(in srgb, var(--stat-color, var(--cyan)) 12%, transparent),
+    0 20px 50px rgba(0, 0, 0, 0.28);
+}
+
+.stat-card:hover::after {
+  left: 120%;
+}
+
+.stat-index {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: color-mix(in srgb, var(--stat-color, var(--cyan)) 40%, transparent);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.stat-label {
+  margin-bottom: 13px;
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  color: var(--stat-color, var(--cyan));
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 950;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 13px color-mix(in srgb, var(--stat-color, var(--cyan)) 48%, transparent);
+}
+
+.stat-unit {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-shadow: none;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.panel {
+  padding: 24px;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 32px;
+  width: 92px;
+  height: 1px;
+  background: var(--border-color, var(--cyan));
+  box-shadow: 0 0 12px var(--border-color, var(--cyan));
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  right: -75px;
+  bottom: -85px;
+  width: 170px;
+  height: 170px;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--cyan)) 10%, transparent);
+  transform: rotate(45deg);
+}
+
+.panel:hover {
+  border-color: color-mix(in srgb, var(--border-color, var(--cyan)) 42%, transparent);
+  box-shadow:
+    inset 0 0 35px color-mix(in srgb, var(--border-color, var(--cyan)) 3%, transparent),
+    0 0 25px color-mix(in srgb, var(--border-color, var(--cyan)) 7%, transparent),
+    0 22px 50px rgba(0, 0, 0, 0.25);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.panel-kicker {
+  margin: 0 0 6px;
+  color: var(--border-color, var(--cyan));
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.panel h2 span {
+  color: var(--border-color, var(--cyan));
+  text-shadow: 0 0 12px color-mix(in srgb, var(--border-color, var(--cyan)) 45%, transparent);
+}
+
+.panel-badge {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
+  background: rgba(57, 255, 20, 0.035);
+  color: var(--green);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+.win-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.7fr) minmax(160px, 0.7fr) minmax(220px, 1.6fr);
+  gap: 10px;
+}
+
+.input-group {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.input-group label {
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  border-radius: 0;
+  outline: none;
+  color: var(--text);
+  background: rgba(5, 6, 11, 0.86);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.32);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+input {
+  min-height: 48px;
+  padding: 0 42px 0 13px;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+textarea {
+  min-height: 102px;
+  padding: 13px;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+input:hover,
+textarea:hover {
+  border-color: rgba(0, 240, 255, 0.36);
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--cyan);
+  background: rgba(7, 9, 15, 0.96);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.32), 0 0 14px rgba(0, 240, 255, 0.12);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #4d5261;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.72;
+  filter: drop-shadow(0 0 5px var(--cyan));
+}
+
+.today-button {
+  --control-color: var(--cyan);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 8px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.log-button {
+  --control-color: var(--green);
+  min-width: 200px;
+  min-height: 50px;
+  padding: 0 22px;
+  font-size: 12px;
+}
+
+.log-button .button-signal {
+  margin-left: 9px;
+  animation: signalBlink 1.4s steps(1) infinite;
+}
+
+.form-status {
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.form-status.success {
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+}
+
+.form-status.error {
+  color: var(--pink);
+  text-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+}
+
+.records-panel {
+  --border-color: var(--pink);
+}
+
+.record-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.record-item {
+  position: relative;
+  min-height: 98px;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 0, 85, 0.16);
+  background: rgba(255, 0, 85, 0.025);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: 180ms ease;
+}
+
+.record-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 0, 85, 0.45);
+  background: rgba(255, 0, 85, 0.06);
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.1);
+}
+
+.record-item small {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.record-item strong {
+  color: var(--pink);
+  font-size: 27px;
+  font-style: italic;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(255, 0, 85, 0.4);
+}
+
+.records-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: #626879;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.records-note::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  background: var(--green);
+  box-shadow: 0 0 9px var(--green);
+  transform: rotate(45deg);
+}
+
+.history-panel {
+  --border-color: var(--cyan);
+  margin-bottom: 14px;
+}
+
+.history-heading {
+  align-items: center;
+}
+
+.history-heading h2 {
+  font-size: 22px;
+}
+
+.history-count {
+  color: var(--green);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.35);
+}
+
+.history-subtitle {
+  margin: -9px 0 18px;
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.win-list {
+  display: grid;
+  gap: 8px;
+}
+
+.win-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 76px minmax(120px, 1fr) 90px 90px 64px;
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  padding: 12px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  background: linear-gradient(100deg, rgba(0, 240, 255, 0.035), rgba(255, 0, 85, 0.025));
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  animation: entrySignal 420ms ease both;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.win-entry::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 40%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 12px var(--cyan);
+  animation: scanEntry 3.8s linear infinite;
+}
+
+.win-entry:hover {
+  z-index: 1;
+  transform: translateX(4px);
+  border-color: rgba(0, 240, 255, 0.36);
+  background: linear-gradient(100deg, rgba(0, 240, 255, 0.07), rgba(255, 0, 85, 0.04));
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.08);
+}
+
+.win-index {
+  color: var(--pink);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 9px rgba(255, 0, 85, 0.35);
+}
+
+.win-date strong,
+.win-mode strong,
+.win-elims strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.win-date span,
+.win-mode span,
+.win-elims span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.win-elims span {
+  color: var(--green);
+  font-size: 18px;
+  font-style: italic;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.35);
+}
+
+.win-notes {
+  grid-column: 2 / 5;
+  margin: -3px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 240, 255, 0.07);
+  color: #9ca3b4;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.win-notes::before {
+  content: "// ";
+  color: var(--cyan);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.delete-button {
+  --control-color: var(--pink);
+  justify-self: end;
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 8px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+.delete-button:hover {
+  color: #09070a;
+  border-color: var(--pink);
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(255, 0, 85, 0.85), 0 0 36px rgba(255, 0, 85, 0.3);
+}
+
+.delete-button::before {
+  background: var(--pink);
+}
+
+.empty-state {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  border: 1px dashed rgba(0, 240, 255, 0.15);
+  background:
+    linear-gradient(135deg, rgba(0, 240, 255, 0.025), rgba(255, 0, 85, 0.02)),
+    rgba(5, 6, 11, 0.35);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  text-align: center;
+}
+
+.empty-state-inner {
+  max-width: 400px;
+  padding: 30px;
+}
+
+.empty-glyph {
+  position: relative;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border: 1px solid rgba(57, 255, 20, 0.45);
+  color: var(--green);
+  font-size: 25px;
+  font-weight: 950;
+  transform: rotate(45deg);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.12);
+}
+
+.empty-glyph span {
+  transform: rotate(-45deg);
+  text-shadow: 0 0 12px rgba(57, 255, 20, 0.6);
+}
+
+.empty-state h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.empty-state p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.empty-button {
+  --control-color: var(--green);
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 9px;
+}
+
+.history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 240, 255, 0.08);
+}
+
+.storage-note {
+  color: #646a79;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clear-button {
+  --control-color: var(--pink);
+  min-height: 40px;
+  padding: 0 15px;
+  font-size: 9px;
+}
+
+.neon-button:disabled,
+.clear-button:disabled,
+.delete-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  transform: none;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #555b6b;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.footer-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.footer-line::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  transform: rotate(45deg);
+}
+
+@keyframes surfaceSignal {
+  0%, 100% { opacity: 0.32; transform: scaleX(0.42); transform-origin: left center; }
+  50% { opacity: 1; transform: scaleX(1); transform-origin: left center; }
+}
+
+@keyframes panelOrbit {
+  0%, 100% { opacity: 0.3; transform: rotate(45deg) translate(0, 0); }
+  50% { opacity: 0.85; transform: rotate(135deg) translate(-10px, -14px); }
+}
+
+@keyframes themePreviewScan {
+  to { transform: translateX(120%); }
+}
+
+@keyframes solarGridPulse {
+  from { opacity: 0.45; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes abyssGridDrift {
+  to { background-position: 72px 72px, 72px 72px; }
+}
+
+@keyframes gridDrift {
+  to { background-position: 48px 48px; }
+}
+
+@keyframes titleSignal {
+  to { background-position: 230% center; }
+}
+
+@keyframes driftPink {
+  to { transform: translate(180px, 140px) scale(1.35); }
+}
+
+@keyframes driftCyan {
+  to { transform: translate(-160px, -120px) scale(1.25); }
+}
+
+@keyframes signalBlink {
+  0%, 65% { opacity: 1; }
+  66%, 100% { opacity: 0.25; }
+}
+
+@keyframes scanEntry {
+  to { left: 125%; }
+}
+
+@keyframes entrySignal {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 980px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .win-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .notes-group {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    padding: 22px 12px 60px;
+  }
+
+  .header {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "lifetime all"
+      "theme theme";
+    width: 100%;
+    align-items: center;
+    justify-content: initial;
+  }
+
+  .lifetime-chip {
+    grid-area: lifetime;
+    justify-self: start;
+  }
+
+  .theme-picker {
+    grid-area: theme;
+    justify-self: end;
+  }
+
+  .all-projects-button {
+    grid-area: all;
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .theme-menu {
+    position: fixed;
+    top: 18px;
+    right: 12px;
+    width: min(350px, calc(100vw - 24px));
+    max-height: calc(100vh - 36px);
+    overflow-y: auto;
+  }
+
+  .control-panel,
+  .panel {
+    padding: 18px;
+  }
+
+  .filter-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-toggle {
+    width: 100%;
+  }
+
+  .filter-option {
+    flex: 1;
+  }
+
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mode-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .win-form {
+    grid-template-columns: 1fr;
+  }
+
+  .notes-group {
+    grid-column: auto;
+  }
+
+  .form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .log-button {
+    width: 100%;
+  }
+
+  .win-entry {
+    grid-template-columns: 1fr 1fr 54px;
+    gap: 12px;
+  }
+
+  .win-index {
+    grid-column: 1 / -1;
+  }
+
+  .win-date,
+  .win-mode,
+  .win-elims {
+    grid-column: span 1;
+  }
+
+  .win-notes {
+    grid-column: 1 / -1;
+  }
+
+  .delete-button {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .history-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clear-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    min-height: 108px;
+  }
+
+  .record-list {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (hover: none) {
+  .neon-button:hover,
+  .mode-button:hover,
+  .today-button:hover,
+  .clear-button:hover,
+  .stat-card:hover,
+  .win-entry:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body data-theme="neon-noir">
+<canvas id="theme-background" aria-hidden="true"></canvas>
+<main class="app">
+  <header class="header">
+    <div>
+      <p class="eyebrow">Fortnite victory archive</p>
+      <h1 class="title">Fn//Wins</h1>
+      <p class="subtitle">Every lobby. Every squad. Every victory.</p>
+    </div>
+    <div class="header-actions">
+      <div class="lifetime-chip" aria-label="Total wins across every filter">
+        Lifetime
+        <strong id="lifetimeWins">0</strong>
+      </div>
+      <div class="theme-picker">
+        <button class="neon-button secondary-button theme-toggle" id="themeMenuButton" type="button" onclick="toggleThemeMenu(event)" aria-expanded="false" aria-controls="themeMenu">
+          Change UI
+          <span class="theme-toggle-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="theme-menu" id="themeMenu" role="menu" aria-label="Choose an animated theme">
+          <div class="theme-menu-heading">
+            <span>Animated UI systems</span>
+            <strong>5 themes</strong>
+          </div>
+          <div class="theme-list">
+            <button class="theme-option" style="--option-color: #39ff14" type="button" role="menuitemradio" aria-checked="false" data-theme-option="matrix" onclick="setTheme('matrix')">
+              <span class="theme-preview" data-theme="matrix"></span>
+              <span class="theme-copy"><strong>Matrix Protocol</strong><small>Binary rain, commands, and green code</small></span>
+              <span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="theme-option" style="--option-color: #ff0055" type="button" role="menuitemradio" aria-checked="false" data-theme-option="neon-noir" onclick="setTheme('neon-noir')">
+              <span class="theme-preview" data-theme="neon-noir"></span>
+              <span class="theme-copy"><strong>Neon Noir</strong><small>Rain, cyan light, and pink shadows</small></span>
+              <span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="theme-option" style="--option-color: #00e5ff" type="button" role="menuitemradio" aria-checked="false" data-theme-option="cyber-city" onclick="setTheme('cyber-city')">
+              <span class="theme-preview" data-theme="cyber-city"></span>
+              <span class="theme-copy"><strong>Cyberpunk City</strong><small>Moving buildings, traffic, windows, and rain</small></span>
+              <span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="theme-option" style="--option-color: #ff6d00" type="button" role="menuitemradio" aria-checked="false" data-theme-option="solar-flare" onclick="setTheme('solar-flare')">
+              <span class="theme-preview" data-theme="solar-flare"></span>
+              <span class="theme-copy"><strong>Solar Flare</strong><small>Rotating plasma waves and solar embers</small></span>
+              <span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="theme-option" style="--option-color: #00ffc8" type="button" role="menuitemradio" aria-checked="false" data-theme-option="toxic-abyss" onclick="setTheme('toxic-abyss')">
+              <span class="theme-preview" data-theme="toxic-abyss"></span>
+              <span class="theme-copy"><strong>Toxic Abyss</strong><small>Rolling waves, bubbles, and underwater light</small></span>
+              <span class="theme-check" aria-hidden="true">✓</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <a class="neon-button all-projects-button" href="../index.html">
+        All Projects
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </header>
+
+  <section class="control-panel" aria-label="Win filters">
+    <div class="filter-row">
+      <button class="filter-toggle" id="queueToggle" type="button" onclick="toggleQueue()" aria-label="Switch between ranked and unranked">
+        <span class="filter-option active" id="rankedOption">Ranked</span>
+        <span class="filter-divider" aria-hidden="true">|</span>
+        <span class="filter-option" id="unrankedOption">Unranked</span>
+      </button>
+      <button class="filter-toggle pink-control" id="gameTypeToggle" type="button" onclick="toggleGameType()" aria-label="Switch between Battle Royale and Reload">
+        <span class="filter-option active" id="brOption">Battle Royale</span>
+        <span class="filter-divider" aria-hidden="true">|</span>
+        <span class="filter-option" id="reloadOption">Reload</span>
+      </button>
+    </div>
+    <div class="modes" aria-label="Team mode">
+      <button class="mode-button" data-mode="solo" type="button" onclick="setMode('solo')" aria-pressed="true">Solo</button>
+      <button class="mode-button" data-mode="duos" type="button" onclick="setMode('duos')" aria-pressed="false">Duo</button>
+      <button class="mode-button" data-mode="trios" type="button" onclick="setMode('trios')" aria-pressed="false" id="trioMode" hidden>Trio</button>
+      <button class="mode-button" data-mode="squads" type="button" onclick="setMode('squads')" aria-pressed="false">Squad</button>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Filtered win statistics">
+    <article class="stat-card" style="--stat-color: var(--green)">
+      <span class="stat-index">01</span>
+      <div class="stat-label">Wins in view</div>
+      <div class="stat-value" id="viewWins">0</div>
+    </article>
+    <article class="stat-card" style="--stat-color: var(--cyan)">
+      <span class="stat-index">02</span>
+      <div class="stat-label">Elims in view</div>
+      <div class="stat-value" id="viewElims">0</div>
+    </article>
+    <article class="stat-card" style="--stat-color: var(--pink)">
+      <span class="stat-index">03</span>
+      <div class="stat-label">Average elims</div>
+      <div class="stat-value" id="averageElims">0.00</div>
+    </article>
+    <article class="stat-card" style="--stat-color: var(--green)">
+      <span class="stat-index">04</span>
+      <div class="stat-label">Best win</div>
+      <div class="stat-value" id="bestWin">0<span class="stat-unit">ELIMS</span></div>
+    </article>
+  </section>
+
+  <div class="content-grid">
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="panel-kicker">New record</p>
+          <h2>Log a <span>Victory</span></h2>
+        </div>
+        <div class="panel-badge" id="saveTarget">Ranked · BR · Solo</div>
+      </div>
+      <form class="win-form" id="winForm" onsubmit="saveWin(event)">
+        <div class="input-group">
+          <label for="winDate">Date</label>
+          <div class="input-wrap">
+            <input id="winDate" type="date" required>
+            <button class="today-button" type="button" onclick="useToday()">Today</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="winKills">Eliminations</label>
+          <input id="winKills" type="number" min="0" max="999" step="1" inputmode="numeric" placeholder="0" required>
+        </div>
+        <div class="input-group notes-group">
+          <label for="winNotes">Match notes</label>
+          <textarea id="winNotes" maxlength="180" placeholder="Squad names, rotation, clutch moment..."></textarea>
+        </div>
+        <div class="form-footer">
+          <button class="neon-button log-button" type="submit">Log Victory <span class="button-signal">+1</span></button>
+          <div class="form-status" id="formStatus" role="status" aria-live="polite">Ready to record a win.</div>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel records-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="panel-kicker">Lifetime data</p>
+          <h2>Win <span>Records</span></h2>
+        </div>
+        <div class="panel-badge">All filters</div>
+      </div>
+      <div class="record-list">
+        <div class="record-item">
+          <small>Ranked wins</small>
+          <strong id="rankedWins">0</strong>
+        </div>
+        <div class="record-item">
+          <small>Unranked wins</small>
+          <strong id="unrankedWins">0</strong>
+        </div>
+        <div class="record-item">
+          <small>Battle Royale</small>
+          <strong id="brWins">0</strong>
+        </div>
+        <div class="record-item">
+          <small>Reload wins</small>
+          <strong id="reloadWins">0</strong>
+        </div>
+      </div>
+      <p class="records-note">Filters change the stats and history, never your saved data.</p>
+    </section>
+  </div>
+
+  <section class="panel history-panel">
+    <div class="panel-heading history-heading">
+      <div>
+        <p class="panel-kicker">Victory archive</p>
+        <h2>Win <span>History</span></h2>
+      </div>
+      <div class="history-count" id="historyCount">0 wins</div>
+    </div>
+    <p class="history-subtitle" id="historySubtitle">Ranked · Battle Royale · Solo shown.</p>
+    <div class="win-list" id="winList"></div>
+    <div class="history-footer">
+      <span class="storage-note">Auto-saved locally with a redundant browser backup</span>
+      <button class="clear-button" id="clearButton" type="button" onclick="clearAllWins()">Clear all wins</button>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span class="footer-line">Local-first tracker</span>
+    <span>FnWins // Build your record</span>
+  </footer>
+</main>
+
+<script>
+const STORAGE_KEY = "fnwins_tracker_v1";
+const BACKUP_STORAGE_KEY = "fnwins_tracker_v1_backup";
+const MODE_ORDER = ["solo", "duos", "squads", "trios"];
+const MODE_OPTIONS = {
+  br: ["solo", "duos", "trios", "squads"],
+  reload: ["solo", "duos", "squads"]
+};
+const THEME_CONFIG = {
+  matrix: { name: "Matrix Protocol", color: "#020802", glow: "57,255,20" },
+  "neon-noir": { name: "Neon Noir", color: "#0d0e15", glow: "0,240,255" },
+  "cyber-city": { name: "Cyberpunk City", color: "#050617", glow: "0,229,255" },
+  "solar-flare": { name: "Solar Flare", color: "#120507", glow: "255,109,0" },
+  "toxic-abyss": { name: "Toxic Abyss", color: "#00100f", glow: "0,255,200" }
+};
+const MATRIX_COMMANDS = [
+  "010011 101101",
+  "RUN THE CODE",
+  "LOAD FNWINS",
+  "SYSTEM ACCESS",
+  "ENTER THE VOID",
+  "00110 01101",
+  "FORTNITE DATA",
+  "VICTORY FOUND",
+  "101101 010011"
+];
+const MATRIX_GLYPHS = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#%&";
+const themeCanvas = document.getElementById("theme-background");
+const themeContext = themeCanvas.getContext("2d");
+let activeTheme = "neon-noir";
+let themeWidth = window.innerWidth;
+let themeHeight = window.innerHeight;
+let themeLastTime = 0;
+let themeClock = 0;
+let themeParticles = [];
+let themeDrops = [];
+let themeBubbles = [];
+let themeEmbers = [];
+let themeStars = [];
+let cityLayers = [];
+let cityRain = [];
+let matrixFontSize = 15;
+let pointerX = themeWidth / 2;
+let pointerY = themeHeight / 2;
+let pointerTargetX = themeWidth / 2;
+let pointerTargetY = themeHeight / 2;
+let pointerEnergy = 0;
+let pointerTargetEnergy = 0;
+
+let queue = "ranked";
+let gameType = "br";
+let mode = "solo";
+let statusTimer;
+let pointerFrame;
+
+function createData() {
+  return {
+    version: 1,
+    queue: "ranked",
+    gameType: "br",
+    mode: "solo",
+    theme: "neon-noir",
+    wins: []
+  };
+}
+
+function normalizeStoredData(value) {
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.wins)) {
+      return null;
+    }
+
+    return {
+      ...createData(),
+      ...parsed,
+      wins: parsed.wins.filter(isValidWin)
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getData() {
+  try {
+    const primary = normalizeStoredData(localStorage.getItem(STORAGE_KEY));
+    if (primary) return primary;
+
+    const backup = normalizeStoredData(localStorage.getItem(BACKUP_STORAGE_KEY));
+    if (backup) {
+      saveData(backup);
+      return backup;
+    }
+
+    const fresh = createData();
+    saveData(fresh);
+    return fresh;
+  } catch {
+    return createData();
+  }
+}
+
+function saveData(data) {
+  try {
+    const serialized = JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    localStorage.setItem(BACKUP_STORAGE_KEY, serialized);
+  } catch {
+    setFormStatus("Browser storage is unavailable.", "error");
+  }
+}
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function randomItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function createMatrixGlyph() {
+  if (Math.random() < 0.52) {
+    return randomItem(MATRIX_COMMANDS);
+  }
+
+  let text = "";
+  const length = 5 + Math.floor(Math.random() * 10);
+  for (let index = 0; index < length; index++) {
+    text += randomItem(MATRIX_GLYPHS.split(""));
+    if (index === Math.floor(length / 2) - 1 && Math.random() < 0.45) {
+      text += " ";
+    }
+  }
+  return text;
+}
+
+function createMatrixDrop(onScreen) {
+  return {
+    y: onScreen ? randomBetween(-themeHeight, themeHeight) / matrixFontSize : randomBetween(-themeHeight, 0) / matrixFontSize,
+    speed: randomBetween(0.45, 1.4),
+    glyph: createMatrixGlyph(),
+    color: Math.random() < 0.08 ? "#00f0ff" : Math.random() < 0.16 ? "#b6ff00" : "#39ff14"
+  };
+}
+
+function initializeMatrixTheme() {
+  matrixFontSize = themeWidth < 600 ? 13 : 15;
+  const columns = Math.ceil(themeWidth / matrixFontSize);
+  themeDrops = Array.from({ length: columns }, () => createMatrixDrop(true));
+  themeContext.fillStyle = "#010502";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+}
+
+function drawMatrixTheme(frame) {
+  themeContext.fillStyle = "rgba(1, 8, 2, 0.085)";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+  themeContext.font = `700 ${matrixFontSize}px ui-monospace, SFMono-Regular, Consolas, monospace`;
+  themeContext.textBaseline = "top";
+
+  themeDrops.forEach((drop, column) => {
+    const pointerShift = (pointerX - themeWidth / 2) * 0.018 * (column / Math.max(themeDrops.length - 1, 1));
+    const x = column * matrixFontSize + pointerShift;
+    const y = drop.y * matrixFontSize;
+    const nearPointer = Math.hypot(x - pointerX, y - pointerY) < 90;
+    const brightHead = (drop.y > 0 && drop.y < 5) || nearPointer;
+
+    themeContext.fillStyle = brightHead ? "#effff0" : drop.color;
+    themeContext.shadowColor = drop.color;
+    themeContext.shadowBlur = brightHead ? 18 : column % 9 === 0 ? 10 : 3;
+    themeContext.fillText(drop.glyph, x, y);
+    drop.y += drop.speed * frame;
+
+    if (y > themeHeight + matrixFontSize * 4) {
+      drop.y = randomBetween(-30, -4);
+      drop.speed = randomBetween(0.45, 1.4);
+      drop.glyph = createMatrixGlyph();
+      drop.color = Math.random() < 0.08 ? "#00f0ff" : Math.random() < 0.16 ? "#b6ff00" : "#39ff14";
+    }
+  });
+
+  themeContext.shadowBlur = 0;
+}
+
+function initializeNeonTheme() {
+  const count = themeWidth < 600 ? 52 : 92;
+  themeParticles = Array.from({ length: count }, () => ({
+    x: randomBetween(-100, themeWidth + 100),
+    y: randomBetween(-100, themeHeight),
+    length: randomBetween(18, 92),
+    speed: randomBetween(5, 15),
+    drift: randomBetween(-1.8, 1.8),
+    width: randomBetween(0.7, 1.8),
+    alpha: randomBetween(0.12, 0.58),
+    color: Math.random() < 0.5 ? "0,240,255" : "255,0,85"
+  }));
+  themeContext.fillStyle = "#0d0e15";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+}
+
+function drawGlow(x, y, radius, rgb, alpha) {
+  const glow = themeContext.createRadialGradient(x, y, 0, x, y, radius);
+  glow.addColorStop(0, `rgba(${rgb}, ${alpha})`);
+  glow.addColorStop(0.36, `rgba(${rgb}, ${alpha * 0.42})`);
+  glow.addColorStop(1, `rgba(${rgb}, 0)`);
+  themeContext.fillStyle = glow;
+  themeContext.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+}
+
+function drawNeonTheme(frame) {
+  themeContext.fillStyle = "rgba(13, 14, 21, 0.12)";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+  themeContext.save();
+  themeContext.globalCompositeOperation = "screen";
+
+  const pulse = Math.sin(themeClock * 0.0011);
+  drawGlow(
+    themeWidth * (0.18 + pulse * 0.08) + (pointerX - themeWidth / 2) * 0.12,
+    themeHeight * (0.24 + Math.cos(themeClock * 0.0008) * 0.1) + (pointerY - themeHeight / 2) * 0.08,
+    Math.min(themeWidth, themeHeight) * 0.34,
+    "255,0,85",
+    0.2
+  );
+  drawGlow(
+    themeWidth * (0.78 + Math.cos(themeClock * 0.0009) * 0.1) + (pointerX - themeWidth / 2) * 0.18,
+    themeHeight * (0.64 + pulse * 0.12) + (pointerY - themeHeight / 2) * 0.1,
+    Math.min(themeWidth, themeHeight) * 0.38,
+    "0,240,255",
+    0.2
+  );
+
+  themeParticles.forEach(particle => {
+    themeContext.strokeStyle = `rgba(${particle.color}, ${particle.alpha})`;
+    themeContext.lineWidth = particle.width;
+    themeContext.shadowColor = `rgb(${particle.color})`;
+    themeContext.shadowBlur = 8;
+    themeContext.beginPath();
+    themeContext.moveTo(particle.x, particle.y);
+    themeContext.lineTo(particle.x + particle.length * 0.28, particle.y + particle.length);
+    themeContext.stroke();
+
+    particle.x += particle.drift * frame;
+    particle.y += particle.speed * frame;
+    if (particle.y > themeHeight + 120) {
+      particle.y = -120;
+      particle.x = randomBetween(-100, themeWidth + 100);
+    }
+  });
+
+  themeContext.restore();
+  themeContext.shadowBlur = 0;
+}
+
+function createCityBuilding(x, layer) {
+  const width = randomBetween(layer.minWidth, layer.maxWidth);
+  const height = randomBetween(layer.minHeight, layer.maxHeight);
+  return {
+    x,
+    width,
+    height,
+    y: layer.baseY - height,
+    seed: Math.floor(Math.random() * 10000),
+    antenna: Math.random() > 0.7,
+    sign: Math.random() > 0.72 ? randomItem(["FN", "001", "WIN", "LOBBY", "LIVE"]) : null,
+    signColor: Math.random() > 0.5 ? "#ff2bd6" : "#00e5ff"
+  };
+}
+
+function createCityLayer(config) {
+  const layer = { ...config, buildings: [], rightEdge: -100 };
+  let x = -100;
+  while (x < themeWidth + 300) {
+    const building = createCityBuilding(x, layer);
+    layer.buildings.push(building);
+    x += building.width + randomBetween(6, 20);
+  }
+  layer.rightEdge = x;
+  return layer;
+}
+
+function resetCityBuilding(building, layer) {
+  const replacement = createCityBuilding(layer.rightEdge + randomBetween(10, 70), layer);
+  Object.assign(building, replacement);
+  layer.rightEdge = building.x + building.width + randomBetween(6, 20);
+}
+
+function initializeCityTheme() {
+  const horizon = themeHeight * 0.72;
+  themeStars = Array.from({ length: themeWidth < 600 ? 48 : 100 }, () => ({
+    x: randomBetween(0, themeWidth),
+    y: randomBetween(0, horizon * 0.78),
+    size: randomBetween(0.5, 1.8),
+    alpha: randomBetween(0.2, 0.85),
+    speed: randomBetween(0.02, 0.12)
+  }));
+
+  cityLayers = [
+    createCityLayer({
+      speed: 0.08,
+      baseY: horizon + 10,
+      minHeight: themeHeight * 0.12,
+      maxHeight: themeHeight * 0.34,
+      minWidth: 34,
+      maxWidth: 76,
+      fill: "#080b1d",
+      edge: "rgba(0,229,255,.2)",
+      window: "0,229,255",
+      windowAlpha: 0.28,
+      parallax: 0.02
+    }),
+    createCityLayer({
+      speed: 0.2,
+      baseY: horizon + themeHeight * 0.1,
+      minHeight: themeHeight * 0.18,
+      maxHeight: themeHeight * 0.48,
+      minWidth: 46,
+      maxWidth: 100,
+      fill: "#0b1027",
+      edge: "rgba(255,43,214,.26)",
+      window: "255,43,214",
+      windowAlpha: 0.36,
+      parallax: 0.05
+    }),
+    createCityLayer({
+      speed: 0.42,
+      baseY: themeHeight * 0.88,
+      minHeight: themeHeight * 0.2,
+      maxHeight: themeHeight * 0.56,
+      minWidth: 62,
+      maxWidth: 132,
+      fill: "#070a18",
+      edge: "rgba(184,255,61,.28)",
+      window: "184,255,61",
+      windowAlpha: 0.42,
+      parallax: 0.09
+    })
+  ];
+
+  cityRain = Array.from({ length: themeWidth < 600 ? 65 : 130 }, () => ({
+    x: randomBetween(-100, themeWidth + 100),
+    y: randomBetween(-100, themeHeight),
+    length: randomBetween(8, 28),
+    speed: randomBetween(9, 20),
+    alpha: randomBetween(0.08, 0.35)
+  }));
+
+  const sky = themeContext.createLinearGradient(0, 0, 0, themeHeight);
+  sky.addColorStop(0, "#030414");
+  sky.addColorStop(0.58, "#0a0b25");
+  sky.addColorStop(1, "#12051d");
+  themeContext.fillStyle = sky;
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+}
+
+function drawCityLayer(layer, frame) {
+  const parallax = (pointerX - themeWidth / 2) * layer.parallax;
+  layer.buildings.forEach(building => {
+    building.x -= layer.speed * frame;
+    if (building.x + building.width < -100) {
+      resetCityBuilding(building, layer);
+    }
+
+    const renderX = building.x + parallax;
+    themeContext.fillStyle = layer.fill;
+    themeContext.fillRect(renderX, building.y, building.width, building.height);
+    themeContext.strokeStyle = layer.edge;
+    themeContext.lineWidth = 1;
+    themeContext.strokeRect(renderX + 0.5, building.y + 0.5, building.width - 1, building.height - 1);
+
+    if (building.antenna) {
+      themeContext.strokeStyle = layer.edge;
+      themeContext.beginPath();
+      themeContext.moveTo(renderX + building.width * 0.5, building.y);
+      themeContext.lineTo(renderX + building.width * 0.5, building.y - randomBetween(8, 24));
+      themeContext.stroke();
+    }
+
+    const windowSize = building.width < 70 ? 4 : 5;
+    let row = 0;
+    for (let y = building.y + 14; y < building.y + building.height - 10; y += 17) {
+      let column = 0;
+      for (let x = renderX + 9; x < renderX + building.width - 8; x += 13) {
+        if ((row * 7 + column * 5 + building.seed) % 9 < 4) {
+          themeContext.fillStyle = `rgba(${layer.window}, ${layer.windowAlpha * (0.55 + ((row + column) % 3) * 0.18)})`;
+          themeContext.fillRect(x, y, windowSize, 7);
+        }
+        column++;
+      }
+      row++;
+    }
+
+    if (building.sign) {
+      themeContext.font = `900 ${Math.max(8, Math.min(12, building.width / 7))}px ui-monospace, SFMono-Regular, Consolas, monospace`;
+      themeContext.textAlign = "center";
+      themeContext.fillStyle = building.signColor;
+      themeContext.shadowColor = building.signColor;
+      themeContext.shadowBlur = 12;
+      themeContext.fillText(building.sign, renderX + building.width / 2, building.y + Math.max(22, building.height * 0.18));
+      themeContext.shadowBlur = 0;
+      themeContext.textAlign = "left";
+    }
+  });
+}
+
+function drawCityTraffic(frame) {
+  const roadTop = themeHeight * 0.79;
+  const road = themeContext.createLinearGradient(0, roadTop, 0, themeHeight);
+  road.addColorStop(0, "rgba(4,5,16,.2)");
+  road.addColorStop(1, "rgba(2,2,8,.96)");
+  themeContext.fillStyle = road;
+  themeContext.fillRect(0, roadTop, themeWidth, themeHeight - roadTop);
+
+  themeContext.strokeStyle = "rgba(0,229,255,.18)";
+  themeContext.lineWidth = 1;
+  const offset = (themeClock * 0.18) % 90;
+  const pointerDrift = (pointerX - themeWidth / 2) * 0.08;
+  for (let x = -90 + offset; x < themeWidth + 90; x += 90) {
+    themeContext.beginPath();
+    themeContext.moveTo(x + pointerDrift, themeHeight * 0.93);
+    themeContext.lineTo(x + pointerDrift + 42, themeHeight * 0.93);
+    themeContext.stroke();
+  }
+
+  for (let index = 0; index < 8; index++) {
+    const direction = index % 2 === 0 ? 1 : -1;
+    const span = themeWidth + 260;
+    const x = ((index * 173 + themeClock * (0.13 + index * 0.012)) % span) * direction - 130 + pointerDrift * (index % 2 === 0 ? 1 : -1);
+    const y = roadTop + 25 + (index % 3) * 18;
+    const color = index % 3 === 0 ? "255,43,214" : index % 3 === 1 ? "0,229,255" : "184,255,61";
+    themeContext.fillStyle = `rgba(${color},.9)`;
+    themeContext.shadowColor = `rgb(${color})`;
+    themeContext.shadowBlur = 14;
+    themeContext.fillRect(x, y, 38, 5);
+    themeContext.fillStyle = `rgba(${color},.18)`;
+    themeContext.fillRect(direction > 0 ? x - 90 : x + 38, y - 2, 90, 9);
+  }
+  themeContext.shadowBlur = 0;
+}
+
+function drawCityTheme(frame) {
+  const sky = themeContext.createLinearGradient(0, 0, 0, themeHeight);
+  sky.addColorStop(0, "#030414");
+  sky.addColorStop(0.58, "#090b23");
+  sky.addColorStop(1, "#13051e");
+  themeContext.fillStyle = sky;
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+
+  const moonX = themeWidth * 0.76 + Math.sin(themeClock * 0.00016) * 18;
+  const moonY = themeHeight * 0.18;
+  const moon = themeContext.createRadialGradient(moonX, moonY, 2, moonX, moonY, 100);
+  moon.addColorStop(0, "rgba(255,43,214,.8)");
+  moon.addColorStop(0.16, "rgba(255,43,214,.28)");
+  moon.addColorStop(1, "rgba(255,43,214,0)");
+  themeContext.fillStyle = moon;
+  themeContext.fillRect(moonX - 100, moonY - 100, 200, 200);
+
+  themeContext.fillStyle = "#d8fbff";
+  themeContext.shadowColor = "#00e5ff";
+  themeContext.shadowBlur = 20;
+  themeContext.beginPath();
+  themeContext.arc(moonX, moonY, 27, 0, Math.PI * 2);
+  themeContext.fill();
+  themeContext.shadowBlur = 0;
+
+  themeStars.forEach(star => {
+    star.x -= star.speed * frame;
+    if (star.x < -2) star.x = themeWidth + 2;
+    themeContext.fillStyle = `rgba(0,229,255,${star.alpha})`;
+    themeContext.fillRect(star.x, star.y, star.size, star.size);
+  });
+
+  cityLayers.forEach(layer => drawCityLayer(layer, frame));
+  drawCityTraffic(frame);
+
+  cityRain.forEach(drop => {
+    drop.x -= drop.speed * 0.25 * frame;
+    drop.y += drop.speed * frame;
+    if (drop.y > themeHeight + 30) {
+      drop.y = randomBetween(-120, -20);
+      drop.x = randomBetween(-50, themeWidth + 100);
+    }
+    themeContext.strokeStyle = `rgba(0,240,255,${drop.alpha})`;
+    themeContext.lineWidth = 0.7;
+    themeContext.beginPath();
+    themeContext.moveTo(drop.x, drop.y);
+    themeContext.lineTo(drop.x - 8, drop.y + drop.length);
+    themeContext.stroke();
+  });
+}
+
+function initializeSolarTheme() {
+  const count = themeWidth < 600 ? 42 : 82;
+  themeEmbers = Array.from({ length: count }, () => ({
+    x: randomBetween(0, themeWidth),
+    y: randomBetween(0, themeHeight),
+    radius: randomBetween(0.7, 3.2),
+    speed: randomBetween(0.6, 2.8),
+    drift: randomBetween(-0.6, 0.6),
+    alpha: randomBetween(0.25, 0.9),
+    color: Math.random() < 0.45 ? "#ffdf5d" : Math.random() < 0.75 ? "#ff6d00" : "#ff174f"
+  }));
+  themeContext.fillStyle = "#120507";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+}
+
+function drawSolarTheme(frame) {
+  themeContext.fillStyle = "rgba(18, 5, 7, 0.13)";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+  const centerX = themeWidth * (0.5 + Math.sin(themeClock * 0.00022) * 0.08) + (pointerX - themeWidth / 2) * 0.16;
+  const centerY = -themeHeight * 0.05 + Math.cos(themeClock * 0.00017) * 18 + (pointerY - themeHeight / 2) * 0.08;
+  const radius = Math.max(themeWidth, themeHeight) * 0.62;
+
+  themeContext.save();
+  themeContext.globalCompositeOperation = "screen";
+  const core = themeContext.createRadialGradient(centerX, centerY, 10, centerX, centerY, radius);
+  core.addColorStop(0, "rgba(255,244,170,.98)");
+  core.addColorStop(0.08, "rgba(255,174,0,.88)");
+  core.addColorStop(0.28, "rgba(255,23,79,.36)");
+  core.addColorStop(1, "rgba(255,23,79,0)");
+  themeContext.fillStyle = core;
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+
+  themeContext.translate(centerX, centerY);
+  themeContext.rotate(themeClock * 0.00012);
+  for (let ray = 0; ray < 18; ray++) {
+    const angle = ray / 18 * Math.PI * 2;
+    const length = radius * (0.5 + 0.18 * Math.sin(themeClock * 0.001 + ray));
+    themeContext.strokeStyle = ray % 2 === 0 ? "rgba(255,196,0,.2)" : "rgba(255,23,79,.13)";
+    themeContext.lineWidth = ray % 3 === 0 ? 8 : 2;
+    themeContext.beginPath();
+    themeContext.moveTo(Math.cos(angle) * 24, Math.sin(angle) * 24);
+    themeContext.lineTo(Math.cos(angle) * length, Math.sin(angle) * length);
+    themeContext.stroke();
+  }
+  themeContext.restore();
+
+  themeContext.lineWidth = 2;
+  for (let band = 0; band < 6; band++) {
+    themeContext.strokeStyle = band % 2 === 0 ? "rgba(255,109,0,.34)" : "rgba(255,23,79,.25)";
+    themeContext.beginPath();
+    for (let x = -20; x <= themeWidth + 20; x += 14) {
+      const y = themeHeight * (0.42 + band * 0.075) + Math.sin(x * 0.012 + themeClock * 0.002 + band) * (18 + band * 5);
+      if (x === -20) themeContext.moveTo(x, y);
+      else themeContext.lineTo(x, y);
+    }
+    themeContext.stroke();
+  }
+
+  themeEmbers.forEach(ember => {
+    ember.y -= ember.speed * frame;
+    ember.x += (ember.drift + Math.sin(themeClock * 0.002 + ember.y * 0.02) * 0.45) * frame;
+    if (ember.y < -10) {
+      ember.y = themeHeight + randomBetween(0, 80);
+      ember.x = randomBetween(0, themeWidth);
+    }
+    themeContext.fillStyle = ember.color;
+    themeContext.shadowColor = ember.color;
+    themeContext.shadowBlur = 10;
+    themeContext.beginPath();
+    themeContext.arc(ember.x, ember.y, ember.radius, 0, Math.PI * 2);
+    themeContext.fill();
+  });
+  themeContext.shadowBlur = 0;
+}
+
+function initializeAbyssTheme() {
+  const count = themeWidth < 600 ? 44 : 86;
+  themeBubbles = Array.from({ length: count }, () => ({
+    x: randomBetween(0, themeWidth),
+    y: randomBetween(0, themeHeight),
+    radius: randomBetween(1.2, 7),
+    speed: randomBetween(0.35, 1.5),
+    drift: randomBetween(-0.35, 0.35),
+    phase: randomBetween(0, Math.PI * 2),
+    alpha: randomBetween(0.12, 0.6)
+  }));
+  themeContext.fillStyle = "#00100f";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+}
+
+function drawAbyssTheme(frame) {
+  themeContext.fillStyle = "rgba(0, 16, 15, 0.12)";
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+
+  const water = themeContext.createLinearGradient(0, 0, 0, themeHeight);
+  water.addColorStop(0, "rgba(0,183,255,.05)");
+  water.addColorStop(0.55, "rgba(0,255,200,.04)");
+  water.addColorStop(1, "rgba(168,255,62,.16)");
+  themeContext.fillStyle = water;
+  themeContext.fillRect(0, 0, themeWidth, themeHeight);
+
+  themeContext.save();
+  themeContext.globalCompositeOperation = "screen";
+  for (let beam = 0; beam < 6; beam++) {
+    const x = ((beam / 6) * themeWidth + themeClock * 0.018) % (themeWidth + 260) - 130 + (pointerX - themeWidth / 2) * 0.1;
+    const beamGradient = themeContext.createLinearGradient(x, 0, x + 90, themeHeight);
+    beamGradient.addColorStop(0, beam % 2 === 0 ? "rgba(0,255,200,.12)" : "rgba(0,183,255,.1)");
+    beamGradient.addColorStop(1, "rgba(0,255,200,0)");
+    themeContext.fillStyle = beamGradient;
+    themeContext.beginPath();
+    themeContext.moveTo(x, 0);
+    themeContext.lineTo(x + 45, 0);
+    themeContext.lineTo(x + 170, themeHeight);
+    themeContext.lineTo(x + 25, themeHeight);
+    themeContext.closePath();
+    themeContext.fill();
+  }
+  themeContext.restore();
+
+  for (let wave = 0; wave < 7; wave++) {
+    themeContext.strokeStyle = wave % 2 === 0 ? "rgba(0,255,200,.24)" : "rgba(0,183,255,.16)";
+    themeContext.lineWidth = wave === 0 ? 2 : 1;
+    themeContext.beginPath();
+    for (let x = -20; x <= themeWidth + 20; x += 12) {
+      const y = themeHeight * (0.28 + wave * 0.1) + Math.sin(x * 0.018 + themeClock * 0.0018 + wave * 0.8) * (12 + wave * 4);
+      if (x === -20) themeContext.moveTo(x, y);
+      else themeContext.lineTo(x, y);
+    }
+    themeContext.stroke();
+  }
+
+  themeBubbles.forEach(bubble => {
+    bubble.y -= bubble.speed * frame;
+    bubble.x += (bubble.drift + Math.sin(themeClock * 0.0015 + bubble.phase) * 0.24) * frame;
+    if (bubble.y < -10) {
+      bubble.y = themeHeight + randomBetween(0, 50);
+      bubble.x = randomBetween(0, themeWidth);
+    }
+    themeContext.strokeStyle = `rgba(168,255,62,${bubble.alpha})`;
+    themeContext.fillStyle = `rgba(0,255,200,${bubble.alpha * 0.16})`;
+    themeContext.shadowColor = "#00ffc8";
+    themeContext.shadowBlur = 8;
+    themeContext.beginPath();
+    themeContext.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+    themeContext.fill();
+    themeContext.stroke();
+  });
+  themeContext.shadowBlur = 0;
+}
+
+function initializeThemeScene() {
+  themeContext.clearRect(0, 0, themeWidth, themeHeight);
+  if (activeTheme === "matrix") initializeMatrixTheme();
+  else if (activeTheme === "neon-noir") initializeNeonTheme();
+  else if (activeTheme === "cyber-city") initializeCityTheme();
+  else if (activeTheme === "solar-flare") initializeSolarTheme();
+  else initializeAbyssTheme();
+}
+
+function drawPointerReactiveGlow(frame) {
+  const glow = THEME_CONFIG[activeTheme].glow;
+  const pulse = 0.5 + Math.sin(themeClock * 0.006) * 0.5;
+  const radius = 90 + pointerEnergy * 120 + pulse * 20;
+  const alpha = 0.035 + pointerEnergy * 0.11;
+  themeContext.save();
+  themeContext.globalCompositeOperation = "screen";
+  const halo = themeContext.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, radius);
+  halo.addColorStop(0, `rgba(${glow}, ${alpha + 0.08})`);
+  halo.addColorStop(0.35, `rgba(${glow}, ${alpha * 0.42})`);
+  halo.addColorStop(1, `rgba(${glow}, 0)`);
+  themeContext.fillStyle = halo;
+  themeContext.fillRect(pointerX - radius, pointerY - radius, radius * 2, radius * 2);
+  themeContext.strokeStyle = `rgba(${glow}, ${0.1 + pointerEnergy * 0.24})`;
+  themeContext.lineWidth = 1;
+  themeContext.beginPath();
+  themeContext.arc(pointerX, pointerY, 18 + pulse * 12 + pointerEnergy * 22, 0, Math.PI * 2);
+  themeContext.stroke();
+  themeContext.beginPath();
+  themeContext.moveTo(pointerX - 9, pointerY);
+  themeContext.lineTo(pointerX + 9, pointerY);
+  themeContext.moveTo(pointerX, pointerY - 9);
+  themeContext.lineTo(pointerX, pointerY + 9);
+  themeContext.stroke();
+  themeContext.restore();
+}
+
+function drawActiveTheme(frame) {
+  if (activeTheme === "matrix") drawMatrixTheme(frame);
+  else if (activeTheme === "neon-noir") drawNeonTheme(frame);
+  else if (activeTheme === "cyber-city") drawCityTheme(frame);
+  else if (activeTheme === "solar-flare") drawSolarTheme(frame);
+  else drawAbyssTheme(frame);
+  drawPointerReactiveGlow(frame);
+}
+
+function resizeThemeCanvas() {
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
+  themeWidth = window.innerWidth;
+  themeHeight = window.innerHeight;
+  themeCanvas.width = Math.floor(themeWidth * pixelRatio);
+  themeCanvas.height = Math.floor(themeHeight * pixelRatio);
+  themeCanvas.style.width = `${themeWidth}px`;
+  themeCanvas.style.height = `${themeHeight}px`;
+  pointerX = Math.min(pointerX, themeWidth);
+  pointerY = Math.min(pointerY, themeHeight);
+  pointerTargetX = Math.min(pointerTargetX, themeWidth);
+  pointerTargetY = Math.min(pointerTargetY, themeHeight);
+  themeContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  themeContext.imageSmoothingEnabled = false;
+  initializeThemeScene();
+}
+
+function animateTheme(timestamp) {
+  if (!themeLastTime) themeLastTime = timestamp;
+  const elapsed = Math.min(timestamp - themeLastTime, 42);
+  themeLastTime = timestamp;
+  const reducedMotionScale = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0.28 : 1;
+  const frame = elapsed / 16.67 * reducedMotionScale;
+  const pointerEase = 1 - Math.pow(0.86, elapsed / 16.67);
+  pointerX += (pointerTargetX - pointerX) * pointerEase;
+  pointerY += (pointerTargetY - pointerY) * pointerEase;
+  pointerEnergy += (pointerTargetEnergy - pointerEnergy) * pointerEase;
+  themeClock += elapsed;
+  if (!document.hidden) drawActiveTheme(frame || 0.25);
+  window.requestAnimationFrame(animateTheme);
+}
+
+function closeThemeMenu() {
+  const menu = document.getElementById("themeMenu");
+  const button = document.getElementById("themeMenuButton");
+  if (!menu || !button) return;
+  menu.classList.remove("open");
+  button.setAttribute("aria-expanded", "false");
+}
+
+function toggleThemeMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById("themeMenu");
+  const button = document.getElementById("themeMenuButton");
+  const opening = !menu.classList.contains("open");
+  menu.classList.toggle("open", opening);
+  button.setAttribute("aria-expanded", String(opening));
+}
+
+function applyTheme(nextTheme, persist = true, announce = true) {
+  if (!THEME_CONFIG[nextTheme]) return;
+
+  activeTheme = nextTheme;
+  document.body.dataset.theme = nextTheme;
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", THEME_CONFIG[nextTheme].color);
+  document.querySelectorAll("[data-theme-option]").forEach(option => {
+    const selected = option.dataset.themeOption === nextTheme;
+    option.classList.toggle("active", selected);
+    option.setAttribute("aria-checked", String(selected));
+  });
+
+  document.body.classList.add("theme-changing");
+  window.clearTimeout(applyTheme.transitionTimer);
+  applyTheme.transitionTimer = window.setTimeout(() => document.body.classList.remove("theme-changing"), 280);
+  initializeThemeScene();
+
+  if (persist) {
+    const data = getData();
+    data.theme = nextTheme;
+    saveData(data);
+  }
+
+  if (announce) {
+    setFormStatus(`${THEME_CONFIG[nextTheme].name} theme activated.`, "success");
+  }
+}
+
+function setTheme(nextTheme) {
+  applyTheme(nextTheme);
+  closeThemeMenu();
+}
+
+function isValidWin(win) {
+  return Boolean(
+    win &&
+    typeof win === "object" &&
+    typeof win.id === "string" &&
+    typeof win.date === "string" &&
+    Number.isInteger(win.kills) &&
+    win.kills >= 0 &&
+    ["ranked", "unranked"].includes(win.queue) &&
+    ["br", "reload"].includes(win.gameType) &&
+    MODE_ORDER.includes(win.mode)
+  );
+}
+
+function queueName(value) {
+  return value === "unranked" ? "Unranked" : "Ranked";
+}
+
+function gameTypeName(value) {
+  return value === "reload" ? "Reload" : "Battle Royale";
+}
+
+function gameTypeShortName(value) {
+  return value === "reload" ? "Reload" : "BR";
+}
+
+function modeName(value) {
+  const names = {
+    solo: "Solo",
+    duos: "Duo",
+    squads: "Squad",
+    trios: "Trio"
+  };
+  return names[value] || "Solo";
+}
+
+function modeShortName(value) {
+  const names = {
+    solo: "Solo",
+    duos: "Duo",
+    squads: "Squad",
+    trios: "Trio"
+  };
+  return names[value] || value;
+}
+
+function localDateValue(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDate(value) {
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(parsed);
+}
+
+function createId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function persistSelection() {
+  const data = getData();
+  data.queue = queue;
+  data.gameType = gameType;
+  data.mode = mode;
+  saveData(data);
+}
+
+function toggleQueue() {
+  queue = queue === "ranked" ? "unranked" : "ranked";
+  persistSelection();
+  render();
+}
+
+function toggleGameType() {
+  gameType = gameType === "br" ? "reload" : "br";
+  if (!MODE_OPTIONS[gameType].includes(mode)) {
+    mode = "squads";
+  }
+  persistSelection();
+  render();
+}
+
+function setMode(nextMode) {
+  if (!MODE_OPTIONS[gameType].includes(nextMode)) return;
+  mode = nextMode;
+  persistSelection();
+  render();
+}
+
+function useToday() {
+  document.getElementById("winDate").value = localDateValue();
+  document.getElementById("winDate").focus();
+}
+
+function setFormStatus(message, type = "") {
+  const status = document.getElementById("formStatus");
+  window.clearTimeout(statusTimer);
+  status.textContent = message;
+  status.className = `form-status${type ? ` ${type}` : ""}`;
+  if (type) {
+    statusTimer = window.setTimeout(() => {
+      status.textContent = "Ready to record another win.";
+      status.className = "form-status";
+    }, 3200);
+  }
+}
+
+function saveWin(event) {
+  event.preventDefault();
+  const form = document.getElementById("winForm");
+  if (!form.reportValidity()) return;
+
+  const date = document.getElementById("winDate").value;
+  const killsValue = document.getElementById("winKills").value;
+  const kills = Number(killsValue);
+  const notes = document.getElementById("winNotes").value.trim();
+
+  if (!Number.isInteger(kills) || kills < 0 || kills > 999) {
+    setFormStatus("Enter eliminations from 0 to 999.", "error");
+    return;
+  }
+
+  const data = getData();
+  data.wins.push({
+    id: createId(),
+    date,
+    kills,
+    notes,
+    queue,
+    gameType,
+    mode,
+    createdAt: Date.now()
+  });
+  saveData(data);
+
+  document.getElementById("winKills").value = "";
+  document.getElementById("winNotes").value = "";
+  document.getElementById("winDate").value = localDateValue();
+  document.getElementById("winKills").focus();
+
+  render();
+  setFormStatus("Victory logged. +1 to your record.", "success");
+}
+
+function removeWin(id) {
+  const data = getData();
+  const win = data.wins.find(item => item.id === id);
+  if (!win) return;
+
+  const confirmed = window.confirm(
+    `Delete this ${queueName(win.queue)} ${gameTypeShortName(win.gameType)} ${modeShortName(win.mode)} victory?`
+  );
+  if (!confirmed) return;
+
+  data.wins = data.wins.filter(item => item.id !== id);
+  saveData(data);
+  render();
+  setFormStatus("Victory removed from the archive.", "success");
+}
+
+function clearAllWins() {
+  const data = getData();
+  if (!data.wins.length) return;
+
+  const confirmed = window.confirm(
+    "Permanently delete every saved FnWins victory?"
+  );
+  if (!confirmed) return;
+
+  data.wins = [];
+  saveData(data);
+  render();
+  setFormStatus("All victory data cleared.", "success");
+}
+
+function getFilteredWins(data) {
+  return data.wins
+    .filter(win => {
+      return win.queue === queue &&
+        win.gameType === gameType &&
+        win.mode === mode;
+    })
+    .sort((a, b) => {
+      const dateDifference = b.date.localeCompare(a.date);
+      return dateDifference || b.createdAt - a.createdAt;
+    });
+}
+
+function calculateStats(wins) {
+  const totalKills = wins.reduce((sum, win) => sum + win.kills, 0);
+  const bestWin = wins.reduce((best, win) => Math.max(best, win.kills), 0);
+  return {
+    wins: wins.length,
+    totalKills,
+    average: wins.length ? totalKills / wins.length : 0,
+    bestWin
+  };
+}
+
+function setText(id, value) {
+  document.getElementById(id).textContent = value;
+}
+
+function renderFilters() {
+  document.getElementById("rankedOption").classList.toggle("active", queue === "ranked");
+  document.getElementById("unrankedOption").classList.toggle("active", queue === "unranked");
+  document.getElementById("brOption").classList.toggle("active", gameType === "br");
+  document.getElementById("reloadOption").classList.toggle("active", gameType === "reload");
+  document.getElementById("queueToggle").setAttribute("aria-pressed", String(queue === "unranked"));
+  document.getElementById("gameTypeToggle").setAttribute("aria-pressed", String(gameType === "reload"));
+
+  document.querySelectorAll(".mode-button").forEach(button => {
+    const buttonMode = button.dataset.mode;
+    const available = MODE_OPTIONS[gameType].includes(buttonMode);
+    button.hidden = !available;
+    button.classList.toggle("active", available && buttonMode === mode);
+    button.setAttribute("aria-pressed", String(available && buttonMode === mode));
+  });
+
+  setText("saveTarget", `${queueName(queue)} · ${gameTypeShortName(gameType)} · ${modeName(mode)}`);
+}
+
+function renderStats(data, filteredWins) {
+  const stats = calculateStats(filteredWins);
+  setText("lifetimeWins", data.wins.length);
+  setText("viewWins", stats.wins);
+  setText("viewElims", stats.totalKills);
+  setText("averageElims", stats.average.toFixed(2));
+  setText("bestWin", "");
+  const bestWin = document.getElementById("bestWin");
+  bestWin.append(document.createTextNode(String(stats.bestWin)));
+  const unit = document.createElement("span");
+  unit.className = "stat-unit";
+  unit.textContent = "ELIMS";
+  bestWin.appendChild(unit);
+
+  setText("rankedWins", data.wins.filter(win => win.queue === "ranked").length);
+  setText("unrankedWins", data.wins.filter(win => win.queue === "unranked").length);
+  setText("brWins", data.wins.filter(win => win.gameType === "br").length);
+  setText("reloadWins", data.wins.filter(win => win.gameType === "reload").length);
+}
+
+function createWinEntry(win, index) {
+  const entry = document.createElement("article");
+  entry.className = "win-entry";
+  entry.style.animationDelay = `${Math.min(index * 45, 360)}ms`;
+
+  const number = document.createElement("div");
+  number.className = "win-index";
+  number.textContent = `Victory ${String(index + 1).padStart(2, "0")}`;
+
+  const date = document.createElement("div");
+  date.className = "win-date";
+  const dateLabel = document.createElement("strong");
+  dateLabel.textContent = "Date";
+  const dateValue = document.createElement("span");
+  dateValue.textContent = formatDate(win.date);
+  date.append(dateLabel, dateValue);
+
+  const modeElement = document.createElement("div");
+  modeElement.className = "win-mode";
+  const modeLabel = document.createElement("strong");
+  modeLabel.textContent = "Loadout";
+  const modeValue = document.createElement("span");
+  modeValue.textContent = `${queueName(win.queue)} · ${gameTypeShortName(win.gameType)} · ${modeShortName(win.mode)}`;
+  modeElement.append(modeLabel, modeValue);
+
+  const elims = document.createElement("div");
+  elims.className = "win-elims";
+  const elimsLabel = document.createElement("strong");
+  elimsLabel.textContent = "Elims";
+  const elimsValue = document.createElement("span");
+  elimsValue.textContent = String(win.kills);
+  elims.append(elimsLabel, elimsValue);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "delete-button";
+  deleteButton.type = "button";
+  deleteButton.textContent = "Delete";
+  deleteButton.setAttribute("aria-label", `Delete victory from ${formatDate(win.date)}`);
+  deleteButton.addEventListener("click", () => removeWin(win.id));
+
+  entry.append(number, date, modeElement, elims, deleteButton);
+
+  if (win.notes) {
+    const notes = document.createElement("p");
+    notes.className = "win-notes";
+    notes.textContent = win.notes;
+    entry.appendChild(notes);
+  }
+
+  return entry;
+}
+
+function createEmptyState() {
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+
+  const inner = document.createElement("div");
+  inner.className = "empty-state-inner";
+
+  const glyph = document.createElement("div");
+  glyph.className = "empty-glyph";
+  const glyphText = document.createElement("span");
+  glyphText.textContent = "1";
+  glyph.appendChild(glyphText);
+
+  const heading = document.createElement("h3");
+  heading.textContent = "No victories in this signal";
+
+  const copy = document.createElement("p");
+  copy.textContent = "Adjust the filters or log a new win to start filling this view.";
+
+  const button = document.createElement("button");
+  button.className = "neon-button empty-button";
+  button.type = "button";
+  button.textContent = "Log first win";
+  button.addEventListener("click", () => {
+    document.getElementById("winKills").focus();
+  });
+
+  inner.append(glyph, heading, copy, button);
+  empty.appendChild(inner);
+  return empty;
+}
+
+function renderHistory(filteredWins) {
+  const list = document.getElementById("winList");
+  list.replaceChildren();
+
+  setText(
+    "historySubtitle",
+    `${queueName(queue)} · ${gameTypeName(gameType)} · ${modeName(mode)} shown.`
+  );
+  setText("historyCount", `${filteredWins.length} ${filteredWins.length === 1 ? "win" : "wins"}`);
+
+  if (!filteredWins.length) {
+    list.appendChild(createEmptyState());
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  filteredWins.forEach((win, index) => fragment.appendChild(createWinEntry(win, index)));
+  list.appendChild(fragment);
+}
+
+function render() {
+  const data = getData();
+  renderFilters();
+  const filteredWins = getFilteredWins(data);
+  renderStats(data, filteredWins);
+  renderHistory(filteredWins);
+  document.getElementById("clearButton").disabled = data.wins.length === 0;
+}
+
+document.addEventListener("click", event => {
+  const picker = document.querySelector(".theme-picker");
+  if (picker && !picker.contains(event.target)) closeThemeMenu();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeThemeMenu();
+});
+
+window.addEventListener("resize", resizeThemeCanvas);
+
+function initializePointerGlow() {
+  const surfaceSelector = ".panel, .stat-card, .control-panel, .neon-button, .filter-toggle, .mode-button, .today-button, .clear-button, input, textarea, .theme-option";
+  const setSurfacePoint = (surface, event) => {
+    const bounds = surface.getBoundingClientRect();
+    surface.style.setProperty("--surface-x", `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+    surface.style.setProperty("--surface-y", `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+  };
+
+  document.addEventListener("pointermove", event => {
+    if (!(event.target instanceof Element)) return;
+    const surface = event.target.closest(surfaceSelector);
+    if (surface) setSurfacePoint(surface, event);
+  }, { passive: true });
+
+  document.addEventListener("pointerout", event => {
+    if (!(event.target instanceof Element)) return;
+    const surface = event.target.closest(surfaceSelector);
+    if (!surface || (event.relatedTarget instanceof Node && surface.contains(event.relatedTarget))) return;
+    surface.style.setProperty("--surface-x", "50%");
+    surface.style.setProperty("--surface-y", "50%");
+  }, { passive: true });
+
+  window.addEventListener("pointermove", event => {
+    pointerTargetX = event.clientX;
+    pointerTargetY = event.clientY;
+    pointerTargetEnergy = 1;
+    if (pointerFrame) return;
+    pointerFrame = window.requestAnimationFrame(() => {
+      document.documentElement.style.setProperty("--mouse-x", `${event.clientX}px`);
+      document.documentElement.style.setProperty("--mouse-y", `${event.clientY}px`);
+      pointerFrame = null;
+    });
+  }, { passive: true });
+
+  document.documentElement.addEventListener("pointerleave", () => {
+    pointerTargetX = themeWidth / 2;
+    pointerTargetY = themeHeight / 2;
+    pointerTargetEnergy = 0;
+  });
+}
+
+{
+  const data = getData();
+  queue = ["ranked", "unranked"].includes(data.queue) ? data.queue : "ranked";
+  gameType = ["br", "reload"].includes(data.gameType) ? data.gameType : "br";
+  mode = MODE_OPTIONS[gameType].includes(data.mode) ? data.mode : "solo";
+  activeTheme = THEME_CONFIG[data.theme] ? data.theme : "neon-noir";
+  data.queue = queue;
+  data.gameType = gameType;
+  data.mode = mode;
+  data.theme = activeTheme;
+  saveData(data);
+}
+
+applyTheme(activeTheme, false, false);
+resizeThemeCanvas();
+document.getElementById("winDate").value = localDateValue();
+initializePointerGlow();
+window.requestAnimationFrame(animateTheme);
+render();
+</script>
+</body>
+</html>

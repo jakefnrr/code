@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Workspace Editor</title>
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <div class="app-shell" id="appShell">
+        <nav class="activity-bar" aria-label="Primary navigation">
+            <button class="activity-logo" id="brandButton" aria-label="Workspace Editor home">W</button>
+            <div class="activity-buttons">
+                <button class="activity-button active" data-view="explorer" aria-label="Explorer" title="Explorer">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h6l2 2h10v11H3zM3 9.5h18"/></svg>
+                </button>
+                <button class="activity-button" data-view="search" aria-label="Search" title="Search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+                </button>
+                <button class="activity-button" data-view="run" aria-label="Run and output" title="Run and output">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7zM4 5v14"/></svg>
+                </button>
+            </div>
+            <button class="activity-button settings-button" id="aboutButton" aria-label="About" title="About">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.6-1.4.9-1.9-2.1-2.1-1.9.9-1.4-.6-.7-2h-3l-.7 2-1.4.6-1.9-.9L1.1 6.5 2 8.4l-.6 1.4-2 .7v3l2 .7.6 1.4-.9 1.9 2.1 2.1 1.9-.9 1.4.6.7 2h3l.7-2 1.4-.6 1.9.9 2.1-2.1-.9-1.9.6-1.4z" transform="translate(1.5 0) scale(.875)"/></svg>
+            </button>
+        </nav>
+
+        <aside class="sidebar" aria-label="Workspace sidebar">
+            <section class="sidebar-view active" data-panel="explorer">
+                <header class="sidebar-title">
+                    <span>Explorer</span>
+                    <div class="sidebar-actions">
+                        <button id="newFileButton" aria-label="New file" title="New file">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h5M12 11v6M9 14h6"/></svg>
+                        </button>
+                        <button id="newFolderButton" aria-label="New folder" title="New folder">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3zM12 11v6M9 14h6"/></svg>
+                        </button>
+                        <button id="refreshTreeButton" aria-label="Refresh explorer" title="Refresh explorer">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.7 7M5.3 17A7 7 0 0 0 17.9 15.8"/></svg>
+                        </button>
+                    </div>
+                </header>
+                <div class="workspace-heading">
+                    <span class="collapse-chevron">⌄</span>
+                    <strong id="workspaceName">Workspace</strong>
+                </div>
+                <div class="file-tree" id="fileTree" role="tree" aria-label="Workspace files"></div>
+            </section>
+
+            <section class="sidebar-view" data-panel="search">
+                <header class="sidebar-title"><span>Search</span></header>
+                <div class="search-controls">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+                        <input id="searchInput" type="search" placeholder="Search workspace" autocomplete="off">
+                    </div>
+                    <label class="scope-toggle"><input id="searchScope" type="checkbox"> Current folder</label>
+                </div>
+                <div class="search-summary" id="searchSummary">Type at least two characters.</div>
+                <div class="search-results" id="searchResults"></div>
+            </section>
+
+            <section class="sidebar-view" data-panel="run">
+                <header class="sidebar-title"><span>Run</span></header>
+                <div class="run-panel">
+                    <button class="run-panel-button" id="runPanelPreview">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg>
+                        <span><strong>Run preview</strong><small>Render the current file</small></span>
+                    </button>
+                    <button class="run-panel-button" id="runPanelProcess">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg>
+                        <span><strong>Run process</strong><small>Node, Python, or shell</small></span>
+                    </button>
+                    <button class="run-panel-button" id="runPanelSafari">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v7H4V6h7"/></svg>
+                        <span><strong>Open in Safari</strong><small>Launch the current file</small></span>
+                    </button>
+                </div>
+            </section>
+        </aside>
+
+        <main class="workbench">
+            <header class="titlebar">
+                <div class="titlebar-left">
+                    <span class="app-title">Workspace Editor</span>
+                    <span class="title-separator">/</span>
+                    <span class="active-file-title" id="activeFileTitle">No file open</span>
+                </div>
+                <div class="titlebar-center">
+                    <button class="command-trigger" id="commandTrigger">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+                        <span>Search files or commands</span>
+                        <kbd>⌘P</kbd>
+                    </button>
+                </div>
+                <div class="titlebar-actions">
+                    <button class="toolbar-button" id="saveButton" title="Save (⌘S)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h14l2 2v16H4zM8 3v6h8V3M8 21v-7h8v7"/></svg>
+                    </button>
+                    <button class="toolbar-button" id="toggleTerminalButton" title="Toggle output">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM7 9 10 12 7 15M13 16h4"/></svg>
+                    </button>
+                    <button class="toolbar-button" id="togglePreviewButton" title="Toggle preview">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM14 4v16M17 9l3 3-3 3"/></svg>
+                    </button>
+                    <button class="run-button" id="runButton" title="Run preview (⌘Enter)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg>
+                        <span>Run</span>
+                    </button>
+                    <button class="safari-button" id="safariButton" title="Open in a new Safari tab">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v7H4V6h7"/></svg>
+                        <span>Safari</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="tab-strip" id="tabStrip" role="tablist" aria-label="Open files"></div>
+
+            <div class="navigate-bar">
+                <div class="breadcrumbs" id="breadcrumbs"></div>
+                <div class="navigate-actions">
+                    <button id="copyPathButton" title="Copy workspace-relative path">Copy path</button>
+                    <span id="saveState">Ready</span>
+                </div>
+            </div>
+
+            <div class="editor-region preview-open" id="editorRegion">
+                <section class="editor-pane" aria-label="Code editor">
+                    <div class="welcome" id="welcomePane">
+                        <div class="welcome-card">
+                            <div class="welcome-mark">W</div>
+                            <p class="eyebrow">Your local workspace</p>
+                            <h1>Build anything.</h1>
+                            <p>Open a file from the explorer, paste code into the editor, save it, and run it here or in a new Safari tab.</p>
+                            <div class="welcome-actions">
+                                <button class="primary-button" id="welcomeOpenFile">Open a file</button>
+                                <button class="secondary-button" id="welcomeNewFile">New file</button>
+                            </div>
+                            <div class="shortcut-grid">
+                                <span>Quick open <kbd>⌘ P</kbd></span>
+                                <span>Save <kbd>⌘ S</kbd></span>
+                                <span>Run <kbd>⌘ ↵</kbd></span>
+                                <span>Command palette <kbd>⇧⌘ P</kbd></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="code-editor" id="codeEditor" hidden>
+                        <div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>
+                        <div class="editor-stack" id="editorStack">
+                            <pre class="highlight-layer" aria-hidden="true"><code id="highlightCode"></code></pre>
+                            <textarea id="codeInput" aria-label="Code editor" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" wrap="off"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="pane-resizer" id="previewResizer" role="separator" aria-label="Resize preview"></div>
+
+                <section class="preview-pane" id="previewPane" aria-label="Live preview">
+                    <header class="preview-toolbar">
+                        <div class="preview-title">
+                            <span class="live-dot"></span>
+                            <strong>Preview</strong>
+                            <span id="previewFileName">Nothing running</span>
+                        </div>
+                        <div class="viewport-controls" aria-label="Preview size">
+                            <button data-width="desktop" class="active" title="Desktop">Desktop</button>
+                            <button data-width="tablet" title="Tablet">Tablet</button>
+                            <button data-width="mobile" title="Mobile">Mobile</button>
+                        </div>
+                        <div class="preview-actions">
+                            <button id="refreshPreviewButton" title="Refresh preview">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.7 7M5.3 17A7 7 0 0 0 17.9 15.8"/></svg>
+                            </button>
+                            <button id="previewSafariButton" title="Open preview in Safari">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v7H4V6h7"/></svg>
+                            </button>
+                            <button id="closePreviewButton" title="Close preview">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                    </header>
+                    <div class="preview-stage" id="previewStage">
+                        <div class="preview-frame-wrap" id="previewFrameWrap">
+                            <iframe id="previewFrame" title="Live code preview" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
+                        </div>
+                        <div class="preview-empty" id="previewEmpty">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM14 4v16M17 9l3 3-3 3"/></svg>
+                            <strong>Preview is ready</strong>
+                            <span>Run a file to see it here.</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="output-panel" id="outputPanel" aria-label="Process output">
+                <header>
+                    <div class="output-tabs">
+                        <button class="active">Output</button>
+                        <span id="outputStatus">No process run</span>
+                    </div>
+                    <div class="output-actions">
+                        <button id="clearOutputButton">Clear</button>
+                        <button id="closeOutputButton" aria-label="Close output">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                        </button>
+                    </div>
+                </header>
+                <pre id="outputContent"><span class="output-muted">Run a JavaScript, Python, or shell file to see its output here.</span></pre>
+            </section>
+
+            <footer class="status-bar">
+                <div class="status-left">
+                    <span id="statusLanguage">Plain Text</span>
+                    <span id="statusPosition">Ln 1, Col 1</span>
+                    <span id="statusEncoding">UTF-8</span>
+                    <span id="statusFileSize">0 B</span>
+                </div>
+                <div class="status-right">
+                    <span id="statusSave">Saved</span>
+                    <span>Spaces: 2</span>
+                    <span>Local workspace</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <div class="palette-backdrop" id="paletteBackdrop" hidden>
+        <section class="command-palette" role="dialog" aria-modal="true" aria-label="Quick open and commands">
+            <div class="palette-input-row">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+                <input id="paletteInput" placeholder="Search files by name or type a command with >" autocomplete="off">
+                <kbd>esc</kbd>
+            </div>
+            <div class="palette-results" id="paletteResults"></div>
+            <footer><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></footer>
+        </section>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header><h2 id="modalTitle">New file</h2><button id="modalCloseButton" aria-label="Close">×</button></header>
+            <div class="modal-body" id="modalBody"></div>
+            <footer id="modalActions"></footer>
+        </section>
+    </div>
+
+    <div class="context-menu" id="contextMenu" hidden></div>
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+    <script src="editor.js"></script>
+</body>
+</html>

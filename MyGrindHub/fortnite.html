@@ -261,7 +261,13 @@ header {
 
 /* Mode buttons */
 
-.mode-btn {
+.game-type-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-btn,
+.game-type-btn {
   padding: 12px 24px;
   min-width: 92px;
   border-radius: 12px;
@@ -274,7 +280,8 @@ header {
   transition: .2s;
 }
 
-.mode-btn:hover {
+.mode-btn:hover,
+.game-type-btn:hover {
   transform: scale(1.06);
   color: white;
   border-color: var(--cyan);
@@ -283,7 +290,8 @@ header {
     0 0 35px rgba(138,46,255,.2);
 }
 
-.mode-btn.active {
+.mode-btn.active,
+.game-type-btn.active {
   background: linear-gradient(
     90deg,
     #007b99,
@@ -294,6 +302,10 @@ header {
   box-shadow:
     0 0 18px rgba(0,246,255,.45),
     0 0 40px rgba(138,46,255,.2);
+}
+
+.mode-btn[hidden] {
+  display: none;
 }
 
 /* =========================
@@ -981,7 +993,8 @@ input::placeholder {
     gap: 8px;
   }
 
-  .mode-btn {
+  .mode-btn,
+  .game-type-btn {
     min-width: 0;
     flex: 1;
     padding: 11px 8px;
@@ -1034,6 +1047,24 @@ input::placeholder {
       <span class="variant-option active" id="variantBuild">Build</span>
     </button>
 
+    <div class="game-type-selector" role="group" aria-label="Game type">
+      <button
+        class="game-type-btn active"
+        data-game-type="battle-royale"
+        onclick="setGameType('battle-royale')"
+      >
+        Battle Royale
+      </button>
+
+      <button
+        class="game-type-btn"
+        data-game-type="reload"
+        onclick="setGameType('reload')"
+      >
+        Reload
+      </button>
+    </div>
+
     <button
       class="mode-btn"
       data-mode="solos"
@@ -1048,6 +1079,15 @@ input::placeholder {
       onclick="setMode('duos')"
     >
       Duos
+    </button>
+
+    <button
+      class="mode-btn"
+      id="triosModeBtn"
+      data-mode="trios"
+      onclick="setMode('trios')"
+    >
+      Trios
     </button>
 
     <button
@@ -1146,11 +1186,11 @@ input::placeholder {
           <div class="checkbox" onclick="completeStep(3)">✓</div>
 
           <div class="step-info">
-            <div class="step-title">
-              Start doing ranked reload solos
+            <div class="step-title" id="trainingModeTitle">
+              Start doing ranked Battle Royale solos
             </div>
-            <div class="step-time">
-              Ranked Reload Solos
+            <div class="step-time" id="trainingModeLabel">
+              Ranked Battle Royale Solos
             </div>
           </div>
         </div>
@@ -1340,23 +1380,52 @@ input::placeholder {
 
 const STORAGE_KEY = "fortnite_grind_test_v2";
 
-const MODES = ["solos", "duos", "squads"];
+const GAME_TYPES = {
+  "battle-royale": {
+    label: "Battle Royale",
+    modes: ["solos", "duos", "trios", "squads"]
+  },
+  reload: {
+    label: "Reload",
+    modes: ["solos", "duos", "squads"]
+  }
+};
 
 let variant = "build";
+let gameType = "battle-royale";
 let mode = "solos";
+
+function createModeData() {
+  return { matches: [] };
+}
+
+function createGameTypeData(type) {
+  const data = {
+    solos: createModeData(),
+    duos: createModeData()
+  };
+
+  if (type === "battle-royale") {
+    data.trios = createModeData();
+  }
+
+  data.squads = createModeData();
+
+  return data;
+}
 
 function createVariantData() {
   return {
-    solos:  { matches: [] },
-    duos:   { matches: [] },
-    squads: { matches: [] }
+    "battle-royale": createGameTypeData("battle-royale"),
+    reload: createGameTypeData("reload")
   };
 }
 
 function createData() {
   return {
-    version: 2,
+    version: 3,
     variant: "build",
+    gameType: "battle-royale",
     mode: "solos",
     plan: {
       1: false,
@@ -1368,6 +1437,74 @@ function createData() {
       zerobuild: createVariantData()
     }
   };
+}
+
+function normalizeGameTypeData(value, type) {
+  const normalized = createGameTypeData(type);
+
+  Object.keys(normalized).forEach(currentMode => {
+    if (
+      value &&
+      value[currentMode] &&
+      Array.isArray(value[currentMode].matches)
+    ) {
+      normalized[currentMode].matches = value[currentMode].matches;
+    }
+  });
+
+  return normalized;
+}
+
+function upgradeData(data) {
+  const storedVariants =
+    data.variants && typeof data.variants === "object"
+      ? data.variants
+      : {};
+
+  const variants = {};
+
+  ["build", "zerobuild"].forEach(currentVariant => {
+    const stored = storedVariants[currentVariant] || {};
+    const battleRoyale =
+      stored["battle-royale"] &&
+      typeof stored["battle-royale"] === "object"
+        ? stored["battle-royale"]
+        : stored;
+
+    variants[currentVariant] = {
+      "battle-royale": normalizeGameTypeData(
+        battleRoyale,
+        "battle-royale"
+      ),
+      reload: normalizeGameTypeData(
+        stored.reload || {},
+        "reload"
+      )
+    };
+  });
+
+  const validGameType = GAME_TYPES[data.gameType]
+    ? data.gameType
+    : "battle-royale";
+
+  const validMode =
+    data.mode === "all" ||
+    GAME_TYPES[validGameType].modes.includes(data.mode)
+      ? data.mode
+      : "solos";
+
+  data.version = 3;
+  data.variant = data.variant === "zerobuild" ? "zerobuild" : "build";
+  data.gameType = validGameType;
+  data.mode = validMode;
+  data.plan = {
+    1: Boolean(data.plan && data.plan[1]),
+    2: Boolean(data.plan && data.plan[2]),
+    3: Boolean(data.plan && data.plan[3])
+  };
+  data.variants = variants;
+
+  return data;
 }
 
 function getData() {
@@ -1382,10 +1519,38 @@ function getData() {
 
   try {
 
-    const data = JSON.parse(saved);
+    let data = JSON.parse(saved);
 
-    if (!data.variants || typeof data.variants !== "object") {
-      return createData();
+    if (
+      !data ||
+      typeof data !== "object" ||
+      Array.isArray(data)
+    ) {
+      const fresh = createData();
+      saveData(fresh);
+      return fresh;
+    }
+
+    const validGameType = GAME_TYPES[data.gameType]
+      ? data.gameType
+      : "battle-royale";
+
+    const validMode =
+      data.mode === "all" ||
+      GAME_TYPES[validGameType].modes.includes(data.mode);
+
+    const needsUpgrade =
+      data.version !== 3 ||
+      !data.variants?.build?.["battle-royale"] ||
+      !data.variants?.build?.reload ||
+      !data.plan ||
+      !GAME_TYPES[data.gameType] ||
+      !validMode;
+
+    data = upgradeData(data);
+
+    if (needsUpgrade) {
+      saveData(data);
     }
 
     return data;
@@ -1405,20 +1570,17 @@ function saveData(data) {
 }
 
 function getMatches(data, v, m) {
-  if (
-    data.variants[v] &&
-    data.variants[v][m]
-  ) {
-    return data.variants[v][m].matches;
-  }
-  return [];
+  const matches =
+    data.variants?.[v]?.[gameType]?.[m]?.matches;
+
+  return Array.isArray(matches) ? matches : [];
 }
 
 function getModeMatches(data) {
 
   if (mode === "all") {
 
-    return MODES.flatMap(
+    return getAvailableModes().flatMap(
       m => getMatches(data, variant, m)
     );
 
@@ -1442,6 +1604,14 @@ function modeName(m) {
   return m.charAt(0).toUpperCase() + m.slice(1);
 }
 
+function gameTypeName(type) {
+  return GAME_TYPES[type].label;
+}
+
+function getAvailableModes() {
+  return GAME_TYPES[gameType].modes;
+}
+
 function toggleVariant() {
 
   const next =
@@ -1461,7 +1631,38 @@ function toggleVariant() {
 
 }
 
+function setGameType(type) {
+
+  if (!GAME_TYPES[type]) return;
+
+  gameType = type;
+
+  if (
+    mode !== "all" &&
+    !getAvailableModes().includes(mode)
+  ) {
+    mode = "solos";
+  }
+
+  const data = getData();
+
+  data.gameType = type;
+  data.mode = mode;
+
+  saveData(data);
+
+  render();
+
+}
+
 function setMode(m) {
+
+  if (
+    m !== "all" &&
+    !getAvailableModes().includes(m)
+  ) {
+    return;
+  }
 
   mode = m;
 
@@ -1501,7 +1702,9 @@ function saveGame() {
   if (mode === "all") {
 
     alert(
-      "Pick Solos, Duos, or Squads to save a match."
+      "Pick " +
+      getAvailableModes().map(modeName).join(", ") +
+      " to save a match."
     );
 
     return;
@@ -1551,15 +1754,21 @@ function saveGame() {
 
   const data = getData();
 
-  if (
-    !data.variants[variant] ||
-    !data.variants[variant][mode]
-  ) {
-    data.variants[variant] =
-      data.variants[variant] || createVariantData();
+  if (!data.variants[variant]) {
+    data.variants[variant] = createVariantData();
   }
 
-  data.variants[variant][mode].matches.push({
+  if (!data.variants[variant][gameType]) {
+    data.variants[variant][gameType] =
+      createGameTypeData(gameType);
+  }
+
+  if (!data.variants[variant][gameType][mode]) {
+    data.variants[variant][gameType][mode] =
+      createModeData();
+  }
+
+  data.variants[variant][gameType][mode].matches.push({
 
     kills,
     deaths,
@@ -1708,7 +1917,7 @@ function render() {
   /* Overall records: best across every mode (solos + duos + squads) */
 
   const overallMatches =
-    MODES.flatMap(
+    getAvailableModes().flatMap(
       m => getMatches(data, variant, m)
     );
 
@@ -1730,6 +1939,19 @@ function render() {
     "active",
     variant === "zerobuild"
   );
+
+  document.querySelectorAll(
+    ".game-type-btn"
+  ).forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.dataset.gameType === gameType
+    );
+  });
+
+  document.getElementById(
+    "triosModeBtn"
+  ).hidden = gameType !== "battle-royale";
 
   /* MODE BUTTONS */
 
@@ -1759,7 +1981,9 @@ function render() {
   document.getElementById(
     "saveModeName"
   ).textContent =
-    allMode ? "All modes" : modeName(mode);
+    allMode
+      ? gameTypeName(gameType) + " · All modes"
+      : gameTypeName(gameType) + " · " + modeName(mode);
 
   /* RECORDS BADGE */
 
@@ -1775,9 +1999,32 @@ function render() {
   ).textContent =
     variantName(variant) +
     " · " +
+    gameTypeName(gameType) +
+    " · " +
     (allMode
       ? "all modes combined."
       : modeName(mode) + " matches shown.");
+
+  const trainingMode =
+    allMode
+      ? "matches"
+      : modeName(mode).toLowerCase();
+
+  document.getElementById(
+    "trainingModeTitle"
+  ).textContent =
+    "Start doing ranked " +
+    gameTypeName(gameType) +
+    " " +
+    trainingMode;
+
+  document.getElementById(
+    "trainingModeLabel"
+  ).textContent =
+    "Ranked " +
+    gameTypeName(gameType) +
+    " " +
+    (allMode ? "Matches" : modeName(mode));
 
   /* TOP STATS */
 
@@ -2005,6 +2252,7 @@ function clearAllStats() {
   const fresh = createData();
 
   fresh.variant = variant;
+  fresh.gameType = gameType;
   fresh.mode = mode;
 
   saveData(fresh);
@@ -2041,8 +2289,16 @@ function escapeHTML(value) {
       ? "zerobuild"
       : "build";
 
+  gameType =
+    GAME_TYPES[data.gameType]
+      ? data.gameType
+      : "battle-royale";
+
   mode =
-    data.mode || "solos";
+    data.mode === "all" ||
+    GAME_TYPES[gameType].modes.includes(data.mode)
+      ? data.mode
+      : "solos";
 }
 
 render();

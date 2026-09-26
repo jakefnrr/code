@@ -1525,6 +1525,9 @@ header {
 ===================================================== */
 
 const STORAGE_KEY = "grind_hub_v3";
+const DAILY_TASKS_SEED_VERSION = 1;
+const DAILY_TASKS_LIST_ID = "daily-tasks";
+const FINNISH_SCHOOL_TASK_ID = "daily-tasks-finnish-school";
 
 let editingListId = null;
 let editingTaskId = null;
@@ -1538,11 +1541,165 @@ let selectedTaskAmPm = "";
    DATA
 ===================================================== */
 
+function createDailyTasksList() {
+
+  const date =
+    todayKey();
+
+  const now =
+    new Date().toISOString();
+
+  return {
+    id:
+      DAILY_TASKS_LIST_ID,
+
+    name:
+      "Daily Tasks",
+
+    tasks: [
+      {
+        id:
+          FINNISH_SCHOOL_TASK_ID,
+
+        name:
+          "Finnish school",
+
+        date,
+
+        hour:
+          "",
+
+        minute:
+          "",
+
+        ampm:
+          "",
+
+        repeatDays:
+          [0,1,2,3,4,5,6],
+
+        completedOccurrences: {
+          [date]: now
+        },
+
+        createdAt:
+          now
+      }
+    ]
+  };
+
+}
+
+
 function freshData() {
 
   return {
-    lists: []
+    lists: [
+      createDailyTasksList()
+    ],
+    dailyTasksSeedVersion:
+      DAILY_TASKS_SEED_VERSION
   };
+
+}
+
+
+function ensureDailyTasks(data) {
+
+  if (
+    data.dailyTasksSeedVersion ===
+      DAILY_TASKS_SEED_VERSION
+  ) {
+    return false;
+  }
+
+  let list =
+    data.lists.find(
+      item =>
+        item.id ===
+          DAILY_TASKS_LIST_ID
+    );
+
+  if (!list) {
+
+    list =
+      data.lists.find(
+        item =>
+          typeof item.name === "string" &&
+          item.name.trim().toLowerCase() ===
+            "daily tasks"
+      );
+
+  }
+
+  if (!list) {
+
+    list =
+      createDailyTasksList();
+
+    data.lists.push(list);
+
+  }
+
+  if (!Array.isArray(list.tasks)) {
+
+    list.tasks = [];
+
+  }
+
+  let task =
+    list.tasks.find(
+      item =>
+        item.id ===
+          FINNISH_SCHOOL_TASK_ID
+    );
+
+  if (!task) {
+
+    task =
+      list.tasks.find(
+        item =>
+          typeof item.name === "string" &&
+          item.name.trim().toLowerCase() ===
+            "finnish school"
+      );
+
+  }
+
+  if (!task) {
+
+    task =
+      createDailyTasksList()
+        .tasks[0];
+
+    list.tasks.push(task);
+
+  }
+
+  task.repeatDays =
+    [0,1,2,3,4,5,6];
+
+  if (
+    !task.completedOccurrences ||
+    typeof task.completedOccurrences !==
+      "object"
+  ) {
+
+    task.completedOccurrences = {};
+
+  }
+
+  const date =
+    todayKey();
+
+  task.completedOccurrences[date] =
+    task.completedOccurrences[date] ||
+    new Date().toISOString();
+
+  data.dailyTasksSeedVersion =
+    DAILY_TASKS_SEED_VERSION;
+
+  return true;
 
 }
 
@@ -1625,6 +1782,12 @@ function getData() {
       });
 
     });
+
+    if (ensureDailyTasks(data)) {
+
+      saveData(data);
+
+    }
 
     return data;
 
