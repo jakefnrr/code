@@ -206,7 +206,7 @@ let maxNorth = 0;               // furthest north row player has reached (= scor
 let nextGenRow = 0;
 
 // Cluster generator state
-let genType = 'grass', genLeft = 0, hazStreak = 0;
+let genType = 'grass', genLeft = 0, hazStreak = 0, genDir = 1;
 
 const keys = {};
 let kbuf = null;
@@ -464,11 +464,18 @@ function genLane(row) {
       type=(genType==='river')?'grass':'river';
       size=type==='grass'?1:1+Math.floor(Math.random()*(1+Math.floor(d)));
       if(type==='grass') hazStreak=0; else hazStreak++;
-    } else {type='track';size=1;hazStreak++;}
+    } else {type='track';size=1; hazStreak++;}
+    if(type==='river') size=Math.min(size,2);   // never more than a double river
     genType=type; genLeft=size-1;
-  } else { genLeft--; }
+    genDir=Math.random()<0.5?1:-1;
+  } else {
+    genLeft--;
+    // A cluster that spans 2+ rows (e.g. a double river) alternates
+    // direction, so paired hazards always flow opposite ways.
+    if(genType==='river') genDir=-genDir;
+  }
 
-  const dir=Math.random()<0.5?1:-1;
+  const dir=genDir;
   const lane={type:genType,row,dir,ent:[],trees:[],warnTimer:0,warnOn:false,trainSpd:0};
   if(lane.type==='grass') lane.trees=mkTrees(row);
   else if(lane.type==='road') lane.ent=mkCars(dir);
@@ -510,7 +517,7 @@ function resetPl() {
 
 function initGame() {
   lanes=[]; nextGenRow=0;
-  genType='grass'; genLeft=0; hazStreak=0;
+  genType='grass'; genLeft=0; hazStreak=0; genDir=1;
   particles=[]; deathTimer=0; runCoins=0;
   maxNorth=0; scrollRate=activeAbils.includes('slowscroll')?0.0008:0.0016;
   cameraTopRow=SCREEN_ROW;
