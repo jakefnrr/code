@@ -81,9 +81,17 @@ then good AI behavior is: read this file + levels.txt, then edit world1/lvl01.js
   platform is higher than that it cannot be landed on; lower it or add a
   bouncer/movingPlatform. This is a hard guarantee, not a suggestion.
 
-  HEARTS: the player has 15 hearts per level (big red hearts, top-right of
-  the screen). EVERY death costs one heart. Lose all 15 for a level = GAME
-  OVER: all progress is wiped and you restart from World 1 · Level 1.
+  HEARTS: the player has big red hearts in the top-left corner of the screen.
+  How many you get depends on the difficulty mode — the "HARD MODE | EASY MODE"
+  button on the worlds screen (top row, left of the CLEAR DATA button).
+  Clicking it switches mode, which RE-LOCKS every level and restarts the run
+  from World 1 · Level 1:
+    HARD = 20 hearts for the WHOLE run. They carry over: lose 2 in world 1 and
+           world 2 starts you on 18.
+    EASY = 10 hearts for EACH world. Lose 5 in world 1 and world 2 hands you a
+           fresh 10.
+  EVERY death costs one heart. Lose them all = GAME OVER: all progress is wiped
+  and you restart from World 1 · Level 1.
 
   DESIGN RULES FOR PLATFORMING (keep levels FAIR and FUN):
   - Max gap the player can jump: ~210 px running, ~110 px standing.
@@ -215,7 +223,7 @@ Execution order each frame:
   6. draw: background, solids, traps, particles, player, HUD
 
 Files:
-  index.html           - page shell, styles, on-screen dpad, button + hearts
+  index.html           - page shell, styles, on-screen dpad, hearts overlay
   js/audio.js          - procedural SFX + music + gun/reload sound samples
   js/levels.js         - Levels.register() + level registry
   js/traps.js          - trap types (create/update/draw) + projectiles

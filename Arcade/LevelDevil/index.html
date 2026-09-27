@@ -106,6 +106,8 @@
     color:#46505a;
     text-shadow:0 0 2px rgba(0,0,0,0.7);
   }
+  #hearts.many{gap:3px}
+  #hearts.many .h{font-size:21px}
 
   /* secret code — bottom-right corner of the worlds menu */
   #secretCodeWrap{
@@ -134,7 +136,7 @@
 
   <a class="all-projects" id="projectsBtn" href="../index.html" title="Back to Hub">BACK TO HUB</a>
 
-  <!-- big red hearts, top-right of the whole screen -->
+  <!-- big red hearts, top-left of the whole screen -->
   <div id="hearts" aria-hidden="true"></div>
 
   <!-- secret code — bottom-right of the worlds menu -->
@@ -182,7 +184,7 @@
       btn.textContent = inGame ? '◄ LEVEL SELECT' : 'BACK TO HUB';
       btn.dataset.back = inGame ? '1' : '';
     }
-    // big red hearts at top-right of the screen
+    // big red hearts at the top-left of the screen
     const hd = document.getElementById('hearts');
     if (hd) {
       const arr = window.LDDBG && window.LDDBG.hearts ? window.LDDBG.hearts() : null;
@@ -196,6 +198,7 @@
             hd.appendChild(s);
           }
         }
+        hd.classList.toggle('many', arr.length > 12);
         for (let i = 0; i < arr.length; i++) hd.children[i].classList.toggle('lost', !!arr[i].lost);
       }
       document.body.classList.toggle('show-hearts', inGame && !!arr && !!arr.length);

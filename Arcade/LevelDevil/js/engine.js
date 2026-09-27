@@ -17,7 +17,19 @@ const LD = (() => {
   const WALK = 4.2;
   const JUMP = -12.4;
   const MAXFALL = 15;
-  const MAX_LIVES = 15;
+
+  /* ---------- difficulty modes ----------
+     hard: 20 hearts for the WHOLE run — they carry over into the next world
+     easy: 10 hearts for EACH world — a new world refills you to 10        */
+  const HEART_CAPS = { hard: 20, easy: 10 };
+  const MODE_KEY = "leveldevil_mode";
+  function loadMode() {
+    try { return localStorage.getItem(MODE_KEY) === "easy" ? "easy" : "hard"; }
+    catch (e) { return "hard"; }
+  }
+  let mode = loadMode();
+  function saveMode() { try { localStorage.setItem(MODE_KEY, mode); } catch (e) {} }
+  function heartCap() { return HEART_CAPS[mode] || HEART_CAPS.hard; }
 
   const PW = 26, PH = 38;   // player hitbox
 
@@ -35,8 +47,9 @@ const LD = (() => {
   let current = { world: 1, level: 1 };
   let currentLevel = null;
   let runLevel = null;      // fully-built playable level
-  let lives = MAX_LIVES;
+  let lives = 0;
   let hearts = [];
+  let heartsWorld = 0;      // world the current pool of hearts belongs to
   let deathTimer = -1;
   let invuln = 0;
   let tipTimer = 0;
@@ -160,6 +173,29 @@ const LD = (() => {
     return false;
   }
 
+  // Switching difficulty re-locks every level and restarts the run from scratch.
+  function setMode(m) {
+    if (m !== "hard" && m !== "easy") return mode;
+    if (m === mode) return mode;
+    mode = m;
+    saveMode();
+    pb = { cleared: {} };
+    savePB();
+    totalDeaths = 0;
+    levelDeaths = 0;
+    resetRun();
+    selectWorld = 1;
+    lockBurst = null;
+    pendingWorldBurst = 0;
+    pendingLevelBurst = null;
+    mouse.click = false;
+    keys = {};
+    state = "menu";
+    Audio.sfx.click();
+    Audio.music.play("lobby");
+    return mode;
+  }
+
   /* ---------------------------------------------------------
      LEVEL BUILD
      --------------------------------------------------------- */
@@ -255,7 +291,7 @@ const LD = (() => {
     levelDeaths = 0;
     gameoverWipe = false;
     shootCd = 0;
-    if (hearts.length === 0) resetHearts();
+    refreshHeartsForLevel();
     tipTimer = 200;
     invuln = 40;
   }
@@ -283,13 +319,30 @@ const LD = (() => {
     }
   }
 
+  function syncLives() {
+    let n = 0;
+    for (const h of hearts) if (!h.lost) n++;
+    lives = n;
+  }
+
   function resetHearts() {
     hearts = [];
-    for (let i = 0; i < MAX_LIVES; i++) hearts.push({ x: 16 + i * 26, y: 14, lost: false });
+    const n = heartCap();
+    for (let i = 0; i < n; i++) hearts.push({ x: 16 + i * 26, y: 14, lost: false });
+    syncLives();
+  }
+
+  // HARD keeps the same hearts for the whole run (world 2 starts with whatever
+  // is left). EASY hands out a fresh set of 10 at the start of every world.
+  function refreshHeartsForLevel() {
+    const wrongCap = hearts.length !== heartCap();
+    const newWorld = mode === "easy" && heartsWorld !== current.world;
+    if (wrongCap || newWorld || hearts.length === 0) resetHearts();
+    heartsWorld = current.world;
   }
 
   function resetRun() {
-    lives = MAX_LIVES;
+    heartsWorld = 0;
     resetHearts();
   }
 
@@ -511,12 +564,12 @@ const LD = (() => {
     p.anim = "die";
     p.animTime = 0;
     p.vy = -6;
-    lives--;
     levelDeaths++;
     totalDeaths++;
     for (let i = hearts.length - 1; i >= 0; i--) {
       if (!hearts[i].lost) { hearts[i].lost = true; break; }
     }
+    syncLives();
     Audio.sfx.die();
     shake += 6;
   }
@@ -616,8 +669,9 @@ const LD = (() => {
     if (p.dead || invuln > 0) return;
     let drained = 0;
     for (let i = hearts.length - 1; i >= 0 && drained < n; i--) {
-      if (!hearts[i].lost) { hearts[i].lost = true; hearts[i].fl = 6; lives--; drained++; }
+      if (!hearts[i].lost) { hearts[i].lost = true; hearts[i].fl = 6; drained++; }
     }
+    syncLives();
     shake += 6;
     sfx("die");
     if (hearts.every(h => h.lost)) {
@@ -1512,16 +1566,31 @@ const LD = (() => {
       Audio.sfx.click();
     }
 
-    // progress summary
-    const clearedCount = Object.keys(pb.cleared).filter(k => pb.cleared[k]).length;
-    ctx.fillStyle = "rgba(220,190,150,0.8)";
-    ctx.font = "13px monospace";
-    ctx.fillText(clearedCount + " / 38 cleared   |   total deaths: " + totalDeaths, CW / 2, 272);
-
-    // controls hint
-    ctx.fillStyle = "rgba(220,190,150,0.5)";
+    // HARD / EASY mode toggle — same top row as CLEAR DATA, but on the left.
+    // HARD = 20 hearts for the whole run, EASY = 10 hearts for every world.
+    // Clicking it switches mode, which re-locks every level and restarts.
+    const modeB = { x: 30, y: 56, w: 236, h: 26 };
+    const half = modeB.w / 2;
+    for (let i = 0; i < 2; i++) {
+      const m = i === 0 ? "hard" : "easy";
+      const on = mode === m;
+      const b = { x: modeB.x + i * half, y: modeB.y, w: half, h: modeB.h };
+      const lit = m === "hard" ? ["#3a0d0d", "#ff5b6a", "#ff8a7a"] : ["#0d2a18", "#46d67a", "#8fe6a8"];
+      ctx.fillStyle = on ? lit[0] : (hover(b) ? "#221226" : "#160b22");
+      ctx.strokeStyle = on ? lit[1] : "#3a2a3a";
+      ctx.lineWidth = on ? 2 : 1.5;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+      ctx.fillStyle = on ? lit[2] : "#7a6a7a";
+      ctx.font = (on ? "bold " : "") + "12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(m === "hard" ? "HARD MODE" : "EASY MODE", b.x + b.w / 2, b.y + 17);
+    }
+    ctx.fillStyle = "#6a5a6a";
     ctx.font = "12px monospace";
-    ctx.fillText("← → move  |  ↑ / SPACE jump  |  ESC pause  |  ↓ drop through platforms", CW / 2, 298);
+    ctx.fillText("|", modeB.x + half, modeB.y + 17);
+    ctx.textAlign = "left";
+    if (clicked(modeB)) setMode(mode === "hard" ? "easy" : "hard");
 
     // tip of dex
     ctx.fillStyle = "#333";
@@ -1603,14 +1672,11 @@ const LD = (() => {
   }
 
   function drawHud() {
-    // level indicator (top-left; hearts live in the DOM overlay at top-right)
+    // level indicator only (hearts live in the DOM overlay at the top-left)
     ctx.textAlign = "left";
     ctx.fillStyle = "#2a1515";
     ctx.font = "bold 18px monospace";
     ctx.fillText("W" + current.world + " · L" + current.level + "  " + currentLevel.name, 16, 30);
-    ctx.fillStyle = "#e8dcc8";
-    ctx.font = "11px monospace";
-    ctx.fillText("deaths " + levelDeaths + "  (" + totalDeaths + " all-time)", 16, 46);
 
     // level tip at start
     if (tipTimer > 0 && currentLevel.tip) {
@@ -1943,9 +2009,8 @@ const LD = (() => {
   }
 
   function asd() {
-    // start first unlocked level
+    // start first unlocked level (keeps the hearts of a run already in progress)
     const f = Levels.firstUnlocked(pb);
-    resetRun();
     gotoLevel(f.world, f.level);
   }
 
@@ -2032,6 +2097,11 @@ const LD = (() => {
     hearts() {
       return runLevel ? hearts.map(h => ({ lost: h ? !!h.lost : true })) : null;
     },
+    mode() { return mode; },
+    setMode(m) { return setMode(m); },
+    heartCap() { return heartCap(); },
+    heartsLeft() { return lives; },
+    hurt() { hurtHearts(1); },
     jumpTo(w, l) { gotoLevel(w, l); },
     traps() {
       return runLevel ? runLevel.traps.map(t => ({
@@ -2060,6 +2130,11 @@ const LD = (() => {
   return {
     press, release,
     atMenu: () => state === "menu",
+    mode: () => mode,
+    heartCap: () => heartCap(),
+    heartsLeft: () => lives,
+    toggleMode() { return setMode(mode === "hard" ? "easy" : "hard"); },
+    setMode(m) { return setMode(m); },
     unlockAll() {
       for (let w = 1; w <= 4; w++) {
         for (const level of Levels.getWorld(w)) {
