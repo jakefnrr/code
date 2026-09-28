@@ -112,8 +112,7 @@
         }
 
         /* MONEY BUTTON (JAKE MODE) */
-        #money-button,
-        #fnwins-button {
+        #money-button {
             display: none;
             align-items: center;
 
@@ -135,8 +134,7 @@
             transition: 0.2s;
         }
 
-        #money-button:hover,
-        #fnwins-button:hover {
+        #money-button:hover {
             background: #00ff88;
             color: #000;
         }
@@ -548,10 +546,6 @@
             <!-- MONEY BUTTON (JAKE MODE) -->
             <a id="money-button" href="Money/index.html">
                 Money
-            </a>
-
-            <a id="fnwins-button" href="FnWins/index.html">
-                FnWins
             </a>
 
         </div>
@@ -1333,9 +1327,6 @@
         const moneyButton =
             document.getElementById("money-button");
 
-        const fnwinsButton =
-            document.getElementById("fnwins-button");
-
         let jakeMode = false;
         const CODE_ENTERED_KEY = "project-hub-code-entered";
 
@@ -1401,8 +1392,6 @@
 
                 // SHOW MONEY BUTTON
                 moneyButton.style.display = "flex";
-
-                fnwinsButton.style.display = "flex";
 
                 if (showMessage) {
                     // Show Jake Mode message
@@ -1491,8 +1480,6 @@
 
                 // HIDE MONEY BUTTON
                 moneyButton.style.display = "none";
-
-                fnwinsButton.style.display = "none";
 
                 // SHOW CODE SPOT AGAIN
                 secretArea.style.display = "flex";
