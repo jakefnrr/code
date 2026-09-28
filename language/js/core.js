@@ -5,9 +5,9 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const KEY='kotonoha.v1';
 
 const S=Object.assign({
-  tab:'learn',rate:.9,voiceURI:''
+  tab:'learn',rate:.9,voiceURI:'',api:true
 },(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}})());
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({rate:S.rate,voiceURI:S.voiceURI}))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({rate:S.rate,voiceURI:S.voiceURI,api:S.api}))}catch(e){}};
 
 const L=()=>LANGS.ja;
 
@@ -74,6 +74,46 @@ function readInput(v,target){
   let s=v.trim();
   if(/^[a-zA-Z'\-\s]+$/.test(s)&&hasCJK(target))s=romaji(s);
   return s;
+}
+
+const KANA={'あ':'a','い':'i','う':'u','え':'e','お':'o','か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so','た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+'や':'ya','ゆ':'yu','よ':'yo',
+'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+'わ':'wa','ゐ':'wi','ゑ':'we','を':'wo','ん':'n',
+'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
+'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+'ゃ':'ya','ゅ':'yu','ょ':'yo','ぁ':'a','ぃ':'i','ぅ':'u','ぇ':'e','ぉ':'o','ゎ':'wa'};
+function kanaRomaji(s){
+  s=String(s).replace(/[\u30A1-\u30F6]/g,c=>String.fromCharCode(c-0x60));
+  let out='',i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(c==='ー'||c==='\uFF70'){out+='-';i++;continue}
+    if(c==='っ'){
+      const n=KANA[s[i+1]]||'';
+      out+=n&&n[0]===n[1]?n[0]:n?n[0]:'tsu';
+      i++;continue;
+    }
+    const r=KANA[c];
+    if(r){
+      let a=r;
+      const n2=s[i+1];
+      if(n2==='ゃ'||n2==='ゅ'||n2==='ょ'){a+=KANA[n2];i+=2}
+      else{i++}
+      if(i<s.length&&s[i]==='ー'){a+='-';i++}
+      out+=a;
+      continue;
+    }
+    out+=c;i++;
+  }
+  return out.replace(/[ \t]+/g,' ').trim();
 }
 
 let VOICES=[];

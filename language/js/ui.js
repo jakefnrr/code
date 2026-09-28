@@ -415,7 +415,16 @@ R.set=()=>{
         ${vs.map(v=>`<option value="${esc(v.voiceURI)}" ${S.voiceURI===v.voiceURI?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
       </select>
     </div>
-    <div class="hintbox">${micOK
+    <div class="setrow">
+      <label>Live translation · ${S.api?'on':'off'}</label>
+      <div class="row">
+        <button class="btn ${S.api?'pri':''}" data-act="toggleApi">${S.api?'✅ Sending unknown queries to Google Translate':'🌐 Turn on live translation'}</button>
+      </div>
+    </div>
+    <div class="hintbox">${S.api
+      ?'Type anything. If it is not in the built-in dictionary, it gets sent to the Google Translate public endpoint and the answer appears with a reading, audio and a translate-back button. Nothing is stored on a server.'
+      :'Only the built-in dictionary is searched. Turn live translation on to send anything else to Google Translate.'}</div>
+    <div class="hintbox" style="margin-top:10px">${micOK
       ?'Microphone is supported here. Click any 🎤 button to speak the language out loud and get scored against the target.'
       :'No speech recognition in this browser — Chrome, Edge and Safari support it. Audio, quizzes and typing all still work.'}</div>
     <div class="row" style="margin-top:14px">
@@ -518,6 +527,15 @@ const ACT={
   sentPlay:()=>{const s=U.sent;if(s)speak(s.ex,{rate:.8})},
   sentPlaySlow:()=>{const s=U.sent;if(s)speak(s.ex,{rate:.55})},
   practice:d=>practiceModal(d.t,d.r,d.e),
+  remoteRev:d=>{
+    const card=d.t.closest('.scard');if(!card)return;
+    const el=card.querySelector('[data-rev]');if(!el)return;
+    const tl=d.tl==='en'?'ja':'en';
+    el.textContent='🔄 …';
+    remoteLookup(d.q,tl).then(r=>{el.textContent=r.j})
+      .catch(()=>{el.textContent='⚠️ Could not reach Google Translate'});
+    d.t.dataset.tl=tl;
+  },
   gram:d=>{
     const g=L().gram[d.i],b=$('#gb'+d.i);
     b.style.display=b.style.display==='none'?'block':'none';
@@ -610,6 +628,7 @@ const ACT={
   },
   qn:d=>{U.qn=+d.n;render()},
   qmode:d=>{U.mode=d.m;render()},
+  qset:d=>{const i=$('#q');i.value=d.q;i.focus();renderSearch()},
   qStart:()=>{
     stopSpeak();stopListen();U.res=null;
     const all=allWords().slice();
@@ -662,6 +681,7 @@ const ACT={
   testPool:()=>{U.mode='mix';U.qn=10;S.tab='quiz';U.q=null;U.res=null;render()},
   goWords:()=>{S.tab='words';U.q=null;U.res=null;U.word=null;render()},
   testVoice:()=>speak(L().name+' — '+L().native,{}),
+  toggleApi:()=>{S.api=!S.api;save();render();toast(S.api?'Live translation on':'Live translation off',true)},
   testMic:()=>{
     if(!micOK){toast('Speech recognition is not supported in this browser');return}
     openModal(`<div class="qtype">🎤 Microphone test</div>

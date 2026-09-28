@@ -139,34 +139,6 @@
             color: #000;
         }
 
-        /* CODE EDITOR BUTTON (JAKE MODE) */
-        #code-editor-button {
-            display: none;
-            align-items: center;
-
-            padding: 7px 14px;
-
-            background: #111;
-            color: #c77dff;
-
-            border: 1px solid #c77dff;
-            border-radius: 8px;
-
-            font-size: 14px;
-            font-weight: bold;
-
-            text-decoration: none;
-
-            cursor: pointer;
-
-            transition: 0.2s;
-        }
-
-        #code-editor-button:hover {
-            background: #c77dff;
-            color: #000;
-        }
-
         /* LANGUAGE PAGE BUTTON */
         #language-button {
             display: flex;
@@ -602,11 +574,6 @@
             <!-- MONEY BUTTON (JAKE MODE) -->
             <a id="money-button" href="Money/index.html">
                 Money
-            </a>
-
-            <!-- CODE EDITOR BUTTON (JAKE MODE) -->
-            <a id="code-editor-button" href="CodePlayground/index.html">
-                Code Editor
             </a>
 
             <!-- LANGUAGE PAGE BUTTON -->
@@ -1393,9 +1360,6 @@
         const moneyButton =
             document.getElementById("money-button");
 
-        const codeEditorButton =
-            document.getElementById("code-editor-button");
-
         let jakeMode = false;
         const CODE_ENTERED_KEY = "project-hub-code-entered";
 
@@ -1461,9 +1425,6 @@
 
                 // SHOW MONEY BUTTON
                 moneyButton.style.display = "flex";
-
-                // SHOW CODE EDITOR BUTTON
-                codeEditorButton.style.display = "flex";
 
                 if (showMessage) {
                     // Show Jake Mode message
@@ -1552,9 +1513,6 @@
 
                 // HIDE MONEY BUTTON
                 moneyButton.style.display = "none";
-
-                // HIDE CODE EDITOR BUTTON
-                codeEditorButton.style.display = "none";
 
                 // SHOW CODE SPOT AGAIN
                 secretArea.style.display = "flex";
