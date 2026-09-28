@@ -50,7 +50,7 @@
     <button id="newGame">New Game</button>
   </div>
   <div id="status">Click a square. First click is always safe.</div>
-  <button id="flagMode">Flag Mode</button>
+  <button id="flagMode">Flag Mode (any key)</button>
   <section id="boardWrap"><div id="board"></div></section>
 </main>
 <script>
@@ -79,7 +79,21 @@ function cellAt(r,c){return cells[index(r,c)]}function index(r,c){return r*cfg.c
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
 function formatTime(s){const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');return `${m}:${ss}`}
 levelButtons.forEach(btn=>btn.onclick=()=>{level=btn.dataset.level;levelButtons.forEach(b=>b.classList.toggle('active',b===btn));saveStats();newGame()});
-flagBtn.onclick=()=>{flagMode=!flagMode;flagBtn.classList.toggle('flagging',flagMode);flagBtn.textContent=flagMode?'Flagging On':'Flag Mode'};
+function toggleFlagMode(){flagMode=!flagMode;flagBtn.classList.toggle('flagging',flagMode);flagBtn.textContent=flagMode?'Flagging On (any key)':'Flag Mode (any key)'}
+flagBtn.onclick=toggleFlagMode;
 document.getElementById('newGame').onclick=newGame;saveStats();newGame();
+
+/* Any key toggles flag mode. Printable keys are length 1, so Enter, Tab,
+   Escape, the arrows and F1-F12 are left alone, and holding Ctrl/Alt/Cmd is
+   ignored so browser shortcuts like reload still fire. Space is included,
+   since it is a printable key too. preventDefault stops the page scrolling
+   and stops the focused square (every square is a <button>) from re-clicking. */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.altKey||e.metaKey)return;
+  if(typeof e.key!=='string'||e.key.length!==1)return;
+  e.preventDefault();
+  if(e.repeat)return;
+  toggleFlagMode();
+});
 </script></body>
 </html>
