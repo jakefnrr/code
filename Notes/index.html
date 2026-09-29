@@ -908,11 +908,43 @@ h1 {
 
 
     <div
+        id="cloudBar"
+        style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:#888;">
+        <span id="cloudStatus">⏳ connecting…</span>
+        <label style="display:flex;gap:6px;align-items:center;">
+            Room:
+            <input
+                type="text"
+                id="roomInput"
+                placeholder="global"
+                maxlength="48"
+                autocomplete="off"
+                style="background:#111;color:cyan;border:1px solid cyan;border-radius:8px;padding:6px 10px;width:130px;">
+        </label>
+        <button
+            type="button"
+            id="roomJoinBtn"
+            style="background:#111;color:cyan;border:1px solid cyan;border-radius:8px;padding:6px 12px;font-weight:bold;cursor:pointer;">
+            Join
+        </button>
+        <button
+            type="button"
+            id="roomShareBtn"
+            style="background:#111;color:#888;border:1px solid #333;border-radius:8px;padding:6px 12px;cursor:pointer;">
+            Copy link
+        </button>
+    </div>
+
+
+    <div
         class="notes-container"
         id="notesContainer">
     </div>
 
 </div>
+
+
+<script src="../shared/cloud-store.js"></script>
 
 
 <!-- ================================= -->
@@ -1113,13 +1145,43 @@ h1 {
 <script>
 
 /* ================================= */
-/* STORAGE */
+/* STORAGE — forever (Cloudflare + local fallback) */
 /* ================================= */
 
-let notes =
-    JSON.parse(
-        localStorage.getItem("jakeNotes")
-    ) || [];
+let notes = [];
+
+let noteStore = null;
+
+if (window.CloudStore) {
+    noteStore = CloudStore.forRoom("notes");
+} else {
+    console.warn("CloudStore missing, using localStorage only");
+}
+
+
+function updateCloudStatus(msg) {
+    const el = document.getElementById("cloudStatus");
+    if (!el) return;
+    if (msg) {
+        el.textContent = msg;
+        return;
+    }
+    if (!noteStore) {
+        el.textContent = "📱 local-only";
+        return;
+    }
+    const s = noteStore.status();
+    const room = noteStore.room;
+    if (noteStore.isFileProto()) {
+        el.textContent = "📱 local-only (file:// — open via jakescalzo.me to sync)";
+    } else if (s === "cloud-synced") {
+        el.textContent = "☁️ shared room \"" + room + "\" — saved for everyone";
+    } else if (s.indexOf("local-fallback") !== -1) {
+        el.textContent = "📱 local for now (cloud not configured yet) — room \"" + room + "\"";
+    } else {
+        el.textContent = "☁️ room \"" + room + "\" — cloud-ready";
+    }
+}
 
 
 let currentNoteId = null;
@@ -1156,10 +1218,67 @@ let restoringHistory = false;
 
 function saveNotes() {
 
-    localStorage.setItem(
-        "jakeNotes",
-        JSON.stringify(notes)
-    );
+    // 1) Keep old personal copy working (backwards compatible)
+    try {
+        localStorage.setItem(
+            "jakeNotes",
+            JSON.stringify(notes)
+        );
+    } catch (e) {}
+
+    // 2) Forever shared save (Cloudflare when hosted, local mirror on file://)
+    if (noteStore) {
+        noteStore.saveDebounced(notes).then(function() {
+            updateCloudStatus();
+        });
+    }
+
+    updateCloudStatus();
+
+}
+
+
+async function loadNotes() {
+
+    updateCloudStatus("⏳ loading shared notes…");
+
+    // Legacy personal notes (before cloud)
+    let legacy = [];
+    try {
+        legacy =
+            JSON.parse(
+                localStorage.getItem("jakeNotes")
+            ) || [];
+    } catch (e) {
+        legacy = [];
+    }
+
+    if (!noteStore) {
+        notes = legacy;
+        renderNotes();
+        updateCloudStatus();
+        return;
+    }
+
+    try {
+        const cloud = await noteStore.load(null);
+
+        if (cloud === null || cloud === undefined) {
+            // First time in this room: seed cloud with legacy notes if any
+            notes = legacy;
+            if (legacy.length > 0) {
+                await noteStore.save(notes);
+            }
+        } else {
+            notes = Array.isArray(cloud) ? cloud : [];
+        }
+    } catch (e) {
+        console.warn("loadNotes failed, using legacy:", e);
+        notes = legacy;
+    }
+
+    renderNotes();
+    updateCloudStatus();
 
 }
 
@@ -4427,10 +4546,60 @@ function closeEditor() {
 
 
 /* ================================= */
-/* INITIAL LOAD */
+/* INITIAL LOAD + ROOMS */
 /* ================================= */
 
-renderNotes();
+(function initCloudRooms() {
+
+    function currentRoom() {
+        return (window.CloudStore
+            ? CloudStore.roomFromURL()
+            : "global");
+    }
+
+    const roomInput = document.getElementById("roomInput");
+    if (roomInput) {
+        roomInput.value = currentRoom() === "global" ? "" : currentRoom();
+        roomInput.placeholder = "global";
+    }
+
+    const joinBtn = document.getElementById("roomJoinBtn");
+    if (joinBtn) {
+        joinBtn.onclick = function() {
+            const raw = roomInput ? roomInput.value : "";
+            const room = window.CloudStore
+                ? CloudStore.sanitizeRoom(raw || "global")
+                : "global";
+            const url = new URL(window.location.href);
+            if (room === "global") {
+                url.searchParams.delete("room");
+            } else {
+                url.searchParams.set("room", room);
+            }
+            window.location.href = url.toString();
+        };
+    }
+
+    const shareBtn = document.getElementById("roomShareBtn");
+    if (shareBtn) {
+        shareBtn.onclick = async function() {
+            const url = window.location.href;
+            try {
+                await navigator.clipboard.writeText(url);
+                shareBtn.textContent = "Copied!";
+            } catch (e) {
+                prompt("Copy this link to share this room:", url);
+                return;
+            }
+            setTimeout(function() {
+                shareBtn.textContent = "Copy link";
+            }, 1500);
+        };
+    }
+
+})();
+
+loadNotes();
 
 </script>
 
