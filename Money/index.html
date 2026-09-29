@@ -478,6 +478,100 @@ alert('Error parsing JSON file');
 reader.readAsText(file);
 event.target.value='';
 };
+window.MONEY_DATA_START='---MONEY-DATA-START---';
+window.MONEY_DATA_END='---MONEY-DATA-END---';
+window.buildMoneyReport=function(){
+return getAllEntries().then(function(entries){
+entries=entries.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+var lines=[];
+lines.push('MONEY TRACKER BACKUP — '+new Date().toISOString().slice(0,10));
+lines.push('');
+var tabs=['massage','smarthome','lucky','other'];
+tabs.forEach(function(tab){
+var te=entries.filter(function(e){return e.tab===tab;});
+var earned=te.filter(function(e){return e.type==='earning';}).reduce(function(s,e){return s+e.amount;},0);
+var bank=te.filter(function(e){return e.type==='bank';}).reduce(function(s,e){return s+e.amount;},0);
+var mommy=te.filter(function(e){return e.type==='mommy';}).reduce(function(s,e){return s+e.amount;},0);
+lines.push(tab.toUpperCase()+': '+te.length+' entries, earned ฿'+earned.toFixed(2)+', bank ฿'+bank.toFixed(2)+', mommy ฿'+mommy.toFixed(2));
+});
+lines.push('');
+lines.push('ENTRIES:');
+lines.push('');
+entries.forEach(function(e,i){
+var d=formatDate(e.date);
+lines.push((i+1)+'. ['+e.tab+'/'+e.type+'] ฿'+Number(e.amount).toFixed(2)+' — '+d+(e.note?' — '+e.note:''));
+});
+lines.push('');
+lines.push('Keep this whole report and paste it into Restore Data to bring everything back.');
+lines.push('');
+lines.push(MONEY_DATA_START);
+var clean=entries.map(function(e){return{tab:e.tab,type:e.type,tab_type:e.tab+'_'+e.type,amount:e.amount,note:e.note||'',date:e.date};});
+lines.push(JSON.stringify(clean));
+lines.push(MONEY_DATA_END);
+return lines.join('\n');
+});
+};
+window.copyMoneyReport=function(){
+var out=document.getElementById('moneyReportOut');
+var state=document.getElementById('moneyCopyState');
+state.textContent='Building report...';
+buildMoneyReport().then(function(text){
+out.value=text;
+function done(msg,ok){state.textContent=msg;state.style.color=ok?'#00ff88':'#ff4444';}
+if(navigator.clipboard&&navigator.clipboard.writeText){
+navigator.clipboard.writeText(text).then(function(){done('Copied — paste it into your notes app.',true);},function(){
+out.focus();out.select();
+done('Copy was blocked, so the text is selected — press Cmd/Ctrl + C.',false);
+});
+return;
+}
+out.focus();out.select();
+var ok=false;
+try{ok=document.execCommand('copy');}catch(e){ok=false;}
+done(ok?'Copied — paste it into your notes app.':'Copy was blocked, so the text is selected — press Cmd/Ctrl + C.',ok);
+});
+};
+window.restoreMoneyReport=function(){
+var input=document.getElementById('moneyRestoreIn');
+var state=document.getElementById('moneyRestoreState');
+function done(msg,ok){state.textContent=msg;state.style.color=ok?'#00ff88':'#ff4444';}
+var text=String(input.value||'').trim();
+if(!text){done('Paste your saved data first.',false);return;}
+var jsonText=text;
+var si=text.indexOf(MONEY_DATA_START);
+var ei=text.indexOf(MONEY_DATA_END);
+if(si!==-1&&ei!==-1&&ei>si){jsonText=text.slice(si+MONEY_DATA_START.length,ei).trim();}
+var entries;
+try{
+entries=JSON.parse(jsonText);
+}catch(err){done('Could not read that text — paste a full data report.',false);return;}
+if(!Array.isArray(entries)){done('Could not read that text — paste a full data report.',false);return;}
+var validTabs={massage:1,smarthome:1,lucky:1,other:1};
+var validTypes={earning:1,bank:1,mommy:1};
+var clean=[];
+for(var i=0;i<entries.length;i++){
+var e=entries[i];
+if(!e||!validTabs[e.tab]||!validTypes[e.type])continue;
+var amt=parseFloat(e.amount);
+if(isNaN(amt)||amt<=0)continue;
+var d=new Date(e.date);
+if(isNaN(d.getTime()))continue;
+clean.push({tab:e.tab,type:e.type,tab_type:e.tab+'_'+e.type,amount:amt,note:String(e.note||''),date:d.toISOString()});
+}
+if(clean.length===0){done('No entries found in that text — paste a full data report.',false);return;}
+if(!confirm('Restore '+clean.length+' entries? This replaces your current Money data.'))return;
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+store.clear();
+clean.forEach(function(entry){store.add(entry);});
+tx.oncomplete=function(){
+input.value='';
+renderAll();
+buildMoneyReport().then(function(t){document.getElementById('moneyReportOut').value=t;});
+done('Restored '+clean.length+' entries.',true);
+};
+tx.onerror=function(){done('Error restoring data.',false);};
+};
 initDB().then(function(){renderAll();});
 </script></body>
 </html>
