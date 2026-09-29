@@ -59,6 +59,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .tab-content{display:none}
 .tab-content.active{display:block}
 .backup-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.data-box{width:100%;min-height:160px;background:#1a1a1a;border:1px solid #333;color:#eee;padding:10px 12px;border-radius:8px;font-size:12px;font-family:monospace;outline:none;resize:vertical}
+.data-box:focus{border-color:#00ff88}
+.data-status{font-size:12px;color:#888;margin-top:8px;min-height:16px}
+.data-hint{font-size:12px;color:#888;margin:0 0 8px}
 input[type=file]{display:none}
 @media(max-width:500px){
 .add-row{flex-direction:column}
@@ -81,6 +85,7 @@ input[type=file]{display:none}
 <div class="tab" data-tab="smarthome" onclick="switchTab('smarthome')">SmartHome</div>
 <div class="tab" data-tab="lucky" onclick="switchTab('lucky')">Lucky</div>
 <div class="tab" data-tab="other" onclick="switchTab('other')">Other</div>
+<div class="tab" data-tab="data" onclick="switchTab('data')">📋 Data</div>
 </div>
 <div class="container">
 <div class="tab-content active" id="tab-all"></div>
@@ -88,6 +93,26 @@ input[type=file]{display:none}
 <div class="tab-content" id="tab-smarthome"></div>
 <div class="tab-content" id="tab-lucky"></div>
 <div class="tab-content" id="tab-other"></div>
+<div class="tab-content" id="tab-data">
+<div class="panel">
+<div class="section-title green">📋 Copy Your Data</div>
+<p class="data-hint">Press COPY, then paste the text into your notes app so nothing is ever lost.</p>
+<div class="backup-row" style="margin-top:0;margin-bottom:12px">
+<button class="btn btn-green" onclick="copyMoneyReport()">COPY ALL DATA</button>
+</div>
+<textarea class="data-box" id="moneyReportOut" readonly spellcheck="false" placeholder="Press COPY ALL DATA and the full report appears here."></textarea>
+<div class="data-status" id="moneyCopyState"></div>
+</div>
+<div class="panel">
+<div class="section-title red">📥 Restore Data</div>
+<p class="data-hint">Paste a report you copied earlier and press restore. Every entry comes back exactly as it was. This replaces current data.</p>
+<textarea class="data-box" id="moneyRestoreIn" spellcheck="false" placeholder="Paste your saved data here..."></textarea>
+<div class="backup-row">
+<button class="btn btn-red" onclick="restoreMoneyReport()">RESTORE DATA</button>
+</div>
+<div class="data-status" id="moneyRestoreState"></div>
+</div>
+</div>
 <div class="panel">
 <div class="backup-row">
 <button class="btn btn-gray" onclick="backupData()">Backup JSON</button>
