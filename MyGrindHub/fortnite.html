@@ -1276,6 +1276,7 @@ function fullBlock(title, list) {
    silently threw away every restored game. This always round trips. */
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function stamp(ts) {
   const d = new Date(ts);
@@ -1285,7 +1286,9 @@ function stamp(ts) {
   return (
     MONTH_NAMES[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() +
     ", " + hour + ":" + String(d.getMinutes()).padStart(2, "0") +
-    ":" + String(d.getSeconds()).padStart(2, "0") + " " + meridiem
+    ":" + String(d.getSeconds()).padStart(2, "0") + " " + meridiem +
+    " " + DAY_NAMES[d.getDay()] + " " +
+    MONTH_NAMES[d.getMonth()] + " " + d.getDate()
   );
 }
 
@@ -2103,7 +2106,7 @@ function render() {
           <span class="tag">${escapeHTML(TYPE_NAME[m.g] || m.g)}</span>
           <span class="tag">${escapeHTML(VARIANT_NAME[m.v] || m.v)}</span>
           <span class="tag">${escapeHTML(MODE_NAME[m.m] || m.m)}</span>
-          <span>${escapeHTML(new Date(m.t).toLocaleString())}</span>
+          <span>${escapeHTML(stamp(m.t))}</span>
         </div>
         ${m.note ? '<div class="game-note"><strong>Note:</strong> ' + escapeHTML(m.note) + "</div>" : ""}
       `;
