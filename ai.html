@@ -197,7 +197,7 @@ function thinkReceipt(text, secs, mLabel){
 function renderRich(el, text, opts){
   opts = opts || {};
   if(typeof showThink !== 'undefined' && !showThink){ text = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); }
-  else { const tm = String(text).match(/<think>[\s\S]*?<\/think>/gi); if(tm){ const rest = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); const det = document.createElement('details'); det.className='thought'; const sum = document.createElement('summary'); sum.textContent='🧠 model thought'; det.appendChild(sum); tm.forEach(b=>{ const bdiv=document.createElement('div'); bdiv.className='thought-body'; bdiv.textContent=b.slice(0,2000); det.appendChild(bdiv); }); el.appendChild(det); text = rest; } }
+  else { const tm = String(text).match(/<think>[\s\S]*?<\/think>/gi); if(tm){ const rest = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); const det = document.createElement('details'); det.className='thought'; const sum = document.createElement('summary'); sum.textContent='🧠 model thought'; det.appendChild(sum); tm.forEach(b=>{ const bdiv=document.createElement('div'); bdiv.className='thought-body'; bdiv.textContent=b.slice(0,2000); det.appendChild(bdiv); }); el.appendChild(det); text = rest; } const unclosed = String(text).match(/<think>[\s\S]*$/); if(unclosed && !/<\/think>/i.test(text)){ const det2 = document.createElement('details'); det2.className='thought'; det2.open = true; const sum2 = document.createElement('summary'); sum2.textContent='🧠 thinking…'; det2.appendChild(sum2); const bdiv2=document.createElement('div'); bdiv2.className='thought-body'; bdiv2.textContent=unclosed[0].slice(0,2000); det2.appendChild(bdiv2); el.appendChild(det2); text = String(text).replace(/<think>[\s\S]*$/, ''); } }
   if(opts.receipt){ el.appendChild(thinkReceipt(text, opts.receipt.secs, opts.receipt.model)); }
 
   const parts = String(text).split(/```/);
@@ -283,7 +283,7 @@ async function send(){
   box.appendChild(t); box.scrollTop = box.scrollHeight;
   const thinkTimer = setInterval(renderThink, 400);
 
-  let sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : ""; try{ const _cl = localStorage.getItem("jake-ai-lang"); if(_cl && _cl !== "auto"){ const _ln={th:"Thai",ja:"Japanese",zh:"Chinese",ko:"Korean",es:"Spanish",fr:"French"}[_cl]||_cl; sys = "Reply in "+_ln+" unless the user explicitly asks for another language. "+sys; } else { sys = "Reply in the same language the user wrote in, unless they ask for another language. "+sys; } }catch(e){} try{ const nm = localStorage.getItem("jake-ai-name"); if(nm) sys = "The user's name is "+nm+". Address them by name sometimes. " + sys; }catch(e){}
+  let sys = (LENGTHS[curLen] ? LENGTHS[curLen].sys : "") + " Always put code in ```language fenced blocks with complete runnable code, never truncate."; try{ const _cl = localStorage.getItem("jake-ai-lang"); if(_cl && _cl !== "auto"){ const _ln={th:"Thai",ja:"Japanese",zh:"Chinese",ko:"Korean",es:"Spanish",fr:"French"}[_cl]||_cl; sys = "Reply in "+_ln+" unless the user explicitly asks for another language. "+sys; } else { sys = "Reply in the same language the user wrote in, unless they ask for another language. "+sys; } }catch(e){} try{ const nm = localStorage.getItem("jake-ai-name"); if(nm) sys = "The user's name is "+nm+". Address them by name sometimes. " + sys; }catch(e){}
   const payload = c.msgs.slice(-20);
   if(sys) payload.unshift({role:"system", content:sys});
 
