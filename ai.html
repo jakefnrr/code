@@ -22,8 +22,9 @@ header{padding:16px 22px;gap:10px;border-bottom:1px solid #292929;display:flex;j
 header a{color:#00ff88;text-decoration:none;font-size:13px}
 #messages{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:800px;width:100%;margin:auto}
 .msg{padding:12px 15px;border-radius:12px;line-height:1.55;font-size:14px;white-space:pre-wrap;position:relative}
-.code-wrap{margin:8px 0;background:#0a0a0a;border:1px solid #333;border-radius:10px;overflow:auto;white-space:normal;max-height:55vh}
-.code-head{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#1c1c1c;font-size:11px;color:#00ff88;position:sticky;top:0;z-index:2}
+.code-wrap{margin:8px 0;background:#0a0a0a;border:1px solid #333;border-radius:10px;overflow:hidden;white-space:normal}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#1c1c1c;font-size:11px;color:#00ff88}
+.code-foot{display:flex;justify-content:flex-end;padding:6px 10px;background:#1c1c1c;border-top:1px solid #333}
 .copy-btn{background:#00ff88;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;color:#000}
 .copy-btn:hover{background:#fff}
 .speak-btn{background:#161616;border:1px solid #333;color:#fff;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;margin-left:6px}.speak-btn:hover{border-color:#00ff88}.msg-actions{margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.lang-detect{background:#10281c;border:1px solid #1f4d35;border-radius:10px;padding:8px 10px;font-size:12px;margin-top:8px}.lang-detect button{background:#00ff88;border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;margin-left:6px}#lang-list{max-height:180px;overflow-y:auto}.msg-copy{position:absolute;top:6px;right:6px;opacity:.4}
@@ -210,12 +211,16 @@ function renderRich(el, text, opts){
       const wrap = document.createElement("div"); wrap.className = "code-wrap";
       const head = document.createElement("div"); head.className = "code-head";
       const lb = document.createElement("span"); lb.textContent = lang || "code";
-      const cb = document.createElement("button"); cb.className = "copy-btn"; cb.textContent = "📋 Copy";
-      cb.onclick = async ()=>{ try{ await navigator.clipboard.writeText(code.replace(/\n$/,"")); cb.textContent = "✅ Copied!"; setTimeout(()=>cb.textContent="📋 Copy",1500);}catch(e){ cb.textContent = "❌ Failed"; } };
-      head.appendChild(lb); head.appendChild(cb);
+      const mkCopy = (label)=>{ const b = document.createElement("button"); b.className = "copy-btn"; b.textContent = label || "📋 Copy";
+        b.onclick = async ()=>{ try{ await navigator.clipboard.writeText(code.replace(/\n$/,"")); b.textContent = "✅ Copied!"; setTimeout(()=>b.textContent=(label||"📋 Copy"),1500);}catch(e){ b.textContent = "❌ Failed"; } };
+        return b; };
+      head.appendChild(lb); head.appendChild(mkCopy());
       const pre = document.createElement("pre"); pre.className = "code-block";
       const cd = document.createElement("code"); cd.textContent = code.replace(/\n$/,"");
       pre.appendChild(cd); wrap.appendChild(head); wrap.appendChild(pre);
+      const foot = document.createElement("div"); foot.className = "code-foot";
+      foot.appendChild(mkCopy("📋 Copy code"));
+      wrap.appendChild(foot);
       el.appendChild(wrap);
     } else {
       const div = document.createElement("div"); div.className = "rich-text";
