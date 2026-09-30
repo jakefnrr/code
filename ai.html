@@ -69,11 +69,11 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #send.stop{background:#ff5555;color:#fff}
 #bar-set{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
 #bar-set.listening{border-color:#ff5555;background:#331111}
-#all-proj-m,#all-proj-d{color:#00ff88;border:1px solid #00ff88;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold}#model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
+#all-proj-m{color:#00ff88;border:1px solid #00ff88;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold}#model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
 @media(max-width:700px){
   body{flex-direction:column;height:100dvh}
   aside{width:100%;border-right:none;border-bottom:1px solid #292929;padding:10px;gap:8px}
-  aside h2{display:flex;justify-content:space-between;align-items:center}
+  aside h2{display:flex;justify-content:space-between;align-items:center} #all-proj-m{white-space:nowrap}
   #new-chat{order:2}
   #chat-list{order:3;flex-direction:row;overflow-x:auto;max-height:52px;flex:none;-webkit-overflow-scrolling:touch}
   .chat-item{white-space:nowrap;flex:none;max-width:160px}
@@ -96,7 +96,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   
 </aside>
 <main>
-  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span><a id="all-proj-d" href="index.html">ALL PROJECTS</a></header>
+  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span></header>
   <div id="messages"></div>
   <div id="bar">
     
@@ -107,11 +107,11 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
     <div id="set-head"><span>Settings</span><button id="set-x" aria-label="Close">✕</button></div>
     <div id="set-tabs">
       <button class="set-tab active" data-tab="model">🤖 Model</button>
-      <button class="set-tab" data-tab="general">⚙️ General</button>
+      <button class="set-tab" data-tab="response">💬 Response</button><button class="set-tab" data-tab="general">⚙️ General</button>
     </div>
     <div id="set-body">
       <div id="tab-model"><div id="model-opts"></div></div>
-      <div id="tab-general" hidden>
+      <div id="tab-response" hidden>
         <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:4px 2px 8px">RESPONSE LENGTH</div>
         <div id="len-opts"></div>
         <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:10px 2px 8px">YOUR NAME</div><input id="name-input" placeholder="What should AI call you?" style="width:100%;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;font-size:13px;outline:none"><div class="toggle-row" style="margin-top:10px"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
@@ -368,16 +368,16 @@ document.querySelectorAll(".set-tab").forEach(t=>{
     document.querySelectorAll(".set-tab").forEach(x=>x.classList.remove("active"));
     t.classList.add("active");
     document.getElementById("tab-model").hidden = t.dataset.tab !== "model";
+    document.getElementById("tab-response").hidden = t.dataset.tab !== "response";
     document.getElementById("tab-general").hidden = t.dataset.tab !== "general";
   };
 });
 document.getElementById("bar-set").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
 document.getElementById("set-x").onclick = (e)=>{ e.stopPropagation(); document.getElementById("set-pop").hidden = true; };
 document.getElementById("set-pop").addEventListener("click", (e)=> e.stopPropagation());
-document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn" && !document.getElementById("bar-set").contains(e.target)) p.hidden=true; });
+document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && !document.getElementById("bar-set").contains(e.target)) p.hidden=true; });
 // mobile: ALL PROJECTS only at top, hide duplicate
-if(window.matchMedia("(max-width:700px)").matches){ document.getElementById("all-proj-d")?.remove(); }
-else { document.getElementById("all-proj-m")?.remove(); }
+
 let userName = localStorage.getItem("jake-ai-name") || "";
 const ni = document.getElementById("name-input"); if(ni){ ni.value = userName; ni.oninput = ()=>{ userName = ni.value.trim().slice(0,30); try{localStorage.setItem("jake-ai-name", userName);}catch(e){} }; }
 // greeting uses name
