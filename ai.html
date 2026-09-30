@@ -139,6 +139,29 @@ let curModel = localStorage.getItem(MLS) || MODELS[2].id;
 let chats = {};
 let current = null;
 try { chats = JSON.parse(localStorage.getItem(LS) || "{}"); } catch(e){ chats = {}; }
+function makeTitle(text){
+  const t = String(text || "").trim();
+  if(!t) return "New chat";
+  const file = t.match(/([a-zA-Z0-9_-]+\.(html|js|py|css|java|txt|md))/i);
+  if(file) return file[1].toLowerCase().slice(0, 30);
+  const lang = (t.match(/\b(html|python|javascript|css|game|website|app)\b/i) || [])[1] || "";
+  const topic = (t.match(/\b(flappy[a-z]*|snake|tetris|mom|garden|kitchen|quiz|snake|mario|car|space|zombie|ninja|pirate|dragon)\b/i) || [])[1] || "";
+  if(topic && lang) return (topic + "." + (lang === "html" || lang === "website" || lang === "game" || lang === "app" ? "html" : lang)).toLowerCase().slice(0, 30);
+  if(topic) return ("make " + topic).toLowerCase().slice(0, 30);
+  const skip = new Set(["make","makea","create","give","get","write","build","please","pls","a","an","the","full","working","that","this","for","me","my","i","want","need","can","you","to","of","in","on","is","it","with","and"]);
+  const words = t.replace(/[^a-zA-Z0-9' -]/g, " ").split(/\s+/).filter(w=>w && !skip.has(w.toLowerCase()));
+  const short = words.slice(0, 4).join(" ").toLowerCase().slice(0, 30);
+  return short || t.split(/\s+/).slice(0,4).join(" ").slice(0, 30) || "New chat";
+}
+// re-title old auto-cut titles once
+try{
+  Object.values(chats).forEach(c=>{
+    if(c && c.msgs && c.msgs.length && c.msgs[0] && c.msgs[0].role === "user"){
+      const first = String(c.msgs[0].content || "");
+      if(c.title === first.slice(0, 32) || c.title === "New chat") c.title = makeTitle(first);
+    }
+  });
+}catch(e){}
 
 function save(){ try{ localStorage.setItem(LS, JSON.stringify(chats)); }catch(e){} }
 function uid(){ return "c" + Date.now().toString(36) + Math.floor(Math.random()*999); }
@@ -271,7 +294,7 @@ async function send(){
   if(!current) newChat();
   const c = chats[current];
   c.msgs.push({role:"user", content:text});
-  if(c.msgs.length===1) c.title = text.slice(0,32);
+  if(c.msgs.length===1) c.title = makeTitle(text);
   c.updated = Date.now();
   inp.value = "";
   btn.textContent = "■ Stop"; btn.classList.add("stop");
