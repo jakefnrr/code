@@ -38,7 +38,21 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 .model-opt b{font-size:13px;display:block}
 .model-opt small{color:#999;font-size:12px}
 #send:disabled{opacity:.5}
-@media(max-width:700px){aside{width:200px}}
+#side-foot{font-size:11px;color:#666;line-height:1.5;border-top:1px solid #222;padding-top:8px}
+#side-foot b{color:#00ff88}
+@media(max-width:700px){
+  body{flex-direction:column}
+  aside{width:100%;border-right:none;border-bottom:1px solid #292929;padding:10px}
+  #chat-list{flex-direction:row;overflow-x:auto;max-height:52px;flex:none}
+  .chat-item{white-space:nowrap;flex:none;max-width:160px}
+  header{padding:10px 12px}
+  #messages{padding:12px}
+  #bar{padding:10px;gap:6px;flex-wrap:nowrap}
+  #model-btn{padding:0 8px;font-size:12px;flex:none}
+  #input{flex:1;min-width:0;padding:11px}
+  #send{padding:0 14px;flex:none}
+  #model-pop{bottom:70px}
+}
 </style>
 </head>
 <body>
@@ -46,7 +60,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   <h2>JAKE AI</h2>
   <button id="new-chat">+ New chat</button>
   <div id="chat-list"></div>
-  <div style="font-size:11px;color:#666">Chats save in this browser. Set Cloudflare AI binding to get real answers.</div>
+  <div id="side-foot">🧠 <b id="side-model">Balanced</b><br><span id="side-desc"></span><br>Chats save in this browser.</div>
 </aside>
 <main>
   <header><strong id="title">New chat</strong><a href="index.html">← ALL PROJECTS</a></header>
@@ -166,6 +180,8 @@ document.getElementById("input").addEventListener("keydown", e=>{ if(e.key==="En
 function renderModelBtn(){
   const m = MODELS.find(x=>x.id===curModel) || MODELS[2];
   document.getElementById("model-name").textContent = m.label;
+  const sm = document.getElementById("side-model"); if(sm) sm.textContent = m.label;
+  const sd = document.getElementById("side-desc"); if(sd) sd.textContent = m.desc;
   const box = document.getElementById("model-opts");
   box.innerHTML = "";
   MODELS.forEach(m2=>{
