@@ -60,6 +60,13 @@ export async function onRequestPost(context) {
   try {
     // OPTION A: Workers AI binding
     if (env.AI) {
+      const url = new URL(request.url);
+      if (url.searchParams.get("stream") === "1") {
+        const stream = await env.AI.run(model, { messages: clean, stream: true });
+        return new Response(stream, {
+          headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", ...cors() },
+        });
+      }
       const out = await env.AI.run(model, { messages: clean });
       const reply =
         out?.response ?? out?.result?.response ?? (typeof out === "string" ? out : JSON.stringify(out));
