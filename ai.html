@@ -42,6 +42,9 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #set-btn:hover{border-color:#00ff88}
 #set-pop{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #00ff88;border-radius:14px;padding:0;width:360px;max-width:94vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden}
 #set-tabs{display:flex;border-bottom:1px solid #2a2a2a}
+#set-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 0;font-size:13px;font-weight:bold;color:#00ff88}
+#set-x{background:none;border:none;color:#888;font-size:16px;cursor:pointer;padding:4px 8px}
+#set-x:hover{color:#fff}
 .set-tab{flex:1;background:none;border:none;color:#888;padding:12px;cursor:pointer;font-size:13px;font-weight:bold}
 .set-tab.active{color:#00ff88;border-bottom:2px solid #00ff88}
 #set-body{padding:12px;max-height:50vh;overflow-y:auto}
@@ -101,6 +104,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
     <button id="send">Send</button>
   </div>
   <div id="set-pop" hidden>
+    <div id="set-head"><span>Settings</span><button id="set-x" aria-label="Close">✕</button></div>
     <div id="set-tabs">
       <button class="set-tab active" data-tab="model">🤖 Model</button>
       <button class="set-tab" data-tab="general">⚙️ General</button>
@@ -346,7 +350,9 @@ document.querySelectorAll(".set-tab").forEach(t=>{
   };
 });
 document.getElementById("set-btn").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
-document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn") p.hidden=true; });
+document.getElementById("set-x").onclick = (e)=>{ e.stopPropagation(); document.getElementById("set-pop").hidden = true; };
+document.getElementById("set-pop").addEventListener("click", (e)=> e.stopPropagation());
+document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn" && !document.getElementById("set-btn").contains(e.target)) p.hidden=true; });
 // voice input
 document.getElementById("mic").onclick = ()=>{
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
