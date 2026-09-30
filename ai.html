@@ -26,7 +26,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 .code-head{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#1c1c1c;font-size:11px;color:#00ff88}
 .copy-btn{background:#00ff88;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;color:#000}
 .copy-btn:hover{background:#fff}
-.msg-copy{position:absolute;top:6px;right:6px;opacity:.4}
+.speak-btn{background:#161616;border:1px solid #333;color:#fff;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;margin-left:6px}.speak-btn:hover{border-color:#00ff88}.msg-actions{margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.lang-detect{background:#10281c;border:1px solid #1f4d35;border-radius:10px;padding:8px 10px;font-size:12px;margin-top:8px}.lang-detect button{background:#00ff88;border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;margin-left:6px}#lang-list{max-height:180px;overflow-y:auto}.msg-copy{position:absolute;top:6px;right:6px;opacity:.4}
 .msg:hover .msg-copy{opacity:1}
 .code-block{margin:0;padding:12px;overflow-x:auto;font-family:Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5;white-space:pre}
 .inline-code{background:#000;border:1px solid #333;border-radius:4px;padding:1px 5px;font-family:Menlo,Consolas,monospace;font-size:12.5px;color:#00ff88}
@@ -114,7 +114,11 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
       <div id="tab-response" hidden>
         <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:4px 2px 8px">RESPONSE LENGTH</div>
         <div id="len-opts"></div>
-        <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:10px 2px 8px">YOUR NAME</div><input id="name-input" placeholder="What should AI call you?" style="width:100%;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;font-size:13px;outline:none"><div class="toggle-row" style="margin-top:10px"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
+      </div>
+      <div id="tab-general" hidden>
+        <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:4px 2px 8px">YOUR NAME</div><input id="name-input" placeholder="What should AI call you?" style="width:100%;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;font-size:13px;outline:none">
+        <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:10px 2px 8px">LANGUAGE</div><input id="lang-search" placeholder="🔍 Search languages..." style="width:100%;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:8px;padding:9px;font-size:13px;outline:none;margin-bottom:6px"><div id="lang-list"></div>
+        <div class="toggle-row" style="margin-top:10px"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
         <div style="font-size:11px;color:#666;margin-top:8px">Thinking shows live status (model + seconds) instead of frozen "...". True inner thoughts aren't exposed by these models.</div>
       </div>
     </div>
@@ -222,7 +226,23 @@ function renderRich(el, text, opts){
       el.appendChild(div);
     }
   });
-  // whole-message copy
+  // whole-message copy + speaker
+  const acts = document.createElement("div"); acts.className = "msg-actions";
+  const sp = document.createElement("button"); sp.className = "speak-btn"; sp.textContent = "🔊"; sp.title = "Read aloud";
+  sp.onclick = ()=> speakText(text);
+  acts.appendChild(sp);
+  try{
+    const dl = detectLang(text);
+    const cur = (typeof chatLang !== "undefined" ? chatLang : "auto");
+    if(cur === "auto" && (dl === "th" || dl === "ja" || dl === "ko" || dl === "zh")){
+      const lb = document.createElement("div"); lb.className = "lang-detect";
+      lb.textContent = "Jake AI detected " + langLabel(dl) + ". Switch to this language?";
+      const yb = document.createElement("button"); yb.textContent = "Yes";
+      yb.onclick = ()=>{ chatLang = dl; try{localStorage.setItem("jake-ai-lang", dl);}catch(e){} renderLangList(""); lb.textContent = "✅ Language set to " + langLabel(dl); };
+      lb.appendChild(yb); acts.appendChild(lb);
+    }
+  }catch(e){}
+  el.appendChild(acts);
   const all = document.createElement("button"); all.className = "copy-btn msg-copy"; all.textContent = "📋";
   all.title = "Copy full answer";
   all.onclick = async ()=>{ try{ await navigator.clipboard.writeText(text); all.textContent = "✅"; setTimeout(()=>all.textContent="📋",1500);}catch(e){} };
@@ -266,7 +286,7 @@ async function send(){
   box.appendChild(t); box.scrollTop = box.scrollHeight;
   const thinkTimer = setInterval(renderThink, 400);
 
-  let sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : ""; try{ const nm = localStorage.getItem("jake-ai-name"); if(nm) sys = "The user's name is "+nm+". Address them by name sometimes. " + sys; }catch(e){}
+  let sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : ""; try{ const _cl = localStorage.getItem("jake-ai-lang"); if(_cl && _cl !== "auto"){ const _ln={th:"Thai",ja:"Japanese",zh:"Chinese",ko:"Korean",es:"Spanish",fr:"French"}[_cl]||_cl; sys = "Reply in "+_ln+" unless the user explicitly asks for another language. "+sys; } else { sys = "Reply in the same language the user wrote in, unless they ask for another language. "+sys; } }catch(e){} try{ const nm = localStorage.getItem("jake-ai-name"); if(nm) sys = "The user's name is "+nm+". Address them by name sometimes. " + sys; }catch(e){}
   const payload = c.msgs.slice(-20);
   if(sys) payload.unshift({role:"system", content:sys});
 
@@ -378,6 +398,43 @@ document.getElementById("set-pop").addEventListener("click", (e)=> e.stopPropaga
 document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && !document.getElementById("bar-set").contains(e.target)) p.hidden=true; });
 // mobile: ALL PROJECTS only at top, hide duplicate
 
+const LANGS = [["auto","🌐 Auto (match me)"],["en","🇬🇧 English"],["th","🇹🇭 Thai"],["ja","🇯🇵 Japanese"],["zh","🇨🇳 Chinese"],["ko","🇰🇷 Korean"],["es","🇪🇸 Spanish"],["fr","🇫🇷 French"],["de","🇩🇪 German"],["it","🇮🇹 Italian"],["pt","🇵🇹 Portuguese"],["ru","🇷🇺 Russian"],["vi","🇻🇳 Vietnamese"],["id","🇮🇩 Indonesian"],["hi","🇮🇳 Hindi"],["ar","🇸🇦 Arabic"]];
+let chatLang = "auto";
+try{ chatLang = localStorage.getItem("jake-ai-lang") || "auto"; }catch(e){}
+function langLabel(c){ const f = LANGS.find(l=>l[0]===c); return f ? f[1] : c; }
+function renderLangList(filter){
+  const box = document.getElementById("lang-list"); if(!box) return; box.innerHTML = "";
+  LANGS.filter(l=>l[1].toLowerCase().includes((filter||"").toLowerCase())).forEach(l=>{
+    const b = document.createElement("button"); b.className = "len-opt" + (l[0]===chatLang?" active":"");
+    const tt = document.createElement("b"); tt.textContent = l[1]; b.appendChild(tt);
+    b.onclick = ()=>{ chatLang = l[0]; try{localStorage.setItem("jake-ai-lang", chatLang);}catch(e){} renderLangList(document.getElementById("lang-search").value); };
+    box.appendChild(b);
+  });
+}
+function detectLang(s){
+  s = String(s||"");
+  if(/[\u0E00-\u0E7F]/.test(s)) return "th";
+  if(/[\u3040-\u30FF]/.test(s)) return "ja";
+  if(/[\uAC00-\uD7AF]/.test(s)) return "ko";
+  if(/[\u4E00-\u9FFF]/.test(s)) return "zh";
+  return "en";
+}
+function speakText(raw){
+  try{
+    speechSynthesis.cancel();
+    let txt = String(raw).replace(/<think>[\s\S]*?<\/think>/gi, "I thought about it. ").replace(/```[\s\S]*?```/g, "Code included. ");
+    txt = txt.replace(/https?:\/\/\S+/g, "Link. ");
+    const u = new SpeechSynthesisUtterance(txt.slice(0,2000));
+    const dl = detectLang(raw);
+    const want = (typeof chatLang !== "undefined" && chatLang !== "auto") ? chatLang : dl;
+    u.lang = want === "th" ? "th-TH" : want === "ja" ? "ja-JP" : "en-US";
+    const vs = speechSynthesis.getVoices();
+    const pref = vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(want) && /google/i.test(v.name)) || vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(want)) || vs.find(v=>/google us english/i.test(v.name)) || vs[0];
+    if(pref){ u.voice = pref; u.lang = pref.lang; }
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+try{ speechSynthesis.getVoices(); }catch(e){}
 let userName = localStorage.getItem("jake-ai-name") || "";
 const ni = document.getElementById("name-input"); if(ni){ ni.value = userName; ni.oninput = ()=>{ userName = ni.value.trim().slice(0,30); try{localStorage.setItem("jake-ai-name", userName);}catch(e){} }; }
 // greeting uses name
@@ -422,6 +479,7 @@ async function resumeGen(idx){
   c.msgs[idx].content = reply; c.updated = Date.now(); save(); renderMsgs();
   aborter = null; btn.textContent = "Send"; btn.classList.remove("stop");
 }
+renderLangList(""); const _ls=document.getElementById("lang-search"); if(_ls) _ls.oninput=()=>renderLangList(_ls.value);
 renderSettings();
 renderAll();
 </script>
