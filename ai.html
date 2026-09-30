@@ -165,11 +165,17 @@ function renderMsgs(){
   const c = chats[current];
   document.getElementById("title").textContent = c ? (c.title||"Chat") : "New chat";
   if(!c || !c.msgs.length){ box.innerHTML = '<div class="msg ai">👋 Hi, I\'m Jake AI. Ask me anything.</div>'; return; }
-  c.msgs.forEach(m=>{
+  c.msgs.forEach((m, idx)=>{
     const d = document.createElement("div");
     d.className = "msg " + (m.role==="user"?"user":"ai");
     if(m.role==="user"){ d.textContent = m.content; }
     else { d.innerHTML = ""; renderRich(d, m.content); }
+    if(m.role==="assistant" && /⏹ Stopped\.?$/ .test(m.content)){
+      const rb = document.createElement("button");
+      rb.className = "copy-btn"; rb.style.marginTop = "8px"; rb.textContent = "▶ Resume";
+      rb.onclick = ()=> resumeGen(idx);
+      d.appendChild(rb);
+    }
     box.appendChild(d);
   });
   box.scrollTop = box.scrollHeight;
@@ -363,6 +369,43 @@ const _renderMsgs = renderMsgs;
 renderMsgs = function(){ _renderMsgs(); const box = document.getElementById("messages"); const c = chats[current]; if(!c || !c.msgs.length){ box.innerHTML = ""; const d = document.createElement("div"); d.className = "msg ai"; d.textContent = userName ? ("👋 Hi "+userName+", ask me anything.") : "👋 Hi, I'm Jake AI. Ask me anything."; box.appendChild(d); } };
 // inject name into system prompt
 const _send = send;
+async function resumeGen(idx){
+  const c = chats[current]; if(!c) return;
+  let partial = c.msgs[idx].content.replace(/
+
+⏹ Stopped\.?$/ , "");
+  c.msgs[idx].content = partial; save(); renderMsgs();
+  const btn = document.getElementById("send");
+  btn.textContent = "■ Stop"; btn.classList.add("stop");
+  aborter = new AbortController();
+  const box = document.getElementById("messages");
+  const live = document.createElement("div"); live.className = "msg ai";
+  box.appendChild(live); box.scrollTop = box.scrollHeight;
+  const sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : "";
+  const payload = c.msgs.slice(0, idx).slice(-20);
+  if(sys) payload.unshift({role:"system", content:sys});
+  payload.push({role:"assistant", content:partial}, {role:"user", content:"Continue exactly where you left off. Do not repeat, just continue."});
+  let reply = partial;
+  try{
+    const r = await fetch("/api/chat?stream=1", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({messages: payload, model: curModel}), signal: aborter.signal});
+    const ct = r.headers.get("content-type") || "";
+    if(ct.includes("text/event-stream")){
+      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
+      while(true){ const {done, value} = await reader.read(); if(done) break;
+        buf += dec.decode(value, {stream:true});
+        const lines = buf.split("
+"); buf = lines.pop();
+        for(const ln of lines){ const s = ln.trim(); if(!s.startsWith("data:")) continue;
+          const d = s.slice(5).trim(); if(d === "[DONE]") break;
+          try{ const j = JSON.parse(d); const tok = j.response || ""; if(tok){ reply += tok; live.innerHTML=""; renderRich(live, reply); box.scrollTop = box.scrollHeight; } }catch(e){} } }
+    } else { const data = await r.json(); reply = data.reply || reply; }
+  }catch(e){ if(e && e.name === "AbortError"){ reply = reply + "
+
+⏹ Stopped."; } }
+  live.remove();
+  c.msgs[idx].content = reply; c.updated = Date.now(); save(); renderMsgs();
+  aborter = null; btn.textContent = "Send"; btn.classList.remove("stop");
+}
 renderSettings();
 renderAll();
 </script>
