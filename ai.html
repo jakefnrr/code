@@ -29,6 +29,14 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #input{flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:13px;outline:none;font-size:14px}
 #input:focus{border-color:#00ff88}
 #send{background:#00ff88;border:none;border-radius:10px;padding:0 22px;font-weight:bold;cursor:pointer}
+#model-btn{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 12px;cursor:pointer;font-size:13px;white-space:nowrap}
+#model-btn:hover{border-color:#00ff88}
+#model-pop{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #00ff88;border-radius:14px;padding:10px;width:340px;max-width:92vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+#model-pop-title{font-size:13px;color:#00ff88;font-weight:bold;margin:4px 6px 8px}
+.model-opt{display:block;width:100%;text-align:left;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer}
+.model-opt.active{border-color:#00ff88}
+.model-opt b{font-size:13px;display:block}
+.model-opt small{color:#999;font-size:12px}
 #send:disabled{opacity:.5}
 @media(max-width:700px){aside{width:200px}}
 </style>
@@ -44,12 +52,26 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   <header><strong id="title">New chat</strong><a href="index.html">← ALL PROJECTS</a></header>
   <div id="messages"></div>
   <div id="bar">
+    <button id="model-btn" title="Change model">🤖 <span id="model-name">Balanced</span> ▾</button>
     <input id="input" placeholder="Ask anything..." autocomplete="off">
     <button id="send">Send</button>
+  </div>
+  <div id="model-pop" hidden>
+    <div id="model-pop-title">Choose model</div>
+    <div id="model-opts"></div>
   </div>
 </main>
 <script>
 const LS = "jake-ai-chats";
+const MLS = "jake-ai-model";
+const MODELS = [
+  {id:"@cf/meta/llama-3.2-1b-instruct", label:"⚡ Very Fast", desc:"Not smart — instant answers, simple Q&A"},
+  {id:"@cf/meta/llama-4-scout-17b-16e-instruct", label:"🚀 Fast", desc:"Fast, decent smarts — everyday use"},
+  {id:"@cf/meta/llama-3.3-70b-instruct-fp8-fast", label:"⚖️ Balanced", desc:"Smart + still fast — recommended"},
+  {id:"@cf/openai/gpt-oss-120b", label:"🧠 Very Smart", desc:"Very smart, slow (~10s) — hard code/reasoning"},
+  {id:"@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", label:"🐢 Genius Slow", desc:"Thinks step-by-step — math/logic, slowest"},
+];
+let curModel = localStorage.getItem(MLS) || MODELS[2].id;
 let chats = {};
 let current = null;
 try { chats = JSON.parse(localStorage.getItem(LS) || "{}"); } catch(e){ chats = {}; }
@@ -124,7 +146,7 @@ async function send(){
   try {
     const r = await fetch("/api/chat", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ messages: c.msgs })
+      body: JSON.stringify({ messages: c.msgs, model: curModel })
     });
     const data = await r.json();
     reply = data.reply || ("Error: " + (data.error||r.status));
@@ -141,6 +163,25 @@ async function send(){
 document.getElementById("new-chat").onclick = newChat;
 document.getElementById("send").onclick = send;
 document.getElementById("input").addEventListener("keydown", e=>{ if(e.key==="Enter") send(); });
+function renderModelBtn(){
+  const m = MODELS.find(x=>x.id===curModel) || MODELS[2];
+  document.getElementById("model-name").textContent = m.label;
+  const box = document.getElementById("model-opts");
+  box.innerHTML = "";
+  MODELS.forEach(m2=>{
+    const b = document.createElement("button");
+    b.className = "model-opt" + (m2.id===curModel?" active":"");
+    b.innerHTML = "";
+    const t = document.createElement("b"); t.textContent = m2.label;
+    const s = document.createElement("small"); s.textContent = m2.desc;
+    b.appendChild(t); b.appendChild(s);
+    b.onclick = ()=>{ curModel = m2.id; try{localStorage.setItem(MLS,curModel);}catch(e){} renderModelBtn(); document.getElementById("model-pop").hidden = true; };
+    box.appendChild(b);
+  });
+}
+document.getElementById("model-btn").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("model-pop"); p.hidden=!p.hidden; };
+document.addEventListener("click", (e)=>{ const p=document.getElementById("model-pop"); if(!p.hidden && !p.contains(e.target)) p.hidden=true; });
+renderModelBtn();
 renderAll();
 </script>
 </body>
