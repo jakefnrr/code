@@ -35,6 +35,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 .user{background:#00ff88;color:#000;align-self:flex-end;max-width:80%}
 .ai{background:#161616;border:1px solid #2a2a2a;align-self:flex-start;max-width:85%}
 .sys{color:#ff5555;font-size:13px;text-align:center}
+.answer-label{font-size:11px;font-weight:bold;color:#00ff88;letter-spacing:1px;margin-bottom:6px}
 #bar{padding:16px;border-top:1px solid #292929;display:flex;gap:10px;max-width:800px;width:100%;margin:auto}
 #input{flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:13px;outline:none;font-size:14px}
 #input:focus{border-color:#00ff88}
@@ -173,7 +174,7 @@ function renderMsgs(){
     const d = document.createElement("div");
     d.className = "msg " + (m.role==="user"?"user":"ai");
     if(m.role==="user"){ d.textContent = m.content; }
-    else { d.innerHTML = ""; if(typeof showThink!=="undefined" && showThink && m.secs){ renderRich(d, m.content, {receipt:{secs:m.secs, model:m.mdl||"AI"}}); } else { renderRich(d, m.content); } }
+    else { d.innerHTML = ""; const al = document.createElement("div"); al.className = "answer-label"; al.textContent = "ANSWER:"; d.appendChild(al); if(typeof showThink!=="undefined" && showThink && m.secs){ renderRich(d, m.content, {receipt:{secs:m.secs, model:m.mdl||"AI"}}); } else { renderRich(d, m.content); } }
     if(m.role==="assistant" && /⏹ Stopped\.?$/ .test(m.content)){
       const rb = document.createElement("button");
       rb.className = "copy-btn"; rb.style.marginTop = "8px"; rb.textContent = "▶ Resume";
@@ -300,7 +301,7 @@ async function send(){
   box.appendChild(live);
   let reply = "", gotStream = false, stopped = false;
   const flush = (done)=>{
-    live.hidden = false; live.innerHTML = ""; renderRich(live, reply || (done ? "(empty reply)" : "…"));
+    live.hidden = false; live.innerHTML = ""; const al = document.createElement("div"); al.className = "answer-label"; al.textContent = "ANSWER:"; live.appendChild(al); renderRich(live, reply || (done ? "(empty reply)" : "…"));
     box.scrollTop = box.scrollHeight;
   };
   try {
@@ -474,7 +475,7 @@ async function resumeGen(idx){
         const lines = buf.split("\n"); buf = lines.pop();
         for(const ln of lines){ const s = ln.trim(); if(!s.startsWith("data:")) continue;
           const d = s.slice(5).trim(); if(d === "[DONE]") break;
-          try{ const j = JSON.parse(d); const tok = j.response || ""; if(tok){ reply += tok; live.innerHTML=""; renderRich(live, reply); box.scrollTop = box.scrollHeight; } }catch(e){} } }
+          try{ const j = JSON.parse(d); const tok = j.response || ""; if(tok){ reply += tok; live.innerHTML=""; const al2 = document.createElement("div"); al2.className = "answer-label"; al2.textContent = "ANSWER:"; live.appendChild(al2); renderRich(live, reply); box.scrollTop = box.scrollHeight; } }catch(e){} } }
     } else { const data = await r.json(); reply = data.reply || reply; }
   }catch(e){ if(e && e.name === "AbortError"){ reply = reply + "\n\n⏹ Stopped."; } }
   live.remove();
