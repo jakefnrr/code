@@ -944,7 +944,6 @@ h1 {
 </div>
 
 
-<script src="../shared/cloud-store.js"></script>
 
 
 <!-- ================================= -->
@@ -1150,13 +1149,7 @@ h1 {
 
 let notes = [];
 
-let noteStore = null;
-
-if (window.CloudStore) {
-    noteStore = CloudStore.forRoom("notes");
-} else {
-    console.warn("CloudStore missing, using localStorage only");
-}
+let noteStore = null; // per-device local-only mode
 
 
 function updateCloudStatus(msg) {
@@ -1240,7 +1233,7 @@ function saveNotes() {
 
 async function loadNotes() {
 
-    updateCloudStatus("⏳ loading shared notes…");
+    updateCloudStatus("⏳ loading notes…");
 
     // Legacy personal notes (before cloud)
     let legacy = [];
@@ -4552,9 +4545,7 @@ function closeEditor() {
 (function initCloudRooms() {
 
     function currentRoom() {
-        return (window.CloudStore
-            ? CloudStore.roomFromURL()
-            : "global");
+        return "global"; // per-device local-only mode
     }
 
     const roomInput = document.getElementById("roomInput");
@@ -4567,9 +4558,7 @@ function closeEditor() {
     if (joinBtn) {
         joinBtn.onclick = function() {
             const raw = roomInput ? roomInput.value : "";
-            const room = window.CloudStore
-                ? CloudStore.sanitizeRoom(raw || "global")
-                : "global";
+            const room = "global"; // per-device local-only mode
             const url = new URL(window.location.href);
             if (room === "global") {
                 url.searchParams.delete("room");
