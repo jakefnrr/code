@@ -18,7 +18,7 @@ aside h2{color:#00ff88;font-size:16px}
 .chat-item button{background:none;border:none;color:#888;cursor:pointer;font-size:14px}
 .chat-item button:hover{color:#ff5555}
 main{flex:1;display:flex;flex-direction:column;min-height:100vh} #bar{position:sticky;bottom:0;background:#080808}
-header{padding:16px 22px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center}
+header{padding:16px 22px;gap:10px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center}
 header a{color:#00ff88;text-decoration:none;font-size:13px}
 #messages{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:800px;width:100%;margin:auto}
 .msg{padding:12px 15px;border-radius:12px;line-height:1.55;font-size:14px;white-space:pre-wrap;position:relative}
@@ -90,13 +90,13 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 </head>
 <body>
 <aside>
-  <h2><span>JAKE AI</span><a id="all-proj-m" href="index.html" style="color:#00ff88;text-decoration:none;font-size:12px">ALL PROJECTS</a></h2>
+  <h2><span>JAKE AI</span></h2>
   <button id="new-chat">+ New chat</button>
   <div id="chat-list"></div>
   
 </aside>
 <main>
-  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span></header>
+  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span><a id="all-proj-m" href="index.html">ALL PROJECTS</a></header>
   <div id="messages"></div>
   <div id="bar">
     
@@ -439,14 +439,14 @@ let userName = localStorage.getItem("jake-ai-name") || "";
 const ni = document.getElementById("name-input"); if(ni){ ni.value = userName; ni.oninput = ()=>{ userName = ni.value.trim().slice(0,30); try{localStorage.setItem("jake-ai-name", userName);}catch(e){} }; }
 // greeting uses name
 const _renderMsgs = renderMsgs;
-renderMsgs = function(){ _renderMsgs(); const box = document.getElementById("messages"); const c = chats[current]; if(!c || !c.msgs.length){ box.innerHTML = ""; const d = document.createElement("div"); d.className = "msg ai"; d.textContent = userName ? ("👋 Hi "+userName+", ask me anything.") : "👋 Hi, I'm Jake AI. Ask me anything."; box.appendChild(d); } };
+renderMsgs = function(){ _renderMsgs(); const box = document.getElementById("messages"); const c = chats[current]; if(!c || !c.msgs.length){ box.innerHTML = ""; const d = document.createElement("div"); d.className = "msg ai"; d.textContent = (userName ? ("👋 Hi "+userName+", ask me anything.") : "👋 Hi, My name is Jake AI ask anything."); box.appendChild(d); } };
 // inject name into system prompt
 const _send = send;
 async function resumeGen(idx){
   const c = chats[current]; if(!c) return;
-  let partial = c.msgs[idx].content.replace(/
+  let partial = String(c.msgs[idx].content).split("Stopped")[0]; // patched
 
-⏹ Stopped\.?$/ , "");
+  // cleaned
   c.msgs[idx].content = partial; save(); renderMsgs();
   const btn = document.getElementById("send");
   btn.textContent = "■ Stop"; btn.classList.add("stop");
@@ -466,15 +466,12 @@ async function resumeGen(idx){
       const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
       while(true){ const {done, value} = await reader.read(); if(done) break;
         buf += dec.decode(value, {stream:true});
-        const lines = buf.split("
-"); buf = lines.pop();
+        const lines = buf.split("\n"); buf = lines.pop();
         for(const ln of lines){ const s = ln.trim(); if(!s.startsWith("data:")) continue;
           const d = s.slice(5).trim(); if(d === "[DONE]") break;
           try{ const j = JSON.parse(d); const tok = j.response || ""; if(tok){ reply += tok; live.innerHTML=""; renderRich(live, reply); box.scrollTop = box.scrollHeight; } }catch(e){} } }
     } else { const data = await r.json(); reply = data.reply || reply; }
-  }catch(e){ if(e && e.name === "AbortError"){ reply = reply + "
-
-⏹ Stopped."; } }
+  }catch(e){ if(e && e.name === "AbortError"){ reply = reply + "\n\n⏹ Stopped."; } }
   live.remove();
   c.msgs[idx].content = reply; c.updated = Date.now(); save(); renderMsgs();
   aborter = null; btn.textContent = "Send"; btn.classList.remove("stop");
