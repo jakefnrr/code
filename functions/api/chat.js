@@ -17,7 +17,7 @@
  *  4. Redeploy.
  */
 
-const DEFAULT_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
+const DEFAULT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 function cors() {
   return {
