@@ -146,7 +146,7 @@ function makeTitle(text){
   if(file) return file[1].toLowerCase().slice(0, 30);
   const lang = (t.match(/\b(html|python|javascript|css|game|website|app)\b/i) || [])[1] || "";
   const topic = (t.match(/\b(flappy[a-z]*|snake|tetris|mom|garden|kitchen|quiz|snake|mario|car|space|zombie|ninja|pirate|dragon)\b/i) || [])[1] || "";
-  if(topic && lang) return (topic + "." + (lang === "html" || lang === "website" || lang === "game" || lang === "app" ? "html" : lang)).toLowerCase().slice(0, 30);
+  if(topic && lang){ const ext = {html:"html", website:"html", game:"html", app:"html", python:"py", javascript:"js", css:"css"}[lang.toLowerCase()] || "html"; return (topic + "." + ext).toLowerCase().slice(0, 30); }
   if(topic) return ("make " + topic).toLowerCase().slice(0, 30);
   const skip = new Set(["make","makea","create","give","get","write","build","please","pls","a","an","the","full","working","that","this","for","me","my","i","want","need","can","you","to","of","in","on","is","it","with","and"]);
   const words = t.replace(/[^a-zA-Z0-9' -]/g, " ").split(/\s+/).filter(w=>w && !skip.has(w.toLowerCase()));
