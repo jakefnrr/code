@@ -112,6 +112,14 @@ input[type=file]{display:none}
 </div>
 <div class="data-status" id="moneyRestoreState"></div>
 </div>
+<div class="panel" style="border:1px solid #ff4444;margin-top:24px">
+<div class="section-title red">🗑️ Danger Zone</div>
+<p class="data-hint">This permanently deletes every entry. Copy your data first so you can restore it later.</p>
+<div class="backup-row">
+<button class="btn btn-red" onclick="clearAllMoneyData()" style="width:100%;padding:14px;font-size:15px">CLEAR ALL DATA</button>
+</div>
+<div class="data-status" id="moneyClearState"></div>
+</div>
 </div>
 <div class="panel">
 <div class="backup-row">
@@ -590,6 +598,36 @@ buildMoneyReport().then(function(t){document.getElementById('moneyReportOut').va
 done('Restored '+clean.length+' entries.',true);
 };
 tx.onerror=function(){done('Error restoring data.',false);};
+};
+window.clearAllMoneyData=function(){
+var state=document.getElementById('moneyClearState');
+function done(msg,ok){if(state){state.textContent=msg;state.style.color=ok?'#00ff88':'#ff4444';}}
+getAllEntries().then(function(entries){
+if(!entries||entries.length===0){done('There is no data to clear.',false);return;}
+var wantCopy=confirm('Do you want to copy your data first?\n\nPress OK to copy your data before deleting.\nPress Cancel if you already saved it and want to continue to deletion.');
+if(wantCopy){
+copyMoneyReport();
+var copied=document.getElementById('moneyReportOut');
+if(copied)copied.scrollIntoView({behavior:'smooth',block:'center'});
+alert('Your data is ready in the COPY box above. Paste it into your notes app, then press CLEAR ALL DATA again when you are ready to delete.');
+return;
+}
+var sure=confirm('Are you SURE you want to delete ALL '+entries.length+' entries?\n\nThis cannot be undone.');
+if(!sure)return;
+var really=confirm('Last chance — permanently clear all Money data?');
+if(!really)return;
+var tx=db.transaction(STORE_NAME,'readwrite');
+tx.objectStore(STORE_NAME).clear();
+tx.oncomplete=function(){
+renderAll();
+var out=document.getElementById('moneyReportOut');
+if(out)out.value='';
+var rin=document.getElementById('moneyRestoreIn');
+if(rin)rin.value='';
+done('All data cleared.',true);
+};
+tx.onerror=function(){done('Error clearing data.',false);};
+});
 };
 initDB().then(function(){renderAll();});
 </script></body>
