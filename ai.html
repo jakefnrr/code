@@ -67,15 +67,15 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 .dots span:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 #send.stop{background:#ff5555;color:#fff}
-#mic{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
-#mic.listening{border-color:#ff5555;background:#331111}
+#bar-set{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
+#bar-set.listening{border-color:#ff5555;background:#331111}
 #model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
 @media(max-width:700px){
   body{flex-direction:column;height:100dvh}
   aside{width:100%;border-right:none;border-bottom:1px solid #292929;padding:10px;gap:8px}
   aside h2{display:flex;justify-content:space-between;align-items:center}
   #new-chat{order:2}
-  #chat-list{order:3;flex-direction:row;overflow-x:auto;max-height:52px;flex:none}
+  #chat-list{order:3;flex-direction:row;overflow-x:auto;max-height:52px;flex:none;-webkit-overflow-scrolling:touch}
   .chat-item{white-space:nowrap;flex:none;max-width:160px}
   header{padding:10px 12px}
   #messages{padding:12px}
@@ -83,7 +83,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   #input{flex:1;min-width:0;padding:11px}
   #send{padding:0 14px;flex:none}
   #set-pop{bottom:70px}
-  #set-btn{position:fixed;bottom:14px;left:14px;width:auto;z-index:40;padding:10px 14px;border-radius:20px;background:#161616e6}
+  #bar-set{position:static;bottom:14px;left:14px;width:auto;z-index:40;padding:10px 14px;border-radius:20px;background:#161616e6}
   main{padding-bottom:56px}
 }
 </style>
@@ -93,15 +93,15 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   <h2><span>JAKE AI</span><a id="all-proj-m" href="index.html" style="color:#00ff88;text-decoration:none;font-size:12px">← ALL PROJECTS</a></h2>
   <button id="new-chat">+ New chat</button>
   <div id="chat-list"></div>
-  <button id="set-btn">⚙️ Settings</button>
+  
 </aside>
 <main>
   <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span><a id="all-proj-d" href="index.html">← ALL PROJECTS</a></header>
   <div id="messages"></div>
   <div id="bar">
-    <button id="mic" title="Voice input">🎤</button>
+    
     <input id="input" placeholder="Ask anything..." autocomplete="off">
-    <button id="send">Send</button>
+    <button id="send">Send</button><button id="bar-set" title="Settings">⚙️</button>
   </div>
   <div id="set-pop" hidden>
     <div id="set-head"><span>Settings</span><button id="set-x" aria-label="Close">✕</button></div>
@@ -114,7 +114,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
       <div id="tab-general" hidden>
         <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:4px 2px 8px">RESPONSE LENGTH</div>
         <div id="len-opts"></div>
-        <div class="toggle-row"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
+        <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:10px 2px 8px">YOUR NAME</div><input id="name-input" placeholder="What should AI call you?" style="width:100%;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;font-size:13px;outline:none"><div class="toggle-row" style="margin-top:10px"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
         <div style="font-size:11px;color:#666;margin-top:8px">Thinking shows live status (model + seconds) instead of frozen "...". True inner thoughts aren't exposed by these models.</div>
       </div>
     </div>
@@ -244,7 +244,7 @@ async function send(){
   box.appendChild(t); box.scrollTop = box.scrollHeight;
   const thinkTimer = setInterval(renderThink, 400);
 
-  const sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : "";
+  let sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : ""; try{ const nm = localStorage.getItem("jake-ai-name"); if(nm) sys = "The user's name is "+nm+". Address them by name sometimes. " + sys; }catch(e){}
   const payload = c.msgs.slice(-20);
   if(sys) payload.unshift({role:"system", content:sys});
 
@@ -349,26 +349,20 @@ document.querySelectorAll(".set-tab").forEach(t=>{
     document.getElementById("tab-general").hidden = t.dataset.tab !== "general";
   };
 });
-document.getElementById("set-btn").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
+document.getElementById("bar-set").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
 document.getElementById("set-x").onclick = (e)=>{ e.stopPropagation(); document.getElementById("set-pop").hidden = true; };
 document.getElementById("set-pop").addEventListener("click", (e)=> e.stopPropagation());
-document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn" && !document.getElementById("set-btn").contains(e.target)) p.hidden=true; });
-// voice input
-document.getElementById("mic").onclick = ()=>{
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const mic = document.getElementById("mic");
-  if(!SR){ alert("Voice not supported in this browser — try Chrome on phone/desktop."); return; }
-  const rec = new SR();
-  rec.lang = "en-US"; rec.interimResults = false;
-  mic.classList.add("listening");
-  rec.onresult = (e)=>{ document.getElementById("input").value = e.results[0][0].transcript; document.getElementById("input").focus(); };
-  rec.onend = ()=> mic.classList.remove("listening");
-  rec.onerror = ()=> mic.classList.remove("listening");
-  rec.start();
-};
+document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn" && !document.getElementById("bar-set").contains(e.target)) p.hidden=true; });
 // mobile: ALL PROJECTS only at top, hide duplicate
 if(window.matchMedia("(max-width:700px)").matches){ document.getElementById("all-proj-d")?.remove(); }
 else { document.getElementById("all-proj-m")?.remove(); }
+let userName = localStorage.getItem("jake-ai-name") || "";
+const ni = document.getElementById("name-input"); if(ni){ ni.value = userName; ni.oninput = ()=>{ userName = ni.value.trim().slice(0,30); try{localStorage.setItem("jake-ai-name", userName);}catch(e){} }; }
+// greeting uses name
+const _renderMsgs = renderMsgs;
+renderMsgs = function(){ _renderMsgs(); const box = document.getElementById("messages"); const c = chats[current]; if(!c || !c.msgs.length){ box.innerHTML = ""; const d = document.createElement("div"); d.className = "msg ai"; d.textContent = userName ? ("👋 Hi "+userName+", ask me anything.") : "👋 Hi, I'm Jake AI. Ask me anything."; box.appendChild(d); } };
+// inject name into system prompt
+const _send = send;
 renderSettings();
 renderAll();
 </script>
