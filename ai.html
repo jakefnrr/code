@@ -30,7 +30,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 .msg:hover .msg-copy{opacity:1}
 .code-block{margin:0;padding:12px;overflow-x:auto;font-family:Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5;white-space:pre}
 .inline-code{background:#000;border:1px solid #333;border-radius:4px;padding:1px 5px;font-family:Menlo,Consolas,monospace;font-size:12.5px;color:#00ff88}
-.rich-text{white-space:pre-wrap;word-break:break-word}
+.thought{background:#0d1a13;border:1px solid #1f4d35;border-radius:8px;margin:6px 0;font-size:12px}.thought summary{cursor:pointer;padding:6px 10px;color:#00ff88}.thought-body{padding:2px 10px 6px;color:#8aa995;font-family:Menlo,Consolas,monospace;font-size:11px;word-break:break-all}.rich-text{white-space:pre-wrap;word-break:break-word}
 .user{background:#00ff88;color:#000;align-self:flex-end;max-width:80%}
 .ai{background:#161616;border:1px solid #2a2a2a;align-self:flex-start;max-width:85%}
 .sys{color:#ff5555;font-size:13px;text-align:center}
@@ -169,7 +169,7 @@ function renderMsgs(){
     const d = document.createElement("div");
     d.className = "msg " + (m.role==="user"?"user":"ai");
     if(m.role==="user"){ d.textContent = m.content; }
-    else { d.innerHTML = ""; renderRich(d, m.content); }
+    else { d.innerHTML = ""; if(typeof showThink!=="undefined" && showThink && m.secs){ renderRich(d, m.content, {receipt:{secs:m.secs, model:m.mdl||"AI"}}); } else { renderRich(d, m.content); } }
     if(m.role==="assistant" && /⏹ Stopped\.?$/ .test(m.content)){
       const rb = document.createElement("button");
       rb.className = "copy-btn"; rb.style.marginTop = "8px"; rb.textContent = "▶ Resume";
@@ -182,7 +182,23 @@ function renderMsgs(){
 }
 function renderAll(){ renderList(); renderMsgs(); }
 function escH(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function renderRich(el, text){
+function thinkReceipt(text, secs, mLabel){
+  const urls = [...String(text).matchAll(/https?:\/\/[^\s)"<>]+/g)].map(m=>m[0]).slice(0,8);
+  const d = document.createElement('details'); d.className = 'thought'; d.open = false;
+  const s = document.createElement('summary'); s.textContent = '🧠 thought ' + secs + 's' + (urls.length ? ' · ' + urls.length + ' links' : '');
+  d.appendChild(s);
+  const th = document.createElement('div'); th.className = 'thought-body';
+  th.textContent = '<think> ' + mLabel + ' reasoned for ' + secs + 's </think>';
+  d.appendChild(th);
+  urls.forEach(u=>{ const e = document.createElement('div'); e.className='thought-body'; e.textContent = '<explored> ' + u; d.appendChild(e); });
+  return d;
+}
+function renderRich(el, text, opts){
+  opts = opts || {};
+  if(typeof showThink !== 'undefined' && !showThink){ text = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); }
+  else { const tm = String(text).match(/<think>[\s\S]*?<\/think>/gi); if(tm){ const rest = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); const det = document.createElement('details'); det.className='thought'; const sum = document.createElement('summary'); sum.textContent='🧠 model thought'; det.appendChild(sum); tm.forEach(b=>{ const bdiv=document.createElement('div'); bdiv.className='thought-body'; bdiv.textContent=b.slice(0,2000); det.appendChild(bdiv); }); el.appendChild(det); text = rest; } }
+  if(opts.receipt){ el.appendChild(thinkReceipt(text, opts.receipt.secs, opts.receipt.model)); }
+
   const parts = String(text).split(/```/);
   parts.forEach((p, i)=>{
     if(i % 2 === 1){
@@ -303,7 +319,7 @@ async function send(){
   clearInterval(thinkTimer);
   document.getElementById("typing")?.remove();
   live.remove();
-  c.msgs.push({role:"assistant", content:reply});
+  c.msgs.push({role:"assistant", content:reply, secs:((Date.now()-t0)/1000).toFixed(1), mdl:mLabel});
   c.updated = Date.now();
   save(); renderMsgs();
   aborter = null; btn.textContent = "Send"; btn.classList.remove("stop");
