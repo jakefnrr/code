@@ -29,14 +29,31 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #input{flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:13px;outline:none;font-size:14px}
 #input:focus{border-color:#00ff88}
 #send{background:#00ff88;border:none;border-radius:10px;padding:0 22px;font-weight:bold;cursor:pointer}
-#model-btn{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 12px;cursor:pointer;font-size:13px;white-space:nowrap}
-#model-btn:hover{border-color:#00ff88}
-#model-pop{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #00ff88;border-radius:14px;padding:10px;width:340px;max-width:92vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6)}
-#model-pop-title{font-size:13px;color:#00ff88;font-weight:bold;margin:4px 6px 8px}
+#set-btn{background:#161616;border:1px solid #333;color:#fff;border-radius:8px;padding:11px;cursor:pointer;font-size:13px;width:100%}
+#set-btn:hover{border-color:#00ff88}
+#set-pop{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;border:1px solid #00ff88;border-radius:14px;padding:0;width:360px;max-width:94vw;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden}
+#set-tabs{display:flex;border-bottom:1px solid #2a2a2a}
+.set-tab{flex:1;background:none;border:none;color:#888;padding:12px;cursor:pointer;font-size:13px;font-weight:bold}
+.set-tab.active{color:#00ff88;border-bottom:2px solid #00ff88}
+#set-body{padding:12px;max-height:50vh;overflow-y:auto}
 .model-opt{display:block;width:100%;text-align:left;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer}
 .model-opt.active{border-color:#00ff88}
 .model-opt b{font-size:13px;display:block}
 .model-opt small{color:#999;font-size:12px}
+.len-opt{display:block;width:100%;text-align:left;background:#181818;border:1px solid #2a2a2a;color:#fff;border-radius:10px;padding:10px;margin-bottom:6px;cursor:pointer}
+.len-opt.active{border-color:#00ff88}
+.len-opt b{font-size:13px;display:block}
+.len-opt small{color:#999;font-size:12px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;background:#181818;border:1px solid #2a2a2a;border-radius:10px;padding:10px;margin-top:6px;font-size:13px}
+.toggle{width:44px;height:24px;border-radius:12px;background:#333;border:none;cursor:pointer;position:relative;flex:none}
+.toggle.on{background:#00ff88}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle.on::after{left:22px}
+.think-line{font-size:12px;color:#00ff88;margin-bottom:6px}
+.dots span{display:inline-block;font-size:20px;animation:bounce .9s infinite}
+.dots span:nth-child(2){animation-delay:.15s}
+.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 #send:disabled{opacity:.5}
 #side-foot{font-size:11px;color:#666;line-height:1.5;border-top:1px solid #222;padding-top:8px}
 #side-foot b{color:#00ff88}
@@ -48,10 +65,9 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   header{padding:10px 12px}
   #messages{padding:12px}
   #bar{padding:10px;gap:6px;flex-wrap:nowrap}
-  #model-btn{padding:0 8px;font-size:12px;flex:none}
   #input{flex:1;min-width:0;padding:11px}
   #send{padding:0 14px;flex:none}
-  #model-pop{bottom:70px}
+  #set-pop{bottom:70px}
 }
 </style>
 </head>
@@ -60,19 +76,29 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   <h2>JAKE AI</h2>
   <button id="new-chat">+ New chat</button>
   <div id="chat-list"></div>
-  <div id="side-foot">🧠 <b id="side-model">Balanced</b><br><span id="side-desc"></span><br>Chats save in this browser.</div>
+  <button id="set-btn">⚙️ Settings · <span id="side-model">Balanced</span></button>
 </aside>
 <main>
   <header><strong id="title">New chat</strong><a href="index.html">← ALL PROJECTS</a></header>
   <div id="messages"></div>
   <div id="bar">
-    <button id="model-btn" title="Change model">🤖 <span id="model-name">Balanced</span> ▾</button>
     <input id="input" placeholder="Ask anything..." autocomplete="off">
     <button id="send">Send</button>
   </div>
-  <div id="model-pop" hidden>
-    <div id="model-pop-title">Choose model</div>
-    <div id="model-opts"></div>
+  <div id="set-pop" hidden>
+    <div id="set-tabs">
+      <button class="set-tab active" data-tab="model">🤖 Model</button>
+      <button class="set-tab" data-tab="general">⚙️ General</button>
+    </div>
+    <div id="set-body">
+      <div id="tab-model"><div id="model-opts"></div></div>
+      <div id="tab-general" hidden>
+        <div style="font-size:12px;color:#00ff88;font-weight:bold;margin:4px 2px 8px">RESPONSE LENGTH</div>
+        <div id="len-opts"></div>
+        <div class="toggle-row"><span>👁️ Show AI thinking</span><button id="think-toggle" class="toggle" aria-label="toggle thinking"></button></div>
+        <div style="font-size:11px;color:#666;margin-top:8px">Thinking shows live status (model + seconds) instead of frozen "...". True inner thoughts aren't exposed by these models.</div>
+      </div>
+    </div>
   </div>
 </main>
 <script>
@@ -150,23 +176,38 @@ async function send(){
   inp.value = "";
   btn.disabled = true;
   save(); renderMsgs();
-  // typing indicator
+  // animated thinking indicator
   const box = document.getElementById("messages");
   const t = document.createElement("div");
-  t.className = "msg ai"; t.id="typing"; t.textContent = "…";
+  t.className = "msg ai"; t.id="typing";
+  const mLabel = (MODELS.find(x=>x.id===curModel)||{}).label || "AI";
+  const t0 = Date.now();
+  const renderThink = ()=>{
+    const s = ((Date.now()-t0)/1000).toFixed(1);
+    if(showThink){ t.innerHTML = ""; const l=document.createElement("div"); l.className="think-line"; l.textContent = "🧠 "+mLabel+" thinking… "+s+"s"; const d=document.createElement("div"); d.className="dots"; d.innerHTML="<span>.</span><span>.</span><span>.</span>"; t.appendChild(l); t.appendChild(d); }
+    else { t.innerHTML = '<div class="dots"><span>.</span><span>.</span><span>.</span></div>'; }
+  };
+  renderThink();
   box.appendChild(t); box.scrollTop = box.scrollHeight;
+  const thinkTimer = setInterval(renderThink, 400);
+
+  // length -> system instruction (no backend change needed)
+  const sys = LENGTHS[curLen] ? LENGTHS[curLen].sys : "";
+  const payload = c.msgs.slice(-20);
+  if(sys) payload.unshift({role:"system", content:sys});
 
   let reply;
   try {
     const r = await fetch("/api/chat", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ messages: c.msgs, model: curModel })
+      body: JSON.stringify({ messages: payload, model: curModel })
     });
     const data = await r.json();
     reply = data.reply || ("Error: " + (data.error||r.status));
   } catch(e) {
-    reply = "Offline demo reply: you said \"" + text + "\". Connect Cloudflare AI (see below) for real answers.";
+    reply = "Offline demo reply: you said \"" + text + "\".";
   }
+  clearInterval(thinkTimer);
   document.getElementById("typing")?.remove();
   c.msgs.push({role:"assistant", content:reply});
   c.updated = Date.now();
@@ -177,27 +218,52 @@ async function send(){
 document.getElementById("new-chat").onclick = newChat;
 document.getElementById("send").onclick = send;
 document.getElementById("input").addEventListener("keydown", e=>{ if(e.key==="Enter") send(); });
-function renderModelBtn(){
+const LENGTHS = {
+  short: {label:"✂️ Short", desc:"1-3 sentences, no fluff", sys:"Answer in 1-3 short sentences. Be extremely concise. No extra detail."},
+  normal: {label:"📝 Normal", desc:"Balanced default answers", sys:"Answer normally with balanced detail."},
+  long: {label:"📚 Long", desc:"Detailed, thorough responses", sys:"Give long, detailed, thorough answers with examples where helpful."},
+};
+let curLen = localStorage.getItem("jake-ai-len") || "normal";
+let showThink = localStorage.getItem("jake-ai-think") !== "off";
+function renderSettings(){
   const m = MODELS.find(x=>x.id===curModel) || MODELS[2];
-  document.getElementById("model-name").textContent = m.label;
   const sm = document.getElementById("side-model"); if(sm) sm.textContent = m.label;
-  const sd = document.getElementById("side-desc"); if(sd) sd.textContent = m.desc;
   const box = document.getElementById("model-opts");
   box.innerHTML = "";
   MODELS.forEach(m2=>{
     const b = document.createElement("button");
     b.className = "model-opt" + (m2.id===curModel?" active":"");
-    b.innerHTML = "";
     const t = document.createElement("b"); t.textContent = m2.label;
     const s = document.createElement("small"); s.textContent = m2.desc;
     b.appendChild(t); b.appendChild(s);
-    b.onclick = ()=>{ curModel = m2.id; try{localStorage.setItem(MLS,curModel);}catch(e){} renderModelBtn(); document.getElementById("model-pop").hidden = true; };
+    b.onclick = ()=>{ curModel = m2.id; try{localStorage.setItem(MLS,curModel);}catch(e){} renderSettings(); };
     box.appendChild(b);
   });
+  const lb = document.getElementById("len-opts");
+  lb.innerHTML = "";
+  Object.keys(LENGTHS).forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "len-opt" + (k===curLen?" active":"");
+    const t = document.createElement("b"); t.textContent = LENGTHS[k].label;
+    const s = document.createElement("small"); s.textContent = LENGTHS[k].desc;
+    b.appendChild(t); b.appendChild(s);
+    b.onclick = ()=>{ curLen = k; try{localStorage.setItem("jake-ai-len",k);}catch(e){} renderSettings(); };
+    lb.appendChild(b);
+  });
+  document.getElementById("think-toggle").classList.toggle("on", showThink);
 }
-document.getElementById("model-btn").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("model-pop"); p.hidden=!p.hidden; };
-document.addEventListener("click", (e)=>{ const p=document.getElementById("model-pop"); if(!p.hidden && !p.contains(e.target)) p.hidden=true; });
-renderModelBtn();
+document.getElementById("think-toggle").onclick = ()=>{ showThink = !showThink; try{localStorage.setItem("jake-ai-think", showThink?"on":"off");}catch(e){} renderSettings(); };
+document.querySelectorAll(".set-tab").forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll(".set-tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("tab-model").hidden = t.dataset.tab !== "model";
+    document.getElementById("tab-general").hidden = t.dataset.tab !== "general";
+  };
+});
+document.getElementById("set-btn").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
+document.addEventListener("click", (e)=>{ const p=document.getElementById("set-pop"); if(!p.hidden && !p.contains(e.target) && e.target.id!=="set-btn") p.hidden=true; });
+renderSettings();
 renderAll();
 </script>
 </body>
