@@ -17,7 +17,7 @@ aside h2{color:#00ff88;font-size:16px}
 .chat-item span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat-item button{background:none;border:none;color:#888;cursor:pointer;font-size:14px}
 .chat-item button:hover{color:#ff5555}
-main{flex:1;display:flex;flex-direction:column}
+main{flex:1;display:flex;flex-direction:column;min-height:100vh} #bar{position:sticky;bottom:0;background:#080808}
 header{padding:16px 22px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center}
 header a{color:#00ff88;text-decoration:none;font-size:13px}
 #messages{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:800px;width:100%;margin:auto}
@@ -69,7 +69,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #send.stop{background:#ff5555;color:#fff}
 #bar-set{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
 #bar-set.listening{border-color:#ff5555;background:#331111}
-#model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
+#all-proj-m,#all-proj-d{color:#00ff88;border:1px solid #00ff88;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold}#model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
 @media(max-width:700px){
   body{flex-direction:column;height:100dvh}
   aside{width:100%;border-right:none;border-bottom:1px solid #292929;padding:10px;gap:8px}
@@ -90,18 +90,18 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 </head>
 <body>
 <aside>
-  <h2><span>JAKE AI</span><a id="all-proj-m" href="index.html" style="color:#00ff88;text-decoration:none;font-size:12px">← ALL PROJECTS</a></h2>
+  <h2><span>JAKE AI</span><a id="all-proj-m" href="index.html" style="color:#00ff88;text-decoration:none;font-size:12px">ALL PROJECTS</a></h2>
   <button id="new-chat">+ New chat</button>
   <div id="chat-list"></div>
   
 </aside>
 <main>
-  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span><a id="all-proj-d" href="index.html">← ALL PROJECTS</a></header>
+  <header><span><strong id="title">New chat</strong><span id="model-tag">Balanced</span></span><a id="all-proj-d" href="index.html">ALL PROJECTS</a></header>
   <div id="messages"></div>
   <div id="bar">
     
-    <input id="input" placeholder="Ask anything..." autocomplete="off">
-    <button id="send">Send</button><button id="bar-set" title="Settings">⚙️</button>
+    <button id="bar-set" title="Settings">⚙️</button><input id="input" placeholder="Ask anything..." autocomplete="off">
+    <button id="send">Send</button>
   </div>
   <div id="set-pop" hidden>
     <div id="set-head"><span>Settings</span><button id="set-x" aria-label="Close">✕</button></div>
