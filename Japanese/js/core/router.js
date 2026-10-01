@@ -7,7 +7,7 @@ window.go=v=>{cur=v;
   render();window.scrollTo({top:0});};
 document.addEventListener('click',e=>{
   const sp=e.target.closest&&e.target.closest('.speak');
-  if(sp){sp.focus();speakJP(sp.dataset.say);return;}
+  if(sp){speakJP(sp.dataset.say,sp);return;}
   const nb=e.target.closest&&e.target.closest('#nav button');
   if(nb){window.go(nb.dataset.v);return;} // <-- was dataset.view (always undefined = stuck page)
 });
