@@ -196,6 +196,44 @@ class UIManager {
 
         // Update free massage buttons
         this.updateFreeMassageButtons();
+        await this.renderStats();
+    }
+
+    async renderStats() {
+        const points = await pointsManager.getPoints();
+        const pv = document.getElementById('points-value');
+        if (pv) pv.textContent = Number.isInteger(points) ? points : points.toFixed(1);
+        const ss = document.getElementById('sync-status');
+        if (ss && window.storage) ss.textContent = storage.syncStatus ? storage.syncStatus() : '';
+
+        await historyManager.refreshHistory().catch(() => {});
+        await totalsManager.refreshTotals().catch(() => {});
+        const t = totalsManager.getTotals();
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('total-time', totalsManager.formatTimeMinutes(t.totalTime || 0));
+        set('total-money', totalsManager.formatMoney(t.moneySpent || 0));
+        set('total-paid', totalsManager.formatTimeMinutes(t.paidTime || 0));
+        set('total-free', totalsManager.formatTimeMinutes(t.freeTime || 0));
+
+        const list = document.getElementById('history-list');
+        if (!list) return;
+        const paid = historyManager.getPaidHistory().map(e => ({ ...e, type: 'paid' }));
+        const free = historyManager.getFreeHistory().map(e => ({ ...e, type: 'free' }));
+        const all = [...paid, ...free].sort((a, b) => b.timestamp - a.timestamp);
+        set('total-count', String(all.length));
+        if (!all.length) {
+            list.innerHTML = '<div class="history-empty">No massages yet — your full history will show up here.</div>';
+            return;
+        }
+        list.innerHTML = all.map(e => {
+            const date = historyManager.formatDate(e.date || new Date(e.timestamp).toISOString());
+            const dur = historyManager.formatDuration(e.duration);
+            const right = e.type === 'paid'
+                ? `<span class="history-amount">${historyManager.formatPrice(e.price)}</span> <span class="history-points">${historyManager.formatPoints(e.points)}</span>`
+                : `<span class="history-amount">FREE</span> <span class="history-points">-${e.pointsUsed || 0} pts</span>`;
+            const tag = e.type === 'paid' ? 'PAID' : 'FREE';
+            return `<div class="history-item"><div class="history-date">${date} · ${tag}</div><div class="history-details"><span class="history-duration">${dur}</span>${right}</div></div>`;
+        }).join('');
     }
 
     async returnToMain() {

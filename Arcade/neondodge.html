@@ -8,7 +8,8 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#0b0e1a;color:#fff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
 #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
-#box{position:relative;width:100%;max-width:480px;height:100%;max-height:900px;overflow:hidden;background:#111}
+#box{position:relative;width:100%;max-width:480px;height:100%;max-height:900px;overflow:hidden;background:#111;display:flex;flex-direction:column}
+#stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#111}
 canvas{display:block;width:100%;height:100%}
 .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:12px;z-index:5;pointer-events:none}
 .pill{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 14px;font-weight:800}
@@ -19,12 +20,12 @@ button.big{background:linear-gradient(180deg,#00e676,#00b248);border:none;color:
 button.big:active{transform:translateY(4px);box-shadow:0 4px 0 #007a33}
 button.ghost{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:999px;padding:10px 28px;cursor:pointer}
 .hint{opacity:.6;font-size:13px;line-height:1.7}
-#dpad{position:absolute;left:0;right:0;bottom:0;height:25%;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:0 16px 20px;pointer-events:none}
+#dpad{position:relative;flex:0 0 110px;height:110px;z-index:6;display:flex;flex-direction:row;user-select:none;-webkit-user-select:none;touch-action:none;background:#151515;}
 #dpad.off{display:none}
 #dpad.hide-play{display:none}
-.dside{display:flex;gap:12px;pointer-events:auto}
-.dcol{display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:auto}
-.dbtn{width:62px;height:62px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.5);color:#fff;font-size:24px;font-weight:900;touch-action:none}
+#dpad-divider{flex:0 0 2px;background:rgba(255,255,255,.55)}
+#dpad-left,#dpad-right{flex:1;display:flex;min-height:0;overflow:hidden}
+.dbtn{flex:1;background:rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.35);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;border-radius:0}
 .dbtn.on{background:rgba(0,229,255,.5)}
 .setrow{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 8px 7px 14px;font-weight:700;font-size:14px}
 .setrow button{background:#333;color:#fff;border:none;border-radius:999px;padding:6px 16px;font-weight:800;cursor:pointer}
@@ -34,16 +35,16 @@ button.ghost{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;bo
 </head>
 <body>
 <div id="wrap"><div id="box">
+<div id="stage">
 <canvas id="c"></canvas>
 <div class="hud"><div class="pill">⭐ <span id="score">0</span></div><div class="pill">🏆 <span id="best">0</span></div></div>
 <div class="screen" id="menu">
 <button class="hub" onclick="location.href='index.html'">🏠 Hub</button>
 <h1>NEON<br>DODGE</h1>
-<div class="hint">Move with mouse, WASD, or arrow keys.<br>Dodge red, grab gold. Survive!</div>
+<div class="hint">◀ ▶ to move left & right only.<br>Dodge red, grab gold. Survive!</div>
 <div class="pill">🏆 Best: <span id="m-best">0</span></div>
 <button class="big" id="play">▶ PLAY</button>
-<div class="setrow">🎮 D-Pad <button id="dpadToggle">ON</button></div>
-<div class="hint">Desktop: mouse, WASD, or arrows<br>Mobile: drag, or D-Pad</div>
+<div class="hint">Desktop: ◀ ▶ or A / D<br>Mobile: use the ◀ ▶ pad below</div>
 </div>
 <div class="screen hidden" id="over">
 <button class="hub" onclick="location.href='index.html'">🏠 Hub</button>
@@ -53,15 +54,16 @@ button.ghost{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;bo
 <button class="big" id="retry">↻ AGAIN</button>
 <button class="ghost" id="to-menu">MENU</button>
 </div>
-<div id="dpad" class="hide-play"><div class="dside"><button class="dbtn" data-k="arrowleft">◀</button><button class="dbtn" data-k="arrowright">▶</button></div><div class="dcol"><button class="dbtn" data-k="arrowup">▲</button><button class="dbtn" data-k="arrowdown">▼</button></div></div>
+</div>
+<div id="dpad" class="hide-play"><div id="dpad-left"><button class="dbtn" data-k="arrowleft">◀</button></div><div id="dpad-divider"></div><div id="dpad-right"><button class="dbtn" data-k="arrowright">▶</button></div></div>
 </div></div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d'),box=document.getElementById('box');
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),box=document.getElementById('stage');
 let W,H;function rs(){const r=box.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}addEventListener('resize',rs);rs();
 let best=+(localStorage.getItem('neonBest')||0);
 document.getElementById('best').textContent=best;document.getElementById('m-best').textContent=best;
 let run=false,px,py,tx,ty,enemies,stars,parts,score,speed,last,spawnT,inv;
-function reset(){px=tx=W/2;py=ty=H-160;enemies=[];stars=[];parts=[];score=0;speed=3;spawnT=0;inv=90;}
+function reset(){px=tx=W/2;py=ty=H-80;enemies=[];stars=[];parts=[];score=0;speed=3;spawnT=0;inv=90;}
 function start(){reset();run=true;last=performance.now();updDpad();
 document.getElementById('menu').classList.add('hidden');document.getElementById('over').classList.add('hidden');}
 document.getElementById('play').onclick=start;document.getElementById('retry').onclick=start;
@@ -70,31 +72,24 @@ function end(){run=false;let nb=false;if(Math.floor(score)>best){best=Math.floor
 document.getElementById('f-score').textContent=Math.floor(score);document.getElementById('best').textContent=best;document.getElementById('m-best').textContent=best;
 document.getElementById('nb').style.display=nb?'block':'none';document.getElementById('over').classList.remove('hidden');dpadEl.classList.add('hide-play');
 for(let i=0;i<40;i++)parts.push({x:px,y:py,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,l:60,c:'#ff5252'});}
-// input: pointer + keys
+// input: keys + dpad only (left/right, no mouse, no up/down)
 const keys={};
-let dpadOn=localStorage.getItem('neonDpad')!=='off';
-const dpadEl=document.getElementById('dpad'),dpadBtn=document.getElementById('dpadToggle');
-function updDpad(){dpadBtn.textContent=dpadOn?'ON':'OFF';dpadBtn.classList.toggle('on',dpadOn);dpadEl.classList.toggle('off',!dpadOn);dpadEl.classList.toggle('hide-play',!run);}
-dpadBtn.onclick=()=>{dpadOn=!dpadOn;localStorage.setItem('neonDpad',dpadOn?'on':'off');updDpad();};
+let dpadOn=true;
+const dpadEl=document.getElementById('dpad');
+function updDpad(){dpadEl.classList.remove('hide-play');dpadEl.classList.toggle('off',!dpadOn);}
 document.querySelectorAll('.dbtn').forEach(b=>{const k=b.dataset.k;
 const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('on');};
 const off=e=>{e.preventDefault();keys[k]=false;b.classList.remove('on');};
 b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
-addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-let drag=false;
-function ptr(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return[(p.clientX-r.left),(p.clientY-r.top)];}
-cv.addEventListener('pointerdown',e=>{drag=true;[tx,ty]=ptr(e);});
-addEventListener('pointermove',e=>{if(drag)[tx,ty]=ptr(e);});
-addEventListener('pointerup',()=>drag=false);
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys['arrowleft']=true;if(k==='arrowright'||k==='d')keys['arrowright']=true;});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys['arrowleft']=false;if(k==='arrowright'||k==='d')keys['arrowright']=false;});
 function loop(now){requestAnimationFrame(loop);
 if(!run){drawIdle();return;}
 let dt=Math.min(33,now-last)/16.67;last=now;
 const ks=9*dt;
-if(keys['arrowleft']||keys['a'])tx-=ks;if(keys['arrowright']||keys['d'])tx+=ks;
-if(keys['arrowup']||keys['w'])ty-=ks;if(keys['arrowdown']||keys['s'])ty+=ks;
-tx=Math.max(20,Math.min(W-20,tx));ty=Math.max(60,Math.min(H-40,ty));
-px+=(tx-px)*0.25*dt;py+=(ty-py)*0.25*dt;
+if(keys['arrowleft'])tx-=ks;if(keys['arrowright'])tx+=ks;
+tx=Math.max(20,Math.min(W-20,tx));ty=H-80;
+px+=(tx-px)*0.25*dt;py=ty;
 score+=dt*1.2;speed=Math.min(10,3+score/600);
 if(inv>0)inv-=dt;
 spawnT-=dt;
@@ -116,10 +111,23 @@ function draw(){drawIdle();
 ctx.fillStyle='#ffd54a';stars.forEach(s=>{ctx.save();ctx.translate(s.x,s.y);ctx.rotate(Date.now()/400);ctx.fillRect(-7,-7,14,14);ctx.fillStyle='#fff3';ctx.fillRect(-4,-4,8,8);ctx.fillStyle='#ffd54a';ctx.restore();ctx.beginPath();ctx.arc(s.x,s.y,9,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('★',s.x,s.y+3);ctx.fillStyle='#ffd54a';});
 // enemies
 enemies.forEach(e=>{ctx.fillStyle='#ff1744';ctx.shadowColor='#ff1744';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#7f0000';ctx.beginPath();ctx.arc(e.x,e.y,e.r*0.5,0,7);ctx.fill();});
-// player
+// player: small star-fighter with red lights
 if(inv>0&&Math.floor(Date.now()/120)%2===0)ctx.globalAlpha=0.35;
-ctx.fillStyle='#00e5ff';ctx.shadowColor='#00e5ff';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(px,py,15,0,7);ctx.fill();ctx.shadowBlur=0;ctx.globalAlpha=1;
-ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,py,6,0,7);ctx.fill();
+ctx.save();ctx.translate(px,py);
+ctx.shadowColor='#00e5ff';ctx.shadowBlur=16;ctx.fillStyle='#9fb3c8';
+// wings
+ctx.beginPath();ctx.moveTo(0,-18);ctx.lineTo(-16,10);ctx.lineTo(-8,10);ctx.lineTo(0,-6);ctx.lineTo(8,10);ctx.lineTo(16,10);ctx.lineTo(0,-18);ctx.fill();ctx.shadowBlur=0;
+// body
+ctx.fillStyle='#dfe9f5';ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(-6,8);ctx.lineTo(6,8);ctx.closePath();ctx.fill();
+ctx.fillStyle='#334155';ctx.fillRect(-2,-8,4,12);
+// cockpit red light
+ctx.fillStyle='#ff1744';ctx.shadowColor='#ff1744';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(0,-4,3,0,7);ctx.fill();ctx.shadowBlur=0;
+// wingtip red lights (blink)
+if(Math.floor(Date.now()/200)%2===0){ctx.fillStyle='#ff1744';ctx.shadowColor='#ff1744';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(-14,10,2.5,0,7);ctx.arc(14,10,2.5,0,7);ctx.fill();ctx.shadowBlur=0;}
+else{ctx.fillStyle='#7f0000';ctx.beginPath();ctx.arc(-14,10,2.5,0,7);ctx.arc(14,10,2.5,0,7);ctx.fill();}
+// engine flame
+ctx.fillStyle='#ff9800';ctx.beginPath();ctx.moveTo(-4,8);ctx.lineTo(0,14+Math.random()*5);ctx.lineTo(4,8);ctx.closePath();ctx.fill();
+ctx.restore();ctx.globalAlpha=1;
 parts.forEach(p=>{ctx.globalAlpha=Math.max(0,p.l/60);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,4,4);ctx.globalAlpha=1;});}
 updDpad();
 requestAnimationFrame(loop);

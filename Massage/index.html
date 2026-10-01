@@ -11,6 +11,21 @@
     <div class="app-container">
         <!-- Main Screen -->
         <div id="main-screen" class="screen active">
+            <div class="points-section">
+                <div class="points-label">Your Points</div>
+                <div class="points-value" id="points-value">0</div>
+                <div class="sync-status" id="sync-status"></div>
+            </div>
+
+            <div class="section-title">STATS</div>
+            <div class="totals-section">
+                <div class="total-item"><span class="total-label">Total massage time</span><span class="total-value" id="total-time">0m</span></div>
+                <div class="total-item"><span class="total-label">Money spent</span><span class="total-value" id="total-money">฿0.00</span></div>
+                <div class="total-item"><span class="total-label">Paid time</span><span class="total-value" id="total-paid">0m</span></div>
+                <div class="total-item"><span class="total-label">Free time</span><span class="total-value" id="total-free">0m</span></div>
+                <div class="total-item"><span class="total-label">Sessions</span><span class="total-value" id="total-count">0</span></div>
+            </div>
+
             <div class="section-title">BEGIN SESSION</div>
 
             <div class="duration-buttons" id="duration-buttons">
@@ -130,9 +145,15 @@
                 <div class="success-message" id="success-message">Payment Confirmed!</div>
                 <button class="return-btn" id="return-btn">RETURN TO MAIN</button>
             </div>
-        </div>
-    </div>
+            </div>
 
+            <div class="section-title">MASSAGE HISTORY</div>
+            <div class="history-section">
+                <div class="history-list" id="history-list"></div>
+            </div>
+        </div>
+
+    <script src="../shared/cloud-store.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/sessions.js"></script>
     <script src="js/points.js"></script>
