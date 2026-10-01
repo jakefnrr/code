@@ -444,6 +444,9 @@ function dedupReply(s){
     else if(!gotStream){ reply = "Offline demo reply: you said \"" + text + "\"."; }
   }
   reply = dedupReply(reply);
+  if(!/<think>/i.test(reply)){
+    reply = "<think>Answered with " + mLabel + " in " + ((Date.now()-t0)/1000).toFixed(1) + "s.</think>\n\n" + reply;
+  }
   clearInterval(thinkTimer);
   document.getElementById("typing")?.remove();
   live.remove();
