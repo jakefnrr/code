@@ -252,7 +252,7 @@ function renderMsgs(){
     const d = document.createElement("div");
     d.className = "msg " + (m.role==="user"?"user":"ai");
     if(m.role==="user"){ d.textContent = m.content; }
-    else { d.innerHTML = ""; const al = document.createElement("div"); al.className = "answer-label"; al.textContent = "ANSWER:"; d.appendChild(al); if(typeof showThink!=="undefined" && showThink && m.secs){ renderRich(d, m.content, {receipt:{secs:m.secs, model:m.mdl||"AI"}}); } else { renderRich(d, m.content); } }
+    else { d.innerHTML = ""; const al = document.createElement("div"); al.className = "answer-label"; al.textContent = "ANSWER:"; d.appendChild(al); renderRich(d, m.content, (m.secs ? {receipt:{secs:m.secs, model:m.mdl||"AI"}} : null)); }
     if(m.role==="assistant" && /⏹ Stopped\.?$/ .test(m.content)){
       const rb = document.createElement("button");
       rb.className = "copy-btn"; rb.style.marginTop = "8px"; rb.textContent = "▶ Resume";
@@ -278,9 +278,8 @@ function thinkReceipt(text, secs, mLabel){
 }
 function renderRich(el, text, opts){
   opts = opts || {};
-  // thinking always stays in green boxes forever — never strip
-  { const tm = String(text).match(/<think>[\s\S]*?<\/think>/gi); if(tm){ const rest = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); const det = document.createElement('details'); det.className='thought'; det.open = true; const sum = document.createElement('summary'); sum.textContent='🧠 model thought'; det.appendChild(sum); tm.forEach(b=>{ const bdiv=document.createElement('div'); bdiv.className='thought-body'; bdiv.textContent=b.slice(0,2000); det.appendChild(bdiv); }); el.appendChild(det); text = rest; } const unclosed = String(text).match(/<think>[\s\S]*$/); if(unclosed && !/<\/think>/i.test(text)){ const det2 = document.createElement('details'); det2.className='thought'; det2.open = true; const sum2 = document.createElement('summary'); sum2.textContent='🧠 thinking…'; det2.appendChild(sum2); const bdiv2=document.createElement('div'); bdiv2.className='thought-body'; bdiv2.textContent=unclosed[0].slice(0,2000); det2.appendChild(bdiv2); el.appendChild(det2); text = String(text).replace(/<think>[\s\S]*$/, ''); } }
-  if(opts.receipt){ el.appendChild(thinkReceipt(text, opts.receipt.secs, opts.receipt.model)); }
+  // thinking always stays in ONE green box forever — never strip, no duplicate receipt
+  { const tm = String(text).match(/<think>[\s\S]*?<\/think>/gi); if(tm){ const rest = String(text).replace(/<think>[\s\S]*?<\/think>/gi, ''); const det = document.createElement('details'); det.className='thought'; det.open = false; const sum = document.createElement('summary'); sum.textContent='🧠 thought' + (opts.receipt ? ' ' + opts.receipt.secs + 's' : ''); det.appendChild(sum); tm.forEach(b=>{ const bdiv=document.createElement('div'); bdiv.className='thought-body'; bdiv.textContent=b.slice(0,2000); det.appendChild(bdiv); }); el.appendChild(det); text = rest; } const unclosed = String(text).match(/<think>[\s\S]*$/); if(unclosed && !/<\/think>/i.test(text)){ const det2 = document.createElement('details'); det2.className='thought'; det2.open = true; const sum2 = document.createElement('summary'); sum2.textContent='🧠 thinking…'; det2.appendChild(sum2); const bdiv2=document.createElement('div'); bdiv2.className='thought-body'; bdiv2.textContent=unclosed[0].slice(0,2000); det2.appendChild(bdiv2); el.appendChild(det2); text = String(text).replace(/<think>[\s\S]*$/, ''); } }
 
   const parts = String(text).split(/```/);
   parts.forEach((p, i)=>{
