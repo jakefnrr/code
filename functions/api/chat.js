@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
       }
       const out = await env.AI.run(model, { messages: clean, max_tokens: 4096 });
       const reply =
-        out?.response ?? out?.result?.response ?? (typeof out === "string" ? out : JSON.stringify(out));
+        out?.response ?? out?.result?.response ?? out?.result?.text ?? out?.text ?? out?.output_text ?? out?.choices?.[0]?.message?.content ?? (typeof out === "string" ? out : JSON.stringify(out));
       return json({ reply, model });
     }
 
