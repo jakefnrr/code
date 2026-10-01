@@ -380,23 +380,7 @@ async function send(){
   live.className = "msg ai"; live.hidden = true;
   box.appendChild(live);
 function dedupReply(s){
-  // collapse exact repeated lines/paragraphs (model loop guard)
-  const lines = String(s).split("\n");
-  const out = [];
-  let prev = "";
-  let count = 0;
-  for(const ln of lines){
-    if(ln.trim() === prev.trim() && ln.trim() !== ""){
-      count++;
-      if(count >= 2) continue; // skip 3rd+ repeats
-    } else { count = 0; }
-    prev = ln;
-    out.push(ln);
-  }
-  let t = out.join("\n");
-  // hard cap runaway loops
-  if(t.length > 4000) t = t.slice(0, 4000) + "\n\n...(trimmed runaway reply)";
-  return t;
+  return String(s);
 }
   let reply = "", gotStream = false, stopped = false;
   const flush = (done)=>{
@@ -428,14 +412,7 @@ function dedupReply(s){
           try{
             const j = JSON.parse(d);
             const tok = j.response || j.result?.response || "";
-            if(tok){ reply += tok; gotStream = true;
-              // live loop breaker: stop runaway repeats mid-stream
-              if(reply.length > 3500){
-                const tail = reply.slice(-1200);
-                const head = reply.slice(-2400, -1200);
-                if(tail === head){ reply += "\n\n...(stopped runaway loop)"; try{ reader.cancel(); }catch(e){} break; }
-              }
-              flush(false); }
+            if(tok){ reply += tok; gotStream = true; flush(false); }
           }catch(e){}
         }
       }
