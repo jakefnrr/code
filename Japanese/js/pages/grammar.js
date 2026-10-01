@@ -6,7 +6,7 @@ window.Pages.grammar=function(view){
   view.innerHTML=`<div class="card page">
    <h2>📚 Grammar — all ${GRAMMAR.length} lessons, N5 → N1</h2>
    <p class="mut">Pick any lesson, any day. Press <b>☆ Mark done</b> and it moves to your <b>✅ Done</b> tab. Progress saves automatically${window.KV_CONFIG&&KV_CONFIG.WORKER_URL?' and syncs to Cloudflare KV':''}.</p>
-   ${window.subTabs([{id:'all',label:`📖 All (${GRAMMAR.length})`},{id:'done',label:`✅ Done (${doneN})`}],gramTab)}
+   ${window.subTabs([{id:'all',label:`📖 All (${GRAMMAR.length-doneN})`},{id:'done',label:`✅ Done (${doneN})`}],gramTab)}
    <div class="row"><input id="gf" placeholder="Search grammar: e.g. たい, passive, conditional…" value="${gramFilter.replace(/"/g,'&quot;')}"><select id="lv"><option value="">All levels</option>${window.levelOptions(gramLevel)}</select></div>
   </div><div id="gl"></div>`;
   view.querySelectorAll('[data-sub]').forEach(c=>c.onclick=()=>{gramTab=c.dataset.sub;window.Pages.grammar(view);});
