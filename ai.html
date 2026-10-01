@@ -187,7 +187,7 @@ try{
   Object.values(chats).forEach(c=>{
     if(c && c.msgs && c.msgs.length && c.msgs[0] && c.msgs[0].role === "user"){
       const first = String(c.msgs[0].content || "");
-      if(c.title === first.slice(0, 32) || c.title === "New chat") c.title = makeTitle(first);
+  // auto re-title disabled — stays New chat until user renames
     }
   });
 }catch(e){}
@@ -349,7 +349,7 @@ async function send(){
   if(!current) newChat();
   const c = chats[current];
   c.msgs.push({role:"user", content:text});
-  if(c.msgs.length===1) c.title = makeTitle(text);
+  // no auto-naming — stays New chat until user renames
   c.updated = Date.now();
   inp.value = "";
   btn.textContent = "■ Stop"; btn.classList.add("stop");
