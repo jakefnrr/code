@@ -1,9 +1,11 @@
 // Voice that works on EVERY device (phone, iPad, desktop, any browser):
-// Primary = Google Translate Japanese voice streamed as audio (same voice as
-// translate.google.com, needs internet). Fallback = built-in speechSynthesis
-// (works offline) preferring the Google Japanese voice. Tap again to stop.
+// - iPhone/iPad: built-in Japanese voice FIRST (iOS often blocks the Google
+//   audio stream, but its built-in voice always works inside a tap).
+// - Everywhere else: Google Translate voice stream first, built-in fallback.
+// Text sent is kana-correct (see helpers sayText), so readings are right.
 (function(){
-let audios=[], speaking=false, curBtn=null, seq=0;
+let audios=[], speaking=false, curBtn=null, seq=0, failedOnce=false;
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&(navigator.maxTouchPoints||0)>1);
 
 function resetBtn(){document.querySelectorAll('.speak.playing').forEach(b=>b.classList.remove('playing'));curBtn=null;}
 function stopAll(){
@@ -31,16 +33,23 @@ function playRemote(text,mySeq,btn){
     const a=new Audio(url);
     audios.push(a);
     a.onended=()=>{i++;next();};
-    a.onerror=()=>{playLocal(text,mySeq,btn);}; // offline/blocked → built-in voice
-    a.play().catch(()=>playLocal(text,mySeq,btn));
+    a.onerror=()=>{playLocal(text,mySeq,btn,true);}; // offline/blocked → built-in voice
+    const pr=a.play();
+    if(pr&&pr.catch)pr.catch(()=>playLocal(text,mySeq,btn,true));
+    // Safety: if audio starts but stays silent/stalls, fall back after 6s
+    setTimeout(()=>{if(mySeq===seq&&speaking&&audios.indexOf(a)>=0&&a.currentTime===0&&!a.ended){playLocal(text,mySeq,btn,true);}},6000);
   };
   next();
 }
-function playLocal(text,mySeq,btn){
+function heardNothing(){
+  if(failedOnce)return;failedOnce=true;
+  alert('🔇 No sound played.\n\nOn iPhone check:\n1. Volume buttons (turn it up)\n2. Silent switch on the side (flip it OFF — orange = silent)\n3. Connected Bluetooth/airpods\n\nThen tap 🔊 again.');
+}
+function playLocal(text,mySeq,btn,fromRemoteFail){
   if(mySeq!==seq)return;
   audios.forEach(a=>{try{a.pause();}catch(e){}});
   audios=[];
-  if(!('speechSynthesis' in window)){speaking=false;resetBtn();return;}
+  if(!('speechSynthesis' in window)){speaking=false;resetBtn();if(fromRemoteFail)heardNothing();return;}
   try{
     let vs=[];try{vs=speechSynthesis.getVoices()||[];}catch(e){}
     const v=vs.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ja')&&/google/i.test(v.name))
@@ -51,11 +60,17 @@ function playLocal(text,mySeq,btn){
     if(v){u.voice=v;u.lang=v.lang;}
     speaking=true;
     if(btn){btn.classList.add('playing');curBtn=btn;}
-    u.onend=()=>{if(mySeq===seq){speaking=false;resetBtn();}};
-    u.onerror=()=>{if(mySeq===seq){speaking=false;resetBtn();}};
+    let ended=false;
+    u.onend=()=>{if(mySeq===seq){ended=true;speaking=false;resetBtn();}};
+    u.onerror=()=>{if(mySeq!==seq)return;ended=true;
+      if(isIOS){playRemote(text,mySeq,btn);} // built-in failed → try Google stream
+      else{speaking=false;resetBtn();heardNothing();}};
+    // Safety: speech started but never ends/never audible (iOS quirk) → other engine
+    setTimeout(()=>{if(mySeq===seq&&speaking&&!ended){if(isIOS){playRemote(text,mySeq,btn);}else{heardNothing();}}},7000);
     speechSynthesis.speak(u);
   }catch(e){speaking=false;resetBtn();}
 }
+function play(text,mySeq,btn){ if(isIOS)playLocal(text,mySeq,btn,false); else playRemote(text,mySeq,btn); }
 window.stopSpeak=stopAll;
 window.speakJP=function(text){
   const btn=document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('speak')?document.activeElement:null;
@@ -63,15 +78,18 @@ window.speakJP=function(text){
     const same=btn&&curBtn&&btn===curBtn;
     stopAll();
     if(same)return; // tapped same button = stop
-    const my=++seq;playRemote(text,my,btn);
+    const my=++seq;play(text,my,btn);
     return;
   }
   stopAll();
-  const my=++seq;playRemote(text,my,btn);
+  const my=++seq;play(text,my,btn);
 };
-// Warm up + preload voices on first gesture (iOS/Safari requirement)
+// Warm up + preload voices AND unlock audio on first gesture (iOS requirement)
 document.addEventListener('pointerdown',function once(){
-  try{if('speechSynthesis' in window){speechSynthesis.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);speechSynthesis.cancel();}}catch(e){}
+  try{
+    if('speechSynthesis' in window){speechSynthesis.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);speechSynthesis.cancel();}
+    const a=new Audio();a.volume=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
   document.removeEventListener('pointerdown',once);
 });
 })();
