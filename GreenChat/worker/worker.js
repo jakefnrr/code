@@ -56,7 +56,7 @@ async function saveMessage(env, convoId, from, text) {
   for (const m of c.members) if (m !== from) { const u = (await kvGet(env, K.unread(convoId, m), 0)) || 0; await kvPut(env, K.unread(convoId, m), u + 1); }
   return msg;
 }
-const pub = (u) => u ? { id: u.id, username: u.username, display: u.display, online: !!u.online } : null;
+const pub = (u) => u ? { id: u.id, username: u.username, online: !!u.online } : null;
 async function markOnline(env, u, on) { u.online = on; u.lastSeen = Date.now(); await kvPut(env, K.user(u.id), u); }
 
 export default {
@@ -83,7 +83,7 @@ export default {
       if (!/^[A-Za-z0-9_]{3,24}$/.test(username)) return json({ error: "Username: 3-24 chars, letters/numbers/_" }, 400);
       if (await kvGet(env, K.uname(username))) return json({ error: "Username taken" }, 409);
       const id = rnd(16);
-      const u = { id, username, display: String(b.display || username).slice(0, 40) || username, created: Date.now(), online: true, lastSeen: Date.now() };
+      const u = { id, username, created: Date.now(), online: true, lastSeen: Date.now() };
       const tok = rnd(32);
       await kvPut(env, K.user(id), u); await kvPut(env, K.uname(username), { id });
       await kvPut(env, K.sess(await sha(tok)), { uid: id, created: Date.now() });
@@ -99,9 +99,7 @@ export default {
 
     if (path === "/api/me" && req.method === "GET") return json(pub(u));
     if (path === "/api/me" && req.method === "PATCH") {
-      const b = await body();
-      if (b.display !== undefined) u.display = String(b.display).slice(0, 40) || u.username;
-      await kvPut(env, K.user(u.id), u); return json(pub(u));
+      return json(pub(u)); // username is immutable; kept for compatibility
     }
     if (path === "/api/logout" && req.method === "POST") {
       const t = cookie(req); if (t) await env.SHARED_KV.delete(K.sess(await sha(t)));

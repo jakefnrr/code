@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 
 function setConn(cls) { $("conn-dot").className = "dot " + cls; }
 function avatarColor(name) { let h = 0; for (const c of String(name)) h = (h * 31 + c.codePointAt(0)) >>> 0; return `hsl(${h % 360} 55% 32%)`; }
-function avatarHTML(u) { const t = esc((u.display || u.username || "?")).trim()[0] || "?"; return `<span class="avatar" style="background:${avatarColor(u.username)}">${t.toUpperCase()}</span>`; }
+function avatarHTML(u) { const t = esc((u.username || "?")).trim()[0] || "?"; return `<span class="avatar" style="background:${avatarColor(u.username)}">${t.toUpperCase()}</span>`; }
 function fmtTs(t) { return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
 
 async function boot() {
@@ -23,13 +23,13 @@ async function boot() {
 }
 function onLogin() {
   $("setup-overlay").classList.add("hidden");
-  $("me-label").textContent = "@" + state.me.username;
-  $("me-card").innerHTML = `${avatarHTML(state.me)}<div><b>${esc(state.me.display)}</b><br><span class="muted">@${esc(state.me.username)}</span></div>`;
+  $("me-label").textContent = state.me.username;
+  $("me-card").innerHTML = `${avatarHTML(state.me)}<div><b>${esc(state.me.username)}</b></div>`;
   switchView("chats"); refreshAll(); connectWS();
 }
 $("setup-btn").onclick = async () => {
-  const username = $("setup-username").value.trim(), display = $("setup-display").value.trim();
-  try { state.me = await api("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, display }) }).then(j); onLogin(); }
+  const username = $("setup-username").value.trim();
+  try { state.me = await api("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) }).then(j); onLogin(); }
   catch (e) { $("setup-error").textContent = e.message; }
 };
 
@@ -48,7 +48,7 @@ async function loadConvos() {
     const f = ($("chat-filter").value || "").toLowerCase();
     $("chat-list").innerHTML = state.convos.filter(c => !f || c.peer.username.toLowerCase().includes(f)).map(c => `
       <div class="row ${state.active === c.id ? "active" : ""}" data-c="${c.id}">
-        ${avatarHTML(c.peer)}<div class="grow"><b>${esc(c.peer.display)}</b> <span class="muted">@${esc(c.peer.username)}</span>
+        ${avatarHTML(c.peer)}<div class="grow"><b>${esc(c.peer.username)}</b>
         <div class="sub">${esc(c.lastText || "No messages yet")}</div></div>
         ${c.unread ? `<span class="unread">${c.unread}</span>` : ""}
       </div>`).join("") || `<div class="empty">No chats yet. Add friends to start.</div>`;
@@ -59,7 +59,7 @@ $("chat-filter").oninput = loadConvos;
 
 async function loadFriends() {
   const list = await api("/api/friends").then(j).catch(() => []);
-  $("friend-list").innerHTML = list.map(u => `<div class="row">${avatarHTML(u)}<div class="grow"><b>${esc(u.display)}</b> <span class="muted">@${esc(u.username)}</span><div class="sub">${u.online ? "🟢 Online" : "⚪ Offline"}</div></div><button class="mini" data-chat="${u.id}">Chat</button><button class="mini" data-rm="${u.id}">Remove</button></div>`).join("") || `<div class="empty">No friends yet. Search for users above.</div>`;
+  $("friend-list").innerHTML = list.map(u => `<div class="row">${avatarHTML(u)}<div class="grow"><b>${esc(u.username)}</b><div class="sub">${u.online ? "🟢 Online" : "⚪ Offline"}</div></div><button class="mini" data-chat="${u.id}">Chat</button><button class="mini" data-rm="${u.id}">Remove</button></div>`).join("") || `<div class="empty">No friends yet. Search for users above.</div>`;
   document.querySelectorAll("[data-chat]").forEach(b => b.onclick = async (e) => { e.stopPropagation(); const c = await api("/api/convos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ peerId: b.dataset.chat }) }).then(j); switchView("chats"); await loadConvos(); openChat(c.id); });
   document.querySelectorAll("[data-rm]").forEach(b => b.onclick = async (e) => { e.stopPropagation(); if (!confirm("Remove friend?")) return; await api("/api/friends/" + b.dataset.rm, { method: "DELETE" }); refreshAll(); });
 }
@@ -68,8 +68,8 @@ async function loadRequests() {
   const d = await api("/api/requests").then(j).catch(() => ({ incoming: [], outgoing: [] }));
   $("req-badge").classList.toggle("hidden", !d.incoming.length);
   $("req-badge").textContent = d.incoming.length || "";
-  $("req-in").innerHTML = d.incoming.map(r => `<div class="row">${avatarHTML(r.from)}<div class="grow"><b>${esc(r.from.display)}</b> <span class="muted">@${esc(r.from.username)}</span></div><button class="mini ok" data-acc="${r.id}">Accept</button><button class="mini" data-dec="${r.id}">Decline</button></div>`).join("") || `<div class="empty">No incoming requests.</div>`;
-  $("req-out").innerHTML = d.outgoing.map(r => `<div class="row">${avatarHTML(r.to)}<div class="grow"><b>${esc(r.to.display)}</b> <span class="muted">@${esc(r.to.username)}</span></div></div>`).join("") || `<div class="empty">No outgoing requests.</div>`;
+  $("req-in").innerHTML = d.incoming.map(r => `<div class="row">${avatarHTML(r.from)}<div class="grow"><b>${esc(r.from.username)}</b></div><button class="mini ok" data-acc="${r.id}">Accept</button><button class="mini" data-dec="${r.id}">Decline</button></div>`).join("") || `<div class="empty">No incoming requests.</div>`;
+  $("req-out").innerHTML = d.outgoing.map(r => `<div class="row">${avatarHTML(r.to)}<div class="grow"><b>${esc(r.to.username)}</b></div></div>`).join("") || `<div class="empty">No outgoing requests.</div>`;
   document.querySelectorAll("[data-acc]").forEach(b => b.onclick = async () => { await api("/api/requests/" + b.dataset.acc + "/accept", { method: "POST" }); refreshAll(); });
   document.querySelectorAll("[data-dec]").forEach(b => b.onclick = async () => { await api("/api/requests/" + b.dataset.dec + "/decline", { method: "POST" }); refreshAll(); });
 }
@@ -78,11 +78,10 @@ let searchT;
 $("search-input").oninput = () => { clearTimeout(searchT); searchT = setTimeout(async () => {
   const q = $("search-input").value.trim(); if (q.length < 2) { $("search-results").innerHTML = ""; return; }
   const res = await api("/api/users?q=" + encodeURIComponent(q)).then(j).catch(() => []);
-  $("search-results").innerHTML = res.map(u => `<div class="row">${avatarHTML(u)}<div class="grow"><b>${esc(u.display)}</b> <span class="muted">@${esc(u.username)}</span></div><button class="mini ok" data-add="${u.id}">Add</button></div>`).join("") || `<div class="empty">No users found.</div>`;
+  $("search-results").innerHTML = res.map(u => `<div class="row">${avatarHTML(u)}<div class="grow"><b>${esc(u.username)}</b></div><button class="mini ok" data-add="${u.id}">Add</button></div>`).join("") || `<div class="empty">No users found.</div>`;
   document.querySelectorAll("[data-add]").forEach(b => b.onclick = async () => { try { await api("/api/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ toId: b.dataset.add }) }); b.textContent = "Sent ✓"; b.disabled = true; } catch (e) { alert(e.message); } });
 }, 300); };
 
-$("set-save").onclick = async () => { try { state.me = await api("/api/me", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ display: $("set-display").value }) }).then(j); onLogin(); } catch (e) { alert(e.message); } };
 $("set-logout").onclick = async () => { await api("/api/logout", { method: "POST" }); location.reload(); };
 $("back-btn").onclick = () => { document.body.classList.remove("chatting"); state.active = null; closeWS(); loadConvos(); };
 
@@ -92,7 +91,7 @@ async function openChat(id) {
   $("no-chat").classList.add("hidden"); $("active-chat").classList.remove("hidden");
   loadConvos();
   const c = state.convos.find(x => x.id === id);
-  if (c) { $("peer-name").textContent = c.peer.display; $("peer-status").textContent = "@" + c.peer.username + (c.peer.online ? " • Online" : ""); $("peer-avatar").textContent = (c.peer.display[0] || "?").toUpperCase(); $("peer-avatar").style.background = avatarColor(c.peer.username); }
+  if (c) { $("peer-name").textContent = c.peer.username; $("peer-status").textContent = (c.peer.online ? "Online" : "Offline"); $("peer-avatar").textContent = (c.peer.username[0] || "?").toUpperCase(); $("peer-avatar").style.background = avatarColor(c.peer.username); }
   await loadMessages(); connectWS();
 }
 async function loadMessages() {
