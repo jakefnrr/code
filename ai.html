@@ -86,8 +86,6 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
 #send.stop{background:#ff5555;color:#fff}
 #bar-set{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
 #bar-set.listening{border-color:#ff5555;background:#331111}
-#bar-mic{background:#161616;border:1px solid #333;color:#fff;border-radius:10px;padding:0 13px;cursor:pointer;font-size:17px}
-#bar-mic.listening{border-color:#ff5555;background:#331111}
 #all-proj-m{color:#00ff88;border:1px solid #00ff88;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:bold}#model-tag{font-size:11px;color:#00ff88;background:#10281c;border:1px solid #1f4d35;border-radius:20px;padding:3px 10px;margin-left:8px;white-space:nowrap}
 @media(min-width:701px){
   #all-proj-m{position:fixed;top:12px;right:12px;z-index:50;background:#101010}
@@ -130,7 +128,7 @@ header a{color:#00ff88;text-decoration:none;font-size:13px}
   <div id="messages"></div>
   <div id="bar">
     
-    <button id="bar-set" title="Settings">⚙️</button><button id="bar-mic" title="Voice input">🎤</button><input id="input" placeholder="Ask anything..." autocomplete="off">
+    <button id="bar-set" title="Settings">⚙️</button><input id="input" placeholder="Ask anything..." autocomplete="off">
     <button id="send">Send</button>
   </div>
   <div id="set-pop" hidden>
@@ -504,28 +502,6 @@ document.querySelectorAll(".set-tab").forEach(t=>{
   };
 });
 document.getElementById("bar-set").onclick = (e)=>{ e.stopPropagation(); const p=document.getElementById("set-pop"); p.hidden=!p.hidden; };
-// mic toggle: press to start, press again to stop
-let micRec = null, micOn = false;
-document.getElementById("bar-mic").onclick = ()=>{
-  const btn = document.getElementById("bar-mic");
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ alert("Voice input not supported in this browser. Try Chrome."); return; }
-  if(micOn && micRec){ try{ micRec.stop(); }catch(e){} return; }
-  micRec = new SR();
-  micRec.continuous = true; micRec.interimResults = true;
-  try{ const cl = (typeof chatLang !== "undefined" ? chatLang : "auto"); if(cl && cl !== "auto") micRec.lang = cl; }catch(e){}
-  const inp = document.getElementById("input");
-  const base = inp.value ? inp.value + " " : "";
-  micRec.onresult = (e)=>{
-    let txt = "";
-    for(let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript + " ";
-    inp.value = base + txt.trim();
-    inp.focus();
-  };
-  micRec.onend = ()=>{ micOn = false; btn.classList.remove("listening"); micRec = null; };
-  micRec.onerror = ()=>{ micOn = false; btn.classList.remove("listening"); micRec = null; };
-  try{ micRec.start(); micOn = true; btn.classList.add("listening"); }catch(e){}
-};
 document.getElementById("set-x").onclick = (e)=>{ e.stopPropagation(); document.getElementById("set-pop").hidden = true; };
 document.getElementById("all-chats").onclick = (e)=>{ e.stopPropagation(); renderChatsPop(); document.getElementById("chats-pop").hidden = false; };
 document.getElementById("chats-x").onclick = ()=>{ document.getElementById("chats-pop").hidden = true; };
