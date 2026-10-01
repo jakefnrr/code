@@ -1,0 +1,15 @@
+name = "greenchat-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Reuses the existing shared-store KV namespace from the main site.
+[[kv_namespaces]]
+binding = "SHARED_KV"
+id = "d726fc2081e044f7b7ed1bc7b9b9d543"
+
+[durable_objects]
+bindings = [{ name = "CHAT_ROOM", class_name = "ChatRoom" }]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatRoom"]

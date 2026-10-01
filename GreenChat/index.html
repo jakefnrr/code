@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GreenChat</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- Setup overlay (first run: choose username) -->
+  <div id="setup-overlay" class="overlay hidden">
+    <div class="setup-card">
+      <h1>GreenChat</h1>
+      <p>Choose a username to get started.</p>
+      <input id="setup-username" maxlength="24" autocomplete="off" placeholder="username (letters, numbers, _)">
+      <input id="setup-display" maxlength="40" autocomplete="off" placeholder="Display name (optional)">
+      <div id="setup-error" class="error"></div>
+      <button id="setup-btn">Create my account</button>
+    </div>
+  </div>
+
+  <header id="topbar">
+    <span id="conn-dot" class="dot offline" title="Connection status"></span>
+    <strong>GreenChat</strong>
+    <span id="me-label"></span>
+  </header>
+
+  <!-- Desktop: 3 columns. Mobile: one panel at a time -->
+  <div id="layout">
+    <nav id="sidebar">
+      <button data-view="chats" class="nav-btn active">💬 Chats</button>
+      <button data-view="friends" class="nav-btn">👥 Friends</button>
+      <button data-view="requests" class="nav-btn">🔔 Requests <span id="req-badge" class="badge hidden"></span></button>
+      <button data-view="search" class="nav-btn">🔍 Search</button>
+      <button data-view="settings" class="nav-btn">⚙️ Settings</button>
+      <div id="me-card"></div>
+    </nav>
+
+    <section id="list-panel">
+      <div id="view-chats" class="view">
+        <input id="chat-filter" placeholder="Search chats..." autocomplete="off">
+        <div id="chat-list"></div>
+      </div>
+      <div id="view-friends" class="view hidden">
+        <div id="friend-list"></div>
+      </div>
+      <div id="view-requests" class="view hidden">
+        <h3>Incoming</h3><div id="req-in"></div>
+        <h3>Outgoing</h3><div id="req-out"></div>
+      </div>
+      <div id="view-search" class="view hidden">
+        <input id="search-input" placeholder="Search by username..." autocomplete="off">
+        <div id="search-results"></div>
+      </div>
+      <div id="view-settings" class="view hidden">
+        <label>Display name <input id="set-display" maxlength="40"></label>
+        <button id="set-save">Save</button>
+        <button id="set-logout">Log out this device</button>
+        <p class="muted">Backend: <span id="backend-url"></span></p>
+      </div>
+    </section>
+
+    <section id="chat-panel">
+      <div id="no-chat" class="empty">Select a conversation to start messaging.</div>
+      <div id="active-chat" class="hidden">
+        <div id="chat-header">
+          <button id="back-btn" aria-label="Back">←</button>
+          <span id="peer-avatar" class="avatar"></span>
+          <div><div id="peer-name"></div><div id="peer-status" class="muted"></div></div>
+        </div>
+        <div id="messages" aria-live="polite"></div>
+        <div id="typing" class="muted hidden"></div>
+        <form id="send-form">
+          <input id="msg-input" maxlength="2000" autocomplete="off" placeholder="Message...">
+          <button type="submit" aria-label="Send">➤</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <nav id="bottomnav">
+    <button data-view="chats" class="nav-btn active">💬</button>
+    <button data-view="friends" class="nav-btn">👥</button>
+    <button data-view="requests" class="nav-btn">🔔</button>
+    <button data-view="search" class="nav-btn">🔍</button>
+    <button data-view="settings" class="nav-btn">⚙️</button>
+  </nav>
+</div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
