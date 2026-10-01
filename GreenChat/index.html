@@ -12,10 +12,20 @@
   <div id="setup-overlay" class="overlay hidden">
     <div class="setup-card">
       <h1>GreenChat</h1>
-      <p>Choose a username to get started.</p>
-      <input id="setup-username" maxlength="24" autocomplete="off" placeholder="Choose a username">
-      <div id="setup-error" class="error"></div>
-      <button id="setup-btn">Create my account</button>
+      <div id="setup-lang-step">
+        <p data-i18n="setup-lang-p">Choose your language</p>
+        <div class="lang-pick">
+          <button data-lang="en">English</button>
+          <button data-lang="th">ไทย</button>
+          <button data-lang="fr">Français</button>
+        </div>
+      </div>
+      <div id="setup-user-step" class="hidden">
+        <p data-i18n="setup-user-p">Choose a username to get started.</p>
+        <input id="setup-username" maxlength="24" autocomplete="off" data-i18n-ph="setup-user-ph" placeholder="Choose a username">
+        <div id="setup-error" class="error"></div>
+        <button id="setup-btn" data-i18n="setup-btn">Create my account</button>
+      </div>
     </div>
   </div>
 
@@ -28,38 +38,44 @@
   <!-- Desktop: 3 columns. Mobile: one panel at a time -->
   <div id="layout">
     <nav id="sidebar">
-      <button data-view="chats" class="nav-btn active">💬 Chats</button>
-      <button data-view="friends" class="nav-btn">👥 Friends</button>
-      <button data-view="requests" class="nav-btn">🔔 Requests <span id="req-badge" class="badge hidden"></span></button>
-      <button data-view="search" class="nav-btn">🔍 Search</button>
-      <button data-view="settings" class="nav-btn">⚙️ Settings</button>
+      <button data-view="chats" class="nav-btn active">💬 <span data-i18n="nav-chats">Chats</span></button>
+      <button data-view="friends" class="nav-btn">👥 <span data-i18n="nav-friends">Friends</span></button>
+      <button data-view="requests" class="nav-btn">🔔 <span data-i18n="nav-requests">Requests</span> <span id="req-badge" class="badge hidden"></span></button>
+      <button data-view="search" class="nav-btn">🔍 <span data-i18n="nav-search">Search</span></button>
+      <button data-view="settings" class="nav-btn">⚙️ <span data-i18n="nav-settings">Settings</span></button>
       <div id="me-card"></div>
     </nav>
 
     <section id="list-panel">
       <div id="view-chats" class="view">
-        <input id="chat-filter" placeholder="Search chats..." autocomplete="off">
+        <input id="chat-filter" data-i18n-ph="chats-filter" placeholder="Search chats..." autocomplete="off">
         <div id="chat-list"></div>
       </div>
       <div id="view-friends" class="view hidden">
         <div id="friend-list"></div>
       </div>
       <div id="view-requests" class="view hidden">
-        <h3>Incoming</h3><div id="req-in"></div>
-        <h3>Outgoing</h3><div id="req-out"></div>
+        <h3 data-i18n="req-incoming">Incoming</h3><div id="req-in"></div>
+        <h3 data-i18n="req-outgoing">Outgoing</h3><div id="req-out"></div>
       </div>
       <div id="view-search" class="view hidden">
-        <input id="search-input" placeholder="Search by username..." autocomplete="off">
+        <input id="search-input" data-i18n-ph="search-ph" placeholder="Search by username..." autocomplete="off">
         <div id="search-results"></div>
       </div>
       <div id="view-settings" class="view hidden">
-        <button id="set-logout">Log out this device</button>
+        <h3 data-i18n="settings-lang">Language</h3>
+        <div class="lang-pick">
+          <button data-setlang="en">English</button>
+          <button data-setlang="th">ไทย</button>
+          <button data-setlang="fr">Français</button>
+        </div>
+        <button id="set-logout" data-i18n="settings-logout">Log out this device</button>
         <p class="muted">Backend: <span id="backend-url"></span></p>
       </div>
     </section>
 
     <section id="chat-panel">
-      <div id="no-chat" class="empty">Select a conversation to start messaging.</div>
+      <div id="no-chat" class="empty" data-i18n="chat-empty">Select a conversation to start messaging.</div>
       <div id="active-chat" class="hidden">
         <div id="chat-header">
           <button id="back-btn" aria-label="Back">←</button>
@@ -69,7 +85,7 @@
         <div id="messages" aria-live="polite"></div>
         <div id="typing" class="muted hidden"></div>
         <form id="send-form">
-          <input id="msg-input" maxlength="2000" autocomplete="off" placeholder="Message...">
+          <input id="msg-input" maxlength="2000" autocomplete="off" data-i18n-ph="msg-ph" placeholder="Message...">
           <button type="submit" aria-label="Send">➤</button>
         </form>
       </div>
