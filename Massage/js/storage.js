@@ -43,10 +43,10 @@ class StorageManager {
             if (cloud && typeof cloud === 'object') {
                 this.data = { ...this.data, ...cloud };
                 try { localStorage.setItem('cloud:' + MASSAGE_APP + ':room:global', JSON.stringify(this.data)); } catch {}
-                if (window.pointsManager) await pointsManager.refreshPoints().catch(() => {});
-                if (window.historyManager) await historyManager.refreshHistory().catch(() => {});
-                if (window.totalsManager) await totalsManager.refreshTotals().catch(() => {});
-                if (window.ui && ui.currentScreen === 'main-screen') ui.renderStats().catch(() => {});
+                if (typeof pointsManager !== 'undefined') await pointsManager.refreshPoints().catch(() => {});
+                if (typeof historyManager !== 'undefined') await historyManager.refreshHistory().catch(() => {});
+                if (typeof totalsManager !== 'undefined') await totalsManager.refreshTotals().catch(() => {});
+                if (typeof ui !== 'undefined' && (ui.currentScreen === 'main-screen' || ui.currentScreen === 'stats-screen')) ui.renderStats().catch(() => {});
             }
         } catch {}
     }
@@ -124,6 +124,17 @@ class StorageManager {
     // ---- Totals ----
     async getTotals() { return { id: 'current', ...this.data.totals }; }
     async updateTotals(updates) { this.data.totals = { ...this.data.totals, ...updates }; await this.persist(); return this.getTotals(); }
+
+    // Replace everything (used by paste-restore)
+    async replaceAllData({ points, paidHistory, freeHistory, totals }) {
+        if (typeof points === 'number') this.data.points = points;
+        if (Array.isArray(paidHistory)) this.data.paidHistory = paidHistory;
+        if (Array.isArray(freeHistory)) this.data.freeHistory = freeHistory;
+        if (totals && typeof totals === 'object') this.data.totals = { totalTime: 0, moneySpent: 0, paidTime: 0, freeTime: 0, ...totals };
+        this.data.paidHistory.sort((a, b) => b.timestamp - a.timestamp);
+        this.data.freeHistory.sort((a, b) => b.timestamp - a.timestamp);
+        await this.persist(false);
+    }
 
     // ---- Active session ----
     async getActiveSession() { return this.data.activeSession; }

@@ -98,6 +98,12 @@ function setupEventListeners() {
         ui.returnToMain();
     });
 
+    // Single toggle button: MAIN <-> STATS (one press flips the screen)
+    document.getElementById('screen-toggle-btn').addEventListener('click', () => ui.toggleScreen());
+    document.getElementById('copy-stats-btn').addEventListener('click', () => ui.copyStatsReport());
+    document.getElementById('restore-stats-btn').addEventListener('click', () => ui.restoreStatsReport());
+    document.getElementById('clear-all-btn').addEventListener('click', () => ui.clearAllMassageData());
+
     // Password input enter key
     document.getElementById('password-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -116,8 +122,10 @@ async function startPaidSession() {
 
         const { minutes, price } = sessionSetup;
         const durationSeconds = Math.round(minutes * 60);
+        const noteEl = document.getElementById('session-note-input');
+        const note = noteEl ? noteEl.value.trim().slice(0, 60) : '';
 
-        await sessionManager.startSession(durationSeconds, price, true);
+        await sessionManager.startSession(durationSeconds, price, true, note);
         ui.showActiveSession(minutes, price, true);
     } catch (error) {
         console.error('Failed to start session:', error);
@@ -132,9 +140,11 @@ async function startFreeMassage(minutes) {
 async function startFreeSession(minutes) {
     try {
         const durationSeconds = minutes * 60;
+        const noteEl = document.getElementById('free-session-note-input');
+        const note = noteEl ? noteEl.value.trim().slice(0, 60) : '';
 
         // Start session
-        await sessionManager.startSession(durationSeconds, 0, false);
+        await sessionManager.startSession(durationSeconds, 0, false, note);
         ui.showActiveSession(minutes, 0, false);
     } catch (error) {
         console.error('Failed to start free session:', error);
@@ -154,7 +164,7 @@ async function finishSession() {
             // Free session - just record and return to main
             const minutes = session.duration / 60;
 
-            await historyManager.addFreeEntry(minutes, 0);
+            await historyManager.addFreeEntry(minutes, 0, session.note || '');
             await totalsManager.updateTotals(minutes, 0, false);
             
             // Clear session data
@@ -210,7 +220,7 @@ async function confirmPayment() {
         const pointsEarned = minutes; // 1 minute = 1 point
 
         // Add to history (includes duplicate check)
-        await historyManager.addPaidEntry(minutes, price, pointsEarned);
+        await historyManager.addPaidEntry(minutes, price, pointsEarned, session.note || '');
 
         // Queue points to be counted up on the main screen
         ui.pendingPointsAward = pointsEarned;

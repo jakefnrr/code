@@ -14,13 +14,14 @@ class HistoryManager {
         return `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    async addPaidEntry(durationMinutes, price, pointsEarned) {
+    async addPaidEntry(durationMinutes, price, pointsEarned, note = '') {
         const entry = {
             id: this.generateHistoryId(),
             date: new Date().toISOString(),
             duration: durationMinutes,
             price: price,
             points: pointsEarned,
+            note: String(note || ''),
             timestamp: Date.now()
         };
 
@@ -34,12 +35,13 @@ class HistoryManager {
         }
     }
 
-    async addFreeEntry(durationMinutes, pointsUsed) {
+    async addFreeEntry(durationMinutes, pointsUsed, note = '') {
         const entry = {
             id: this.generateHistoryId(),
             date: new Date().toISOString(),
             duration: durationMinutes,
             pointsUsed: pointsUsed,
+            note: String(note || ''),
             timestamp: Date.now()
         };
 

@@ -6,7 +6,7 @@ class SessionManager {
         this.isPaid = true;
     }
 
-    async startSession(durationSeconds, price, isPaid = true) {
+    async startSession(durationSeconds, price, isPaid = true, note = '') {
         // Check for existing active session
         const existingSession = await storage.getActiveSession();
         if (existingSession) {
@@ -22,6 +22,7 @@ class SessionManager {
             duration: durationSeconds,
             price: price,
             isPaid: isPaid,
+            note: String(note || ''),
             startTime: startTime,
             endTime: endTime,
             status: 'active'

@@ -17,15 +17,6 @@
                 <div class="sync-status" id="sync-status"></div>
             </div>
 
-            <div class="section-title">STATS</div>
-            <div class="totals-section">
-                <div class="total-item"><span class="total-label">Total massage time</span><span class="total-value" id="total-time">0m</span></div>
-                <div class="total-item"><span class="total-label">Money spent</span><span class="total-value" id="total-money">฿0.00</span></div>
-                <div class="total-item"><span class="total-label">Paid time</span><span class="total-value" id="total-paid">0m</span></div>
-                <div class="total-item"><span class="total-label">Free time</span><span class="total-value" id="total-free">0m</span></div>
-                <div class="total-item"><span class="total-label">Sessions</span><span class="total-value" id="total-count">0</span></div>
-            </div>
-
             <div class="section-title">BEGIN SESSION</div>
 
             <div class="duration-buttons" id="duration-buttons">
@@ -79,6 +70,49 @@
                     <span class="free-points">220 points</span>
                 </button>
             </div>
+
+            <div class="section-title">MASSAGE HISTORY</div>
+            <div class="history-section">
+                <div class="history-list" id="history-list-main"></div>
+            </div>
+        </div>
+
+        <!-- Stats Screen -->
+        <div id="stats-screen" class="screen">
+            <div class="section-title">STATS</div>
+            <div class="totals-section">
+                <div class="total-item"><span class="total-label">Total massage time</span><span class="total-value" id="total-time">0m</span></div>
+                <div class="total-item"><span class="total-label">Money spent</span><span class="total-value" id="total-money">฿0.00</span></div>
+                <div class="total-item"><span class="total-label">Paid time</span><span class="total-value" id="total-paid">0m</span></div>
+                <div class="total-item"><span class="total-label">Free time</span><span class="total-value" id="total-free">0m</span></div>
+                <div class="total-item"><span class="total-label">Sessions</span><span class="total-value" id="total-count">0</span></div>
+            </div>
+
+            <div class="section-title">MASSAGE HISTORY</div>
+            <div class="history-section">
+                <div class="history-list" id="history-list"></div>
+            </div>
+
+            <div class="section-title">STATS (COPY / PASTE)</div>
+            <div class="backup-section">
+                <p class="data-hint">Press COPY, then paste the text into your notes app so nothing is ever lost.</p>
+                <button class="copy-btn" id="copy-stats-btn">COPY ALL STATS</button>
+                <div class="copy-state" id="copy-state"></div>
+                <textarea class="report-box" id="stats-report-out" readonly spellcheck="false" placeholder="Press COPY ALL STATS and the full report appears here."></textarea>
+            </div>
+            <div class="backup-section">
+                <div class="section-title">RESTORE STATS</div>
+                <p class="data-hint">Paste a report you copied earlier and press restore. This replaces current data.</p>
+                <textarea class="report-box" id="stats-restore-in" spellcheck="false" placeholder="Paste your saved stats here..."></textarea>
+                <button class="copy-btn" id="restore-stats-btn">RESTORE STATS</button>
+                <div class="copy-state" id="restore-state"></div>
+            </div>
+            <div class="backup-section danger-zone">
+                <div class="section-title">DANGER ZONE</div>
+                <p class="data-hint">This permanently deletes everything. Copy your stats first.</p>
+                <button class="clear-all-btn" id="clear-all-btn">CLEAR ALL DATA</button>
+                <div class="copy-state" id="clear-state"></div>
+            </div>
         </div>
 
         <!-- Session Setup Screen -->
@@ -89,6 +123,10 @@
                 <div class="session-setup-details">
                     <div class="session-duration" id="session-setup-duration">10 MIN</div>
                     <div class="session-price" id="session-setup-price">฿10</div>
+                </div>
+                <div class="note-input-container">
+                    <label for="session-note-input">Note (optional, e.g. knee massage)</label>
+                    <input type="text" id="session-note-input" placeholder="knee massage" maxlength="60">
                 </div>
                 <button class="start-session-btn" id="start-session-btn">START 10 MIN TIMER</button>
             </div>
@@ -134,6 +172,10 @@
             <button class="back-btn" id="free-session-setup-back">BACK</button>
             <div class="session-setup-content">
                 <div class="session-setup-title" id="free-session-setup-title">FREE 5 MIN MASSAGE</div>
+                <div class="note-input-container">
+                    <label for="free-session-note-input">Note (optional, e.g. knee massage)</label>
+                    <input type="text" id="free-session-note-input" placeholder="knee massage" maxlength="60">
+                </div>
                 <button class="start-session-btn" id="start-free-session-btn">START 5 MIN FREE MASSAGE</button>
             </div>
         </div>
@@ -145,13 +187,10 @@
                 <div class="success-message" id="success-message">Payment Confirmed!</div>
                 <button class="return-btn" id="return-btn">RETURN TO MAIN</button>
             </div>
-            </div>
-
-            <div class="section-title">MASSAGE HISTORY</div>
-            <div class="history-section">
-                <div class="history-list" id="history-list"></div>
-            </div>
         </div>
+
+        <button class="screen-toggle-btn" id="screen-toggle-btn">GO TO STATS →</button>
+    </div>
 
     <script src="../shared/cloud-store.js"></script>
     <script src="js/storage.js"></script>
