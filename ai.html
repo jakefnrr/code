@@ -314,7 +314,7 @@ function renderRich(el, text, opts){
   // whole-message copy + speaker
   const acts = document.createElement("div"); acts.className = "msg-actions";
   const sp = document.createElement("button"); sp.className = "speak-btn"; sp.textContent = "🔊"; sp.title = "Read aloud";
-  sp.onclick = ()=> speakText(text);
+  sp.onclick = ()=> speakText(text, sp);
   acts.appendChild(sp);
   try{
     const dl = detectLang(text);
@@ -557,9 +557,20 @@ function detectLang(s){
   if(/[\u4E00-\u9FFF]/.test(s)) return "zh";
   return "en";
 }
-function speakText(raw){
+let _speakBtn = null;
+function speakText(raw, btn){
   try{
-    speechSynthesis.cancel();
+    if(_speakBtn && (speechSynthesis.speaking || speechSynthesis.pending)){
+      const same = (_speakBtn === btn);
+      speechSynthesis.cancel();
+      _speakBtn.textContent = "🔊"; _speakBtn.classList.remove("playing");
+      _speakBtn = null;
+      if(same) return; // pressed again = stop
+    } else if(speechSynthesis.speaking || speechSynthesis.pending){
+      speechSynthesis.cancel();
+      document.querySelectorAll(".speak-btn.playing").forEach(b=>{ b.textContent = "🔊"; b.classList.remove("playing"); });
+      if(btn && btn.classList.contains("playing")){ btn.textContent = "🔊"; btn.classList.remove("playing"); return; }
+    }
     let txt = String(raw).replace(/<think>[\s\S]*?<\/think>/gi, "I thought about it. ").replace(/```[\s\S]*?```/g, "Code included. ");
     txt = txt.replace(/https?:\/\/\S+/g, "Link. ");
     const u = new SpeechSynthesisUtterance(txt.slice(0,2000));
@@ -569,6 +580,10 @@ function speakText(raw){
     const vs = speechSynthesis.getVoices();
     const pref = vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(want) && /google/i.test(v.name)) || vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(want)) || vs.find(v=>/google us english/i.test(v.name)) || vs[0];
     if(pref){ u.voice = pref; u.lang = pref.lang; }
+    if(btn){ document.querySelectorAll(".speak-btn.playing").forEach(b=>{ b.textContent = "🔊"; b.classList.remove("playing"); }); btn.textContent = "⏹"; btn.classList.add("playing"); }
+    _speakBtn = btn || null;
+    u.onend = ()=>{ if(btn){ btn.textContent = "🔊"; btn.classList.remove("playing"); } if(_speakBtn === btn) _speakBtn = null; };
+    u.onerror = ()=>{ if(btn){ btn.textContent = "🔊"; btn.classList.remove("playing"); } if(_speakBtn === btn) _speakBtn = null; };
     speechSynthesis.speak(u);
   }catch(e){}
 }
