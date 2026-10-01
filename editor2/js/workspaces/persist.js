@@ -1,0 +1,1 @@
+export function save(ws,fs){localStorage.setItem("pulsar-ws:"+ws,JSON.stringify(fs.all()))}

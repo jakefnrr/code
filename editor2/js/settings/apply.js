@@ -1,0 +1,1 @@
+import {state} from "../state/store.js";export function applySettings(){const e=document.getElementById("editor");if(e){e.style.fontSize=(state.settings.font||13)+"px"}}

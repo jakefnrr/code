@@ -1,0 +1,1 @@
+import assert from "node:assert";console.log("search placeholder ok")

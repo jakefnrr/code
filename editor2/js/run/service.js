@@ -1,0 +1,1 @@
+import {bundle} from "../preview/bundler.js";export const runner={running:false,start(files,onUrl){this.running=true;const html=bundle(files);const b=new Blob([html],{type:"text/html"});const u=URL.createObjectURL(b);onUrl&&onUrl(u);return u},stop(){this.running=false}}

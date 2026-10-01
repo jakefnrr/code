@@ -1,0 +1,1 @@
+export const keys=[{k:"ctrl+s",a:"save"},{k:"ctrl+k",a:"actions"},{k:"ctrl+p",a:"preview"},{k:"ctrl+`",a:"terminal"},{k:"ctrl+f",a:"search"}]

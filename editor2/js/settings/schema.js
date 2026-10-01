@@ -1,0 +1,1 @@
+export const schema=[{id:"editor",t:"Editor",keys:["font","tab","wrap","auto"]},{id:"look",t:"Appearance",keys:["theme"]},{id:"term",t:"Terminal",keys:["cursor"]},{id:"prev",t:"Preview",keys:["autoreload"]},{id:"keys",t:"Shortcuts",keys:[]},{id:"a11y",t:"Accessibility",keys:["bigtext"]}]

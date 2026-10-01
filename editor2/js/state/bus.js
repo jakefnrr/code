@@ -1,0 +1,1 @@
+const m=new Map();export const bus={on(e,f){(m.get(e)||m.set(e,[]).get(e)).push(f)},emit(e,d){(m.get(e)||[]).forEach(f=>f(d))}}

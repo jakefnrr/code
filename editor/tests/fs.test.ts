@@ -1,0 +1,5 @@
+import {describe,it,expect} from 'vitest';
+import {createFile,createFolder,remove,rename,duplicate,move,setContent} from '../src/filesystem/ops';
+import {seedFiles} from '../src/filesystem/seed';
+const base=()=>JSON.parse(JSON.stringify(seedFiles));
+describe('fs',()=>{it('creates file',()=>{const f=createFile(base(),'/','a.ts');expect(f.length).toBe(base().length+1)});it('creates nested folder',()=>{const f=createFolder(base(),'/web','deep');expect(JSON.stringify(f)).toContain('deep')});it('renames',()=>{const f=rename(base(),'/README.md','HI.md');expect(JSON.stringify(f)).toContain('HI.md')});it('deletes',()=>{const f=remove(base(),'/README.md');expect(JSON.stringify(f)).not.toContain('README')});it('duplicates',()=>{const f=duplicate(base(),'/README.md');expect(f.length).toBe(base().length+1)});it('moves',()=>{const f=move(base(),'/README.md','/web');expect(JSON.stringify(f)).toContain('README')});it('edits content',()=>{const f=setContent(base(),'/README.md','hi');expect(JSON.stringify(f)).toContain('hi')});it('rejects bad name',()=>{expect(()=>createFile(base(),'/','../x')).toThrow()})});

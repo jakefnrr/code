@@ -1,0 +1,1 @@
+export function renderRail(el,view,set){el.innerHTML="";[["grid","◧","Project"],["files","▤","Sectors"],["search","⌕","Scan"],["run","▶","Ignite"],["set","⚙","Core"]].forEach(([id,ic,t])=>{const b=document.createElement("button");b.textContent=ic;b.title=t;b.className=view===id?"on":"";b.onclick=()=>set(id);el.appendChild(b)})}

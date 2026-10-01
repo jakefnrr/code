@@ -1,0 +1,3 @@
+import {useState} from 'react';
+import {exec} from '../../terminal/shell';
+export function Term({files}:{files:string[]}){const [lines,setLines]=useState<string[]>(['strata shell — type help']);const [cmd,setCmd]=useState('');const go=()=>{const r=exec(cmd,files);setLines(l=>[...l,'$ '+cmd,r.out||r.err]);if(r.out==='__clear__')setLines([]);setCmd('')};return <div style={{background:'#000',color:'#0f0',padding:8,fontFamily:'monospace',height:'100%',overflow:'auto'}}>{lines.map((l,i)=><div key={i}>{l}</div>)}<input value={cmd} onChange={e=>setCmd(e.target.value)} onKeyDown={e=>e.key==='Enter'&&go()} style={{background:'transparent',border:0,color:'#0f0',width:'100%',outline:'none'}} placeholder='$ …'/> </div>}

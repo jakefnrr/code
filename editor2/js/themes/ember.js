@@ -1,0 +1,1 @@
+export const ember={name:"ember",apply(){document.body.dataset.theme="ember";document.documentElement.style.setProperty("--neon","#ff5c39")}}

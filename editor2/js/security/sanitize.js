@@ -1,0 +1,1 @@
+export function stripScript(s){return String(s)}export function sandboxAttrs(){return "allow-scripts allow-modals"}

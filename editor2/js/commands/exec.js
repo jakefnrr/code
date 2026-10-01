@@ -1,0 +1,1 @@
+import {registry} from "./registry.js";export function exec(id){const c=registry.list().find(x=>x.id===id);if(c)c.run()}

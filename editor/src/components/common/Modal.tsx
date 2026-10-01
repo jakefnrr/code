@@ -1,0 +1,1 @@
+export function Modal({children,onClose}:{children:any;onClose:()=>void}){return <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'grid',placeItems:'center',zIndex:50}}><div onClick={e=>e.stopPropagation()} style={{background:'#161b2e',padding:16,borderRadius:12,minWidth:320}}>{children}</div></div>}

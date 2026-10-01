@@ -1,0 +1,1 @@
+export function Field({value,onChange,ph}:{value:string;onChange:(v:string)=>void;ph?:string}){return <input value={value} placeholder={ph} onChange={e=>onChange(e.target.value)} style={{background:'#0d1117',color:'#fff',border:'1px solid #333',borderRadius:8,padding:6}}/>}

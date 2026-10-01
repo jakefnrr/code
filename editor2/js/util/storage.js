@@ -1,0 +1,1 @@
+export const store={get(k,d){try{const v=localStorage.getItem("pulsar:"+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){localStorage.setItem("pulsar:"+k,JSON.stringify(v))}}

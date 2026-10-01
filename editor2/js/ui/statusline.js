@@ -1,0 +1,1 @@
+export function status(t){document.getElementById("editorStatus").textContent=t}

@@ -1,0 +1,1 @@
+export function MobileNav({view,setView}:{view:string;setView:(v:string)=>void}){return <div style={{display:'flex',gap:4,padding:8}}>{['files','code','preview','terminal'].map(v=><button key={v} onClick={()=>setView(v)} style={{flex:1,padding:10,borderRadius:10,border:0,background:view===v?'#7c5cff':'#222',color:'#fff'}}>{v}</button>)}</div>}

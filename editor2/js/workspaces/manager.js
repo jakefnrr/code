@@ -1,0 +1,1 @@
+import {store} from "../util/storage.js";export function createWS(){let all=store.get("ws",["/default"]);return {list:()=>all,create(n){const p="/"+n;if(!all.includes(p))all.push(p);store.set("ws",all);return p},rename(o,n){all=all.map(x=>x===o?"/"+n:x);store.set("ws",all)},remove(p){all=all.filter(x=>x!==p);store.set("ws",all);return all[0]||"/default"}}}

@@ -1,0 +1,1 @@
+export const hook="window.addEventListener(\"error\",e=>parent.postMessage({t:\"pv-error\",m:e.message},\"*\"))"

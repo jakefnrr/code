@@ -1,0 +1,1 @@
+export function foldable(lines){return lines.map((l,i)=>/\{\s*$/.test(l)?i:-1).filter(x=>x>=0)}

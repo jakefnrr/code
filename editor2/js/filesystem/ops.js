@@ -1,0 +1,1 @@
+export function planCreate(list,path,type){return {op:"create",path,type}}export function planDelete(path){return {op:"delete",path}}

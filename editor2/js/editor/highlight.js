@@ -1,0 +1,1 @@
+import {esc} from "../util/escape.js";export function highlight(code,lang){let h=esc(code);if(["javascript","typescript","js","ts"].includes(lang))h=h.replace(/\b(const|let|function|return|import|export|await)\b/g,"<span class=kw>$1</span>");return h}

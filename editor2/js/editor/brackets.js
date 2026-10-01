@@ -1,0 +1,1 @@
+export function matchCount(s){let d=0;for(const c of s){if(c==="{")d++;if(c==="}")d--}return d}

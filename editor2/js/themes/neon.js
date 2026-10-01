@@ -1,0 +1,1 @@
+export const neon={name:"neon",accents:["#00f0ff","#b537f2","#39ff88"],apply(){document.body.dataset.theme="neon"}}

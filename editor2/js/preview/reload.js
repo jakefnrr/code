@@ -1,0 +1,1 @@
+export function reload(f){const i=document.getElementById("pv");if(i)i.src=i.src}

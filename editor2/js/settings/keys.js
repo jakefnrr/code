@@ -1,0 +1,1 @@
+export const shortcuts=["ctrl+s","ctrl+k","ctrl+p"]
