@@ -380,7 +380,22 @@ async function send(){
   live.className = "msg ai"; live.hidden = true;
   box.appendChild(live);
 function dedupReply(s){
-  return String(s);
+  // silent loop guard — no visible message
+  const lines = String(s).split("\n");
+  const out = [];
+  let prev = "";
+  let count = 0;
+  for(const ln of lines){
+    if(ln.trim() === prev.trim() && ln.trim() !== ""){
+      count++;
+      if(count >= 2) continue;
+    } else { count = 0; }
+    prev = ln;
+    out.push(ln);
+  }
+  let t = out.join("\n");
+  if(t.length > 8000) t = t.slice(0, 8000);
+  return t;
 }
   let reply = "", gotStream = false, stopped = false;
   const flush = (done)=>{
@@ -412,7 +427,13 @@ function dedupReply(s){
           try{
             const j = JSON.parse(d);
             const tok = j.response || j.result?.response || "";
-            if(tok){ reply += tok; gotStream = true; flush(false); }
+            if(tok){ reply += tok; gotStream = true;
+              if(reply.length > 8000){
+                const tail = reply.slice(-1200);
+                const head = reply.slice(-2400, -1200);
+                if(tail === head){ try{ reader.cancel(); }catch(e){} break; }
+              }
+              flush(false); }
           }catch(e){}
         }
       }
