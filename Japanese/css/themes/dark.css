@@ -1,0 +1,12 @@
+/* dark theme: follows the phone/computer setting */
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1d1620;--card:#2a2130;--ink:#f5ecf1;--mut:#b9a9b5;--sh:none}
+  .lesson,.vcard,.kcard{background:#332839;border-color:#553f52}
+  nav.tabsbar{background:rgba(29,22,32,.94);border-color:#553f52}
+  nav.tabsbar button{background:#332839;color:#f5ecf1;border-color:#553f52}
+  .row input,.row select,.qopt{background:#332839;color:#f5ecf1;border-color:#553f52}
+  .pattern{background:#2a2130}
+  .en{color:#cbb9c8}
+  .speak,.chip,.donebtn{background:#332839}
+  .stat{background:#332839;color:#f5ecf1}
+}

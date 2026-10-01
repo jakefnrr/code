@@ -1,0 +1,7 @@
+/* print: clean lesson sheets for Mom's fridge */
+@media print{
+  nav.tabsbar,.hero .stats,.speak,.donebtn,.chips,#syncBadge{display:none!important}
+  .hero{padding:16px}
+  .card{box-shadow:none;break-inside:avoid}
+  body{background:#fff}
+}

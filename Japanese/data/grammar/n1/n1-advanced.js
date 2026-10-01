@@ -1,4 +1,4 @@
-// Grammar N1 — auto-split from core+upper banks
+// N1 — N1 · Advanced
 window.GRAMMAR=(window.GRAMMAR||[]).concat([
  {
   "id": "n1-mono2",

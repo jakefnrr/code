@@ -1,4 +1,4 @@
-// Grammar N3 — auto-split from core+upper banks
+// N3 — N3 · Intermediate
 window.GRAMMAR=(window.GRAMMAR||[]).concat([
  {
   "id": "n3-noni2",

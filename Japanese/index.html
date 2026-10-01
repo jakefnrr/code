@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="css/components.css"/>
 <link rel="stylesheet" href="css/pages.css"/>
 <link rel="stylesheet" href="css/responsive.css"/>
+<link rel="stylesheet" href="css/themes/dark.css"/>
+<link rel="stylesheet" href="css/themes/print.css"/>
 </head>
 <body style="position:relative">
 <a href="../index.html" style="position:absolute;top:10px;right:10px;z-index:5;background:#fff;border:2px solid #ffb7c5;color:#2b2b33;border-radius:999px;padding:5px 11px;font-weight:800;font-size:.72rem;text-decoration:none;box-shadow:0 4px 14px rgba(247,139,167,.25);white-space:nowrap">ALL PROJECTS</a>
@@ -38,26 +40,47 @@
  <div id="view"></div>
  <footer>Made with 🌸 for Mom · progress auto-saves · tap 🔊 on any Japanese</footer>
 </main>
-<!-- data banks -->
-<script src="data/grammar/n5.js"></script>
-<script src="data/grammar/n4.js"></script>
-<script src="data/grammar/n3.js"></script>
-<script src="data/grammar/n2.js"></script>
-<script src="data/grammar/n1.js"></script>
-<script src="data/words/phrases.js"></script>
-<script src="data/words/vocab.js"></script>
-<script src="data/words/vocab_upper.js"></script>
-<script src="data/words/kanji.js"></script>
-<script src="data/words/kanji_upper.js"></script>
-<script src="data/quiz/bank.js"></script>
-<script src="data/quiz/advanced.js"></script>
+<!-- grammar: one file per unit -->
+<script src="data/grammar/n5/foundations.js"></script>
+<script src="data/grammar/n5/particles.js"></script>
+<script src="data/grammar/n5/te-form-world.js"></script>
+<script src="data/grammar/n4/te-form-world.js"></script>
+<script src="data/grammar/n4/ability-experience.js"></script>
+<script src="data/grammar/n4/comparisons.js"></script>
+<script src="data/grammar/n4/giving-receiving.js"></script>
+<script src="data/grammar/n4/must-may.js"></script>
+<script src="data/grammar/n4/reasoning.js"></script>
+<script src="data/grammar/n4/politeness-keigo.js"></script>
+<script src="data/grammar/n4/advanced-n4.js"></script>
+<script src="data/grammar/n4/final-review.js"></script>
+<script src="data/grammar/n3/n3-intermediate.js"></script>
+<script src="data/grammar/n2/n2-upper-intermediate.js"></script>
+<script src="data/grammar/n1/n1-advanced.js"></script>
+<!-- words: small chunk files -->
+<script src="data/words/vocab-01.js"></script>
+<script src="data/words/vocab-02.js"></script>
+<script src="data/words/vocab-03.js"></script>
+<script src="data/words/vocab-04.js"></script>
+<script src="data/words/kanji-01.js"></script>
+<script src="data/words/kanji-02.js"></script>
+<script src="data/words/kanji-03.js"></script>
+<script src="data/words/phrases-01.js"></script>
+<script src="data/words/phrases-02.js"></script>
+<!-- quiz: small chunk files -->
+<script src="data/quiz/quiz-01.js"></script>
+<script src="data/quiz/quiz-02.js"></script>
+<script src="data/quiz/quiz-03.js"></script>
 <!-- core -->
 <script src="js/core/kv-config.js"></script>
 <script src="js/core/speech.js"></script>
 <script src="js/core/store.js"></script>
 <script src="js/core/helpers.js"></script>
 <script src="js/core/router.js"></script>
-<!-- pages -->
+<!-- shared components -->
+<script src="js/components/speak.js"></script>
+<script src="js/components/tabs.js"></script>
+<script src="js/components/cards.js"></script>
+<!-- pages: one folder-file per tab -->
 <script src="js/pages/grammar.js"></script>
 <script src="js/pages/translator.js"></script>
 <script src="js/pages/vocab.js"></script>

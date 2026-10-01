@@ -1,4 +1,4 @@
-// Grammar N2 — auto-split from core+upper banks
+// N2 — N2 · Upper-intermediate
 window.GRAMMAR=(window.GRAMMAR||[]).concat([
  {
   "id": "n2-hazu2",
