@@ -15,9 +15,8 @@ import {find,flatten} from './utils/tree';
 import * as ops from './filesystem/ops';
 import {langOf} from './utils/lang';
 import {get} from './settings/store';
-import {bundle} from './preview/bundle';
 import {searchAll} from './search/engine';
-import {exportZip,importZip} from './importExport/zip';
+import {exportZip} from './importExport/zip';
 import {all,run} from './commands/registry';
 import {registerBuiltin} from './commands/builtin';
 export default function App(){

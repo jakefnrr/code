@@ -1,1 +1,0 @@
-export function hi(line:string,q:string){const i=line.toLowerCase().indexOf(q.toLowerCase());if(i<0)return line;return line.slice(0,i)+'<mark>'+line.slice(i,i+q.length)+'</mark>'+line.slice(i+q.length)}
