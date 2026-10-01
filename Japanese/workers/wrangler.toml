@@ -1,0 +1,10 @@
+name = "sakura-progress"
+main = "kv-sync-worker.js"
+compatibility_date = "2024-01-01"
+
+# Existing KV namespace "shared-store".
+# Get its id:  wrangler kv:namespace list   (look for shared-store)
+# Paste the id below, then:  wrangler deploy
+[[kv_namespaces]]
+binding = "SHARED_KV"
+id = "PASTE-ID-OF-shared-store-HERE"

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Neon Dodge — fun arcade</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0b0e1a;color:#fff;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#box{position:relative;width:100%;max-width:480px;height:100%;max-height:900px;overflow:hidden;background:#111}
+canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:12px;z-index:5;pointer-events:none}
+.pill{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 14px;font-weight:800}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,8,25,.9);z-index:10;text-align:center;padding:24px;transition:opacity .25s}
+.hidden{opacity:0;pointer-events:none}
+h1{font-size:48px;font-weight:900;background:linear-gradient(180deg,#7affff,#2979ff 60%,#d500f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+button.big{background:linear-gradient(180deg,#00e676,#00b248);border:none;color:#062b14;font-weight:900;font-size:20px;padding:15px 60px;border-radius:999px;cursor:pointer;box-shadow:0 8px 0 #007a33}
+button.big:active{transform:translateY(4px);box-shadow:0 4px 0 #007a33}
+button.ghost{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:999px;padding:10px 28px;cursor:pointer}
+.hint{opacity:.6;font-size:13px;line-height:1.7}
+#dpad{position:absolute;left:0;right:0;bottom:0;height:25%;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:0 16px 20px;pointer-events:none}
+#dpad.off{display:none}
+#dpad.hide-play{display:none}
+.dside{display:flex;gap:12px;pointer-events:auto}
+.dcol{display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:auto}
+.dbtn{width:62px;height:62px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.5);color:#fff;font-size:24px;font-weight:900;touch-action:none}
+.dbtn.on{background:rgba(0,229,255,.5)}
+.setrow{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 8px 7px 14px;font-weight:700;font-size:14px}
+.setrow button{background:#333;color:#fff;border:none;border-radius:999px;padding:6px 16px;font-weight:800;cursor:pointer}
+.setrow button.on{background:#00e676;color:#062b14}
+.hub{position:absolute;top:12px;right:12px;z-index:20;background:#38bdf8;color:#082f49;border:none;border-radius:8px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="box">
+<canvas id="c"></canvas>
+<div class="hud"><div class="pill">⭐ <span id="score">0</span></div><div class="pill">🏆 <span id="best">0</span></div></div>
+<div class="screen" id="menu">
+<button class="hub" onclick="location.href='index.html'">🏠 Hub</button>
+<h1>NEON<br>DODGE</h1>
+<div class="hint">Move with mouse, WASD, or arrow keys.<br>Dodge red, grab gold. Survive!</div>
+<div class="pill">🏆 Best: <span id="m-best">0</span></div>
+<button class="big" id="play">▶ PLAY</button>
+<div class="setrow">🎮 D-Pad <button id="dpadToggle">ON</button></div>
+<div class="hint">Desktop: mouse, WASD, or arrows<br>Mobile: drag, or D-Pad</div>
+</div>
+<div class="screen hidden" id="over">
+<button class="hub" onclick="location.href='index.html'">🏠 Hub</button>
+<h1 style="font-size:40px">💥 OUCH!</h1>
+<div class="pill">Score: <span id="f-score">0</span></div>
+<div class="pill" id="nb" style="display:none;background:#ffd54a;color:#4a3200">🎉 NEW BEST! 🎉</div>
+<button class="big" id="retry">↻ AGAIN</button>
+<button class="ghost" id="to-menu">MENU</button>
+</div>
+<div id="dpad" class="hide-play"><div class="dside"><button class="dbtn" data-k="arrowleft">◀</button><button class="dbtn" data-k="arrowright">▶</button></div><div class="dcol"><button class="dbtn" data-k="arrowup">▲</button><button class="dbtn" data-k="arrowdown">▼</button></div></div>
+</div></div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),box=document.getElementById('box');
+let W,H;function rs(){const r=box.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}addEventListener('resize',rs);rs();
+let best=+(localStorage.getItem('neonBest')||0);
+document.getElementById('best').textContent=best;document.getElementById('m-best').textContent=best;
+let run=false,px,py,tx,ty,enemies,stars,parts,score,speed,last,spawnT,inv;
+function reset(){px=tx=W/2;py=ty=H-160;enemies=[];stars=[];parts=[];score=0;speed=3;spawnT=0;inv=90;}
+function start(){reset();run=true;last=performance.now();updDpad();
+document.getElementById('menu').classList.add('hidden');document.getElementById('over').classList.add('hidden');}
+document.getElementById('play').onclick=start;document.getElementById('retry').onclick=start;
+document.getElementById('to-menu').onclick=()=>{document.getElementById('over').classList.add('hidden');document.getElementById('menu').classList.remove('hidden');};
+function end(){run=false;let nb=false;if(Math.floor(score)>best){best=Math.floor(score);localStorage.setItem('neonBest',best);nb=true;}
+document.getElementById('f-score').textContent=Math.floor(score);document.getElementById('best').textContent=best;document.getElementById('m-best').textContent=best;
+document.getElementById('nb').style.display=nb?'block':'none';document.getElementById('over').classList.remove('hidden');dpadEl.classList.add('hide-play');
+for(let i=0;i<40;i++)parts.push({x:px,y:py,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,l:60,c:'#ff5252'});}
+// input: pointer + keys
+const keys={};
+let dpadOn=localStorage.getItem('neonDpad')!=='off';
+const dpadEl=document.getElementById('dpad'),dpadBtn=document.getElementById('dpadToggle');
+function updDpad(){dpadBtn.textContent=dpadOn?'ON':'OFF';dpadBtn.classList.toggle('on',dpadOn);dpadEl.classList.toggle('off',!dpadOn);dpadEl.classList.toggle('hide-play',!run);}
+dpadBtn.onclick=()=>{dpadOn=!dpadOn;localStorage.setItem('neonDpad',dpadOn?'on':'off');updDpad();};
+document.querySelectorAll('.dbtn').forEach(b=>{const k=b.dataset.k;
+const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('on');};
+const off=e=>{e.preventDefault();keys[k]=false;b.classList.remove('on');};
+b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
+addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let drag=false;
+function ptr(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return[(p.clientX-r.left),(p.clientY-r.top)];}
+cv.addEventListener('pointerdown',e=>{drag=true;[tx,ty]=ptr(e);});
+addEventListener('pointermove',e=>{if(drag)[tx,ty]=ptr(e);});
+addEventListener('pointerup',()=>drag=false);
+function loop(now){requestAnimationFrame(loop);
+if(!run){drawIdle();return;}
+let dt=Math.min(33,now-last)/16.67;last=now;
+const ks=9*dt;
+if(keys['arrowleft']||keys['a'])tx-=ks;if(keys['arrowright']||keys['d'])tx+=ks;
+if(keys['arrowup']||keys['w'])ty-=ks;if(keys['arrowdown']||keys['s'])ty+=ks;
+tx=Math.max(20,Math.min(W-20,tx));ty=Math.max(60,Math.min(H-40,ty));
+px+=(tx-px)*0.25*dt;py+=(ty-py)*0.25*dt;
+score+=dt*1.2;speed=Math.min(10,3+score/600);
+if(inv>0)inv-=dt;
+spawnT-=dt;
+if(spawnT<=0){spawnT=Math.max(12,34-score/80);
+enemies.push({x:Math.random()*W,y:-30,r:12+Math.random()*16+score/400,vx:(Math.random()-.5)*2,vy:speed+Math.random()*2});
+if(Math.random()<0.6)stars.push({x:Math.random()*W,y:-20,vy:speed*0.8});}
+enemies.forEach(e=>{e.x+=e.vx*dt;e.y+=e.vy*dt;});
+stars.forEach(s=>{s.y+=s.vy*dt;});
+enemies=enemies.filter(e=>e.y<H+50);stars=stars.filter(s=>s.y<H+40);
+if(inv<=0)for(const e of enemies){if((px-e.x)**2+(py-e.y)**2<(e.r+14)**2){end();break;}}
+for(let i=stars.length-1;i>=0;i--){const s=stars[i];if((px-s.x)**2+(py-s.y)**2<28**2){stars.splice(i,1);score+=25;for(let j=0;j<8;j++)parts.push({x:s.x,y:s.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,l:30,c:'#ffd54a'});}}
+parts=parts.filter(p=>p.l>0);parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt;});
+document.getElementById('score').textContent=Math.floor(score);
+draw();}
+function drawIdle(){ctx.fillStyle='#0d1026';ctx.fillRect(0,0,W,H);
+ctx.fillStyle='rgba(255,255,255,.25)';for(let i=0;i<40;i++){ctx.fillRect((i*89)%W,(i*57+Date.now()/40)%H,2,2);}}
+function draw(){drawIdle();
+// stars
+ctx.fillStyle='#ffd54a';stars.forEach(s=>{ctx.save();ctx.translate(s.x,s.y);ctx.rotate(Date.now()/400);ctx.fillRect(-7,-7,14,14);ctx.fillStyle='#fff3';ctx.fillRect(-4,-4,8,8);ctx.fillStyle='#ffd54a';ctx.restore();ctx.beginPath();ctx.arc(s.x,s.y,9,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('★',s.x,s.y+3);ctx.fillStyle='#ffd54a';});
+// enemies
+enemies.forEach(e=>{ctx.fillStyle='#ff1744';ctx.shadowColor='#ff1744';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#7f0000';ctx.beginPath();ctx.arc(e.x,e.y,e.r*0.5,0,7);ctx.fill();});
+// player
+if(inv>0&&Math.floor(Date.now()/120)%2===0)ctx.globalAlpha=0.35;
+ctx.fillStyle='#00e5ff';ctx.shadowColor='#00e5ff';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(px,py,15,0,7);ctx.fill();ctx.shadowBlur=0;ctx.globalAlpha=1;
+ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,py,6,0,7);ctx.fill();
+parts.forEach(p=>{ctx.globalAlpha=Math.max(0,p.l/60);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,4,4);ctx.globalAlpha=1;});}
+updDpad();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
