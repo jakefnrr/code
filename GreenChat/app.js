@@ -117,7 +117,19 @@ $("del-btn").onclick = () => { $("del-btn").classList.add("hidden"); $("del-step
 $("del-no1").onclick = delReset;
 $("del-yes1").onclick = () => { $("del-step1").classList.add("hidden"); $("del-step2").classList.remove("hidden"); };
 $("del-no2").onclick = delReset;
-$("del-yes2").onclick = async () => { try { await api("/api/me", { method: "DELETE" }); } catch {} location.reload(); };
+$("del-yes2").onclick = async () => {
+  try { await api("/api/me", { method: "DELETE" }); } catch {}
+  // drop all local session state and show the account-making screen
+  closeWS(); clearInterval(state.poll);
+  state.me = null; state.convos = []; state.active = null; state.lastMsg = 0;
+  document.body.classList.remove("chatting");
+  $("active-chat").classList.add("hidden"); $("no-chat").classList.remove("hidden");
+  $("setup-username").value = "";
+  delReset(); switchView("chats");
+  $("setup-lang-step").classList.remove("hidden");
+  $("setup-user-step").classList.add("hidden");
+  $("setup-overlay").classList.remove("hidden");
+};
 $("back-btn").onclick = () => { document.body.classList.remove("chatting"); state.active = null; closeWS(); loadConvos(); };
 
 async function openChat(id) {
