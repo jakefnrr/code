@@ -8,7 +8,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":
 const state = { me: null, convos: [], active: null, ws: null, wsRetry: 0, lastMsg: 0, poll: null, lang: "en" };
 
 const STRINGS = {
-en: {"home-btn":"All Projects","fab-account":"Make an account","login-title":"Log in","setup-pass-ph":"Password","setup-have":"Already have an account?","setup-login-link":"Login","setup-login-btn":"Login","setup-back-create":"Back to create account","setup-new":"Make a new account","nav-chats":"Chats","nav-friends":"Friends","nav-requests":"Requests","nav-search":"Search","nav-settings":"Settings","setup-lang-p":"Choose your language","setup-user-p":"Choose a username to get started.","setup-user-ph":"Choose a username","setup-btn":"Create my account","chats-filter":"Search chats...","search-ph":"Search by username...","msg-ph":"Message...","chat-empty":"Select a conversation to start messaging.","req-incoming":"Incoming","req-outgoing":"Outgoing","settings-lang":"Language","settings-logout":"Log out this device","del-btn":"Delete my account","del-sure1":"Are you sure you want to delete your account?","del-sure2":"Are you really sure? This cannot be undone.","del-yes":"Yes, continue","del-confirm":"Yes, delete it","del-cancel":"Cancel","chats-empty":"No chats yet. Add friends to start.","convo-nomsgs":"No messages yet","friends-empty":"No friends yet. Search for users above.","online":"🟢 Online","offline":"⚪ Offline","btn-chat":"Chat","btn-remove":"Remove","btn-accept":"Accept","btn-decline":"Decline","btn-add":"Add","btn-sent":"Sent ✓","req-empty-in":"No incoming requests.","req-empty-out":"No outgoing requests.","search-empty":"No users found.","friends-confirm":"Remove friend?","typing":"typing…","st-online":"Online","st-offline":"Offline"},
+en: {"home-btn":"ALL PROJECTS","fab-account":"Make an account","login-title":"Log in","setup-pass-ph":"Password","setup-have":"Already have an account?","setup-login-link":"Login","setup-login-btn":"Login","setup-back-create":"Back to create account","setup-new":"Make a new account","nav-chats":"Chats","nav-friends":"Friends","nav-requests":"Requests","nav-search":"Search","nav-settings":"Settings","setup-lang-p":"Choose your language","setup-user-p":"Choose a username to get started.","setup-user-ph":"Choose a username","setup-btn":"Create my account","chats-filter":"Search chats...","search-ph":"Search by username...","msg-ph":"Message...","chat-empty":"Select a conversation to start messaging.","req-incoming":"Incoming","req-outgoing":"Outgoing","settings-lang":"Language","settings-logout":"Log out this device","del-btn":"Delete my account","del-sure1":"Are you sure you want to delete your account?","del-sure2":"Are you really sure? This cannot be undone.","del-yes":"Yes, continue","del-confirm":"Yes, delete it","del-cancel":"Cancel","chats-empty":"No chats yet. Add friends to start.","convo-nomsgs":"No messages yet","friends-empty":"No friends yet. Search for users above.","online":"🟢 Online","offline":"⚪ Offline","btn-chat":"Chat","btn-remove":"Remove","btn-accept":"Accept","btn-decline":"Decline","btn-add":"Add","btn-sent":"Sent ✓","req-empty-in":"No incoming requests.","req-empty-out":"No outgoing requests.","search-empty":"No users found.","friends-confirm":"Remove friend?","typing":"typing…","st-online":"Online","st-offline":"Offline"},
 th: {"home-btn":"โปรเจกต์ทั้งหมด","fab-account":"สร้างบัญชี","login-title":"เข้าสู่ระบบ","setup-pass-ph":"รหัสผ่าน","setup-have":"มีบัญชีอยู่แล้ว?","setup-login-link":"เข้าสู่ระบบ","setup-login-btn":"เข้าสู่ระบบ","setup-back-create":"กลับไปสร้างบัญชี","setup-new":"สร้างบัญชีใหม่","nav-chats":"แชท","nav-friends":"เพื่อน","nav-requests":"คำขอ","nav-search":"ค้นหา","nav-settings":"ตั้งค่า","setup-lang-p":"เลือกภาษาของคุณ","setup-user-p":"เลือกชื่อผู้ใช้เพื่อเริ่มต้น","setup-user-ph":"เลือกชื่อผู้ใช้","setup-btn":"สร้างบัญชีของฉัน","chats-filter":"ค้นหาแชท...","search-ph":"ค้นหาด้วยชื่อผู้ใช้...","msg-ph":"ข้อความ...","chat-empty":"เลือกการสนทนาเพื่อเริ่มส่งข้อความ","req-incoming":"คำขอที่ได้รับ","req-outgoing":"คำขอที่ส่ง","settings-lang":"ภาษา","settings-logout":"ออกจากระบบอุปกรณ์นี้","del-btn":"ลบบัญชีของฉัน","del-sure1":"คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี?","del-sure2":"แน่ใจจริงๆ หรือ? การกระทำนี้ไม่สามารถย้อนกลับได้","del-yes":"ใช่ ดำเนินการต่อ","del-confirm":"ใช่ ลบเลย","del-cancel":"ยกเลิก","chats-empty":"ยังไม่มีแชท เพิ่มเพื่อนเพื่อเริ่มต้น","convo-nomsgs":"ยังไม่มีข้อความ","friends-empty":"ยังไม่มีเพื่อน ค้นหาผู้ใช้ด้านบน","online":"🟢 ออนไลน์","offline":"⚪ ออฟไลน์","btn-chat":"แชท","btn-remove":"ลบ","btn-accept":"ยอมรับ","btn-decline":"ปฏิเสธ","btn-add":"เพิ่ม","btn-sent":"ส่งแล้ว ✓","req-empty-in":"ไม่มีคำขอที่ได้รับ","req-empty-out":"ไม่มีคำขอที่ส่ง","search-empty":"ไม่พบผู้ใช้","friends-confirm":"ลบเพื่อน?","typing":"กำลังพิมพ์…","st-online":"ออนไลน์","st-offline":"ออฟไลน์"},
 fr: {"home-btn":"Tous les projets","fab-account":"Créer un compte","login-title":"Connexion","setup-pass-ph":"Mot de passe","setup-have":"Déjà un compte ?","setup-login-link":"Connexion","setup-login-btn":"Se connecter","setup-back-create":"Retour à la création","setup-new":"Créer un nouveau compte","nav-chats":"Discussions","nav-friends":"Amis","nav-requests":"Demandes","nav-search":"Recherche","nav-settings":"Réglages","setup-lang-p":"Choisissez votre langue","setup-user-p":"Choisissez un pseudo pour commencer.","setup-user-ph":"Choisissez un pseudo","setup-btn":"Créer mon compte","chats-filter":"Rechercher...","search-ph":"Rechercher par pseudo...","msg-ph":"Message...","chat-empty":"Sélectionnez une conversation pour commencer.","req-incoming":"Reçues","req-outgoing":"Envoyées","settings-lang":"Langue","settings-logout":"Déconnecter cet appareil","del-btn":"Supprimer mon compte","del-sure1":"Voulez-vous vraiment supprimer votre compte ?","del-sure2":"Vraiment sûr ? Cette action est irréversible.","del-yes":"Oui, continuer","del-confirm":"Oui, supprimer","del-cancel":"Annuler","chats-empty":"Aucune discussion. Ajoutez des amis.","convo-nomsgs":"Aucun message","friends-empty":"Aucun ami. Recherchez des utilisateurs ci-dessus.","online":"🟢 En ligne","offline":"⚪ Hors ligne","btn-chat":"Discuter","btn-remove":"Retirer","btn-accept":"Accepter","btn-decline":"Refuser","btn-add":"Ajouter","btn-sent":"Envoyé ✓","req-empty-in":"Aucune demande reçue.","req-empty-out":"Aucune demande envoyée.","search-empty":"Aucun utilisateur trouvé.","friends-confirm":"Retirer cet ami ?","typing":"écrit…","st-online":"En ligne","st-offline":"Hors ligne"}
 };
@@ -128,25 +128,31 @@ document.querySelectorAll("[data-setlang]").forEach(b => b.onclick = async () =>
   applyLang(b.dataset.setlang); refreshAll();
 });
 const delReset = () => { $("del-btn").classList.remove("hidden"); $("del-step1").classList.add("hidden"); $("del-step2").classList.add("hidden"); };
+function forceSignupReset() {
+  closeWS(); clearInterval(state.poll); state.poll = null;
+  state.me = null; state.convos = []; state.active = null; state.lastMsg = 0; state.wsRetry = 0;
+  document.body.classList.remove("chatting");
+  const ac = $("active-chat"), nc = $("no-chat");
+  if (ac) ac.classList.add("hidden"); if (nc) nc.classList.remove("hidden");
+  for (const id of ["setup-username","login-username","setup-password","login-password"]) { const el = $(id); if (el) el.value = ""; }
+  const se = $("setup-error"), le = $("login-error"); if (se) se.textContent = ""; if (le) le.textContent = "";
+  delReset(); switchView("chats");
+  $("setup-lang-step").classList.remove("hidden");
+  $("setup-user-step").classList.add("hidden");
+  $("setup-login-step").classList.add("hidden");
+  $("setup-overlay").classList.remove("hidden");
+  $("fab-account").classList.remove("hidden");
+  $("me-label").textContent = ""; $("me-card").innerHTML = "";
+  setConn("offline");
+}
 $("del-btn").onclick = () => { $("del-btn").classList.add("hidden"); $("del-step1").classList.remove("hidden"); };
 $("del-no1").onclick = delReset;
 $("del-yes1").onclick = () => { $("del-step1").classList.add("hidden"); $("del-step2").classList.remove("hidden"); };
 $("del-no2").onclick = delReset;
+$("reset-btn").onclick = () => { forceSignupReset(); };
 $("del-yes2").onclick = async () => {
-  try {
-    const r = await api("/api/me", { method: "DELETE" });
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
-  } catch (e) { alert(e.message); return; }
-  // drop all local session state and show the account-making screen
-  closeWS(); clearInterval(state.poll);
-  state.me = null; state.convos = []; state.active = null; state.lastMsg = 0;
-  document.body.classList.remove("chatting");
-  $("active-chat").classList.add("hidden"); $("no-chat").classList.remove("hidden");
-  $("setup-username").value = "";
-  delReset(); switchView("chats");
-  $("setup-lang-step").classList.remove("hidden");
-  $("setup-user-step").classList.add("hidden");
-  $("setup-overlay").classList.remove("hidden");
+  try { await api("/api/me", { method: "DELETE" }); } catch {}
+  forceSignupReset();
 };
 $("back-btn").onclick = () => { document.body.classList.remove("chatting"); state.active = null; closeWS(); loadConvos(); };
 
