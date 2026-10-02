@@ -6,6 +6,8 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background
 .error{color:var(--danger);font-size:.9em;min-height:1.2em}
 #topbar{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;background:var(--panel);border-bottom:1px solid var(--border)}
 #topbar strong{color:var(--green)}#me-label{margin-left:auto;color:var(--muted);font-size:.85em}
+#home-btn{color:var(--green);border:1px solid var(--green);border-radius:8px;padding:.45rem .8rem;text-decoration:none;font-size:.85em;font-weight:700;white-space:nowrap}
+#home-btn:hover{background:var(--green);color:#04120a}
 .dot{width:.7rem;height:.7rem;border-radius:50%;background:#555}.dot.online{background:var(--green)}.dot.offline{background:var(--danger)}.dot.retry{background:orange}
 #layout{display:grid;grid-template-columns:200px 300px 1fr;height:calc(100vh - 52px);height:calc(100dvh - 52px)}
 #sidebar{background:var(--panel);border-right:1px solid var(--border);padding:.8rem;display:flex;flex-direction:column;gap:.4rem}

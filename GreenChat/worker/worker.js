@@ -132,7 +132,7 @@ export default {
       await env.SHARED_KV.delete(`gc:rl:${uid}`);
       const idx = ((await kvGet(env, "gc:usernames", [])) || []).filter(x => x !== u.username);
       await kvPut(env, "gc:usernames", idx);
-      return json({ ok: true }, 200, { "Set-Cookie": "gc_session=; HttpOnly; Path=/; Max-Age=0" });
+      return json({ ok: true }, 200, { "Set-Cookie": "gc_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0" });
     }
     if (path === "/api/me" && req.method === "PATCH") {
       const b = await body();
@@ -142,7 +142,7 @@ export default {
     if (path === "/api/logout" && req.method === "POST") {
       const t = cookie(req); if (t) await env.SHARED_KV.delete(K.sess(await sha(t)));
       await markOnline(env, u, false);
-      return json({ ok: true }, 200, { "Set-Cookie": "gc_session=; HttpOnly; Path=/; Max-Age=0" });
+      return json({ ok: true }, 200, { "Set-Cookie": "gc_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0" });
     }
     if (path === "/api/users" && req.method === "GET") {
       const q = (url.searchParams.get("q") || "").toLowerCase().slice(0, 32);
