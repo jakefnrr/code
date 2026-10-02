@@ -48,7 +48,25 @@ function onLogin() {
   $("setup-overlay").classList.add("hidden");
   $("me-label").textContent = state.me.username;
   $("me-card").innerHTML = `${avatarHTML(state.me)}<div><b>${esc(state.me.username)}</b></div>`;
+  
+  // Show username display at top left
+  $("user-display").style.display = "inline";
+  $("user-display").textContent = `user ${state.me.id}`;
+  
+  // Show edit profile at bottom left
+  $("profile-edit").style.display = "inline";
+  $("profile-edit").onclick = editUsername;
+  
   switchView("chats"); refreshAll(); connectWS();
+}
+
+function editUsername() {
+  const newName = prompt("Enter your new username:"); if (!newName) return;
+  if (!/^[A-Za-z0-9_]{3,24}$/.test(newName)) { alert("Username: 3-24 chars, letters/numbers/_"); return; }
+  try { state.me = await api("/api/me", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lang: state.me.lang }) }).then(j); } catch (e) { alert(e.message); return; }
+  $("me-label").textContent = state.me.username;
+  $("me-card").innerHTML = `${avatarHTML(state.me)}<div><b>${esc(state.me.username)}</b></div>`;
+  $("user-display").textContent = `user ${state.me.id}`;
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => {
   applyLang(b.dataset.lang);
@@ -58,8 +76,8 @@ document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => {
 $("goto-login").onclick = () => { $("setup-user-step").classList.add("hidden"); $("setup-login-step").classList.remove("hidden"); };
 $("goto-create").onclick = () => { $("setup-login-step").classList.add("hidden"); $("setup-user-step").classList.remove("hidden"); };
 $("setup-btn").onclick = async () => {
-  const username = $("setup-username").value.trim(), password = $("setup-password").value;
-  try { state.me = await api("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password, lang: state.lang }) }).then(j); applyLang(state.me.lang || state.lang); onLogin(); }
+  const username = $("setup-username").value.trim();
+  try { state.me = await api("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) }).then(j); applyLang(state.me.lang || state.lang); onLogin(); }
   catch (e) { $("setup-error").textContent = e.message; }
 };
 $("login-btn").onclick = async () => {

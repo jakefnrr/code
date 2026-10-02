@@ -24,7 +24,7 @@
       <div id="setup-user-step" class="hidden">
         <p data-i18n="setup-user-p">Choose a username to get started.</p>
         <input id="setup-username" maxlength="24" autocomplete="username" data-i18n-ph="setup-user-ph" placeholder="Choose a username">
-        <input id="setup-password" type="password" maxlength="128" autocomplete="current-password" data-i18n-ph="setup-pass-ph" placeholder="Password">
+        <input id="setup-password" type="password" maxlength="128" autocomplete="current-password" data-i18n-ph="setup-pass-ph" placeholder="Password" style="display:none;">
         <div id="setup-error" class="error"></div>
         <button id="setup-btn" data-i18n="setup-btn">Create my account</button>
         <p class="have-acct"><span data-i18n="setup-have">Already have an account?</span> <button id="goto-login" class="linklike" data-i18n="setup-login-link">Login</button></p>
@@ -43,6 +43,7 @@
   <header id="topbar">
     <span id="conn-dot" class="dot offline" title="Connection status"></span>
     <strong>GreenChat</strong>
+    <span id="user-display" style="display:none; margin-left:1rem;"></span>
     <span id="me-label"></span>
     <a id="home-btn" href="../index.html" data-i18n="home-btn">ALL PROJECTS</a>
   </header>
@@ -119,6 +120,7 @@
     <button data-view="requests" class="nav-btn">🔔</button>
     <button data-view="search" class="nav-btn">🔍</button>
     <button data-view="settings" class="nav-btn">⚙️</button>
+    <span id="profile-edit" style="display:none; margin-left:1rem; color:var(--primary); cursor:pointer;">Edit profile</span>
   </nav>
   <button id="fab-account" class="hidden" data-i18n="fab-account">Make an account</button>
 </div>
