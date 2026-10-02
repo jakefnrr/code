@@ -39,6 +39,12 @@ export class ChatRoom {
 const enc = new TextEncoder();
 async function sha(s) { const b = await crypto.subtle.digest("SHA-256", enc.encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
 const rnd = (n = 32) => [...crypto.getRandomValues(new Uint8Array(n))].map(x => x.toString(16).padStart(2, "0")).join("");
+async function hashPw(pw, salt) { return salt + "$" + await sha(salt + ":" + pw); }
+async function verifyPw(pw, stored) {
+  const i = String(stored || "").indexOf("$");
+  if (i < 0) return false;
+  return (await hashPw(pw, stored.slice(0, i))) === stored;
+}
 const K = { user: id => `gc:user:${id}`, uname: n => `gc:uname:${n.toLowerCase()}`, sess: t => `gc:sess:${t}`, req: id => `gc:req:${id}`, reqs: uid => `gc:reqs:${uid}`, friends: uid => `gc:friends:${uid}`, convo: id => `gc:convo:${id}`, msgs: id => `gc:msgs:${id}`, unread: (c, u) => `gc:unread:${c}:${u}` };
 async function kvGet(env, k, fb = null) { try { const v = await env.SHARED_KV.get(k, "json"); return v ?? fb; } catch { return fb; } }
 async function kvPut(env, k, v) { await env.SHARED_KV.put(k, JSON.stringify(v)); }
@@ -70,7 +76,18 @@ export default {
 
     // Realtime socket: auth via session, DO room per user for fan-out
     if (path === "/api/ws") {
-      const u = await me(env, req);
+    if (path === "/api/login" && req.method === "POST") {
+      const b = await req.json().catch(() => ({}));
+      const ref = await kvGet(env, K.uname(String(b.username || "").trim()));
+      const usr = ref ? await kvGet(env, K.user(ref.id)) : null;
+      if (!usr || !await verifyPw(String(b.password || ""), usr.pw)) return json({ error: "Invalid username or password" }, 401);
+      const tok = rnd(32);
+      await kvPut(env, K.sess(await sha(tok)), { uid: usr.id, created: Date.now() });
+      await markOnline(env, usr, true);
+      return json(pub(usr), 200, { "Set-Cookie": `gc_session=${tok}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=31536000` });
+    }
+
+    const u = await me(env, req);
       if (!u) return new Response("unauthorized", { status: 401 });
       await markOnline(env, u, true);
       const id = env.CHAT_ROOM.idFromName("global");
@@ -82,10 +99,12 @@ export default {
       const b = await req.json().catch(() => ({}));
       const username = String(b.username || "").trim();
       if (!/^[A-Za-z0-9_]{3,24}$/.test(username)) return json({ error: "Username: 3-24 chars, letters/numbers/_" }, 400);
+      const password = String(b.password || "");
+      if (password.length < 4 || password.length > 128) return json({ error: "Password: at least 4 characters" }, 400);
       if (await kvGet(env, K.uname(username))) return json({ error: "Username taken" }, 409);
       const id = rnd(16);
       const lang = LANGS.includes(b.lang) ? b.lang : "en";
-      const u = { id, username, lang, created: Date.now(), online: true, lastSeen: Date.now() };
+      const u = { id, username, lang, pw: await hashPw(password, rnd(8)), created: Date.now(), online: true, lastSeen: Date.now() };
       const tok = rnd(32);
       await kvPut(env, K.user(id), u); await kvPut(env, K.uname(username), { id });
       await kvPut(env, K.sess(await sha(tok)), { uid: id, created: Date.now() });

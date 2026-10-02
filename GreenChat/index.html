@@ -23,9 +23,19 @@
       </div>
       <div id="setup-user-step" class="hidden">
         <p data-i18n="setup-user-p">Choose a username to get started.</p>
-        <input id="setup-username" maxlength="24" autocomplete="off" data-i18n-ph="setup-user-ph" placeholder="Choose a username">
+        <input id="setup-username" maxlength="24" autocomplete="username" data-i18n-ph="setup-user-ph" placeholder="Choose a username">
+        <input id="setup-password" type="password" maxlength="128" autocomplete="current-password" data-i18n-ph="setup-pass-ph" placeholder="Password">
         <div id="setup-error" class="error"></div>
         <button id="setup-btn" data-i18n="setup-btn">Create my account</button>
+        <p class="have-acct"><span data-i18n="setup-have">Already have an account?</span> <button id="goto-login" class="linklike" data-i18n="setup-login-link">Login</button></p>
+      </div>
+      <div id="setup-login-step" class="hidden">
+        <h2 data-i18n="login-title">Log in</h2>
+        <input id="login-username" maxlength="24" autocomplete="username" data-i18n-ph="setup-user-ph" placeholder="Choose a username">
+        <input id="login-password" type="password" maxlength="128" autocomplete="current-password" data-i18n-ph="setup-pass-ph" placeholder="Password">
+        <div id="login-error" class="error"></div>
+        <button id="login-btn" data-i18n="setup-login-btn">Login</button>
+        <p class="have-acct"><button id="goto-create" class="linklike" data-i18n="setup-back-create">Back to create account</button></p>
       </div>
     </div>
   </div>
@@ -34,7 +44,7 @@
     <span id="conn-dot" class="dot offline" title="Connection status"></span>
     <strong>GreenChat</strong>
     <span id="me-label"></span>
-    <a id="home-btn" href="../" data-i18n="home-btn">All Projects</a>
+    <button id="home-btn" data-i18n="home-btn" onclick="location.href='../'">All Projects</button>
   </header>
 
   <!-- Desktop: 3 columns. Mobile: one panel at a time -->
@@ -110,6 +120,7 @@
     <button data-view="search" class="nav-btn">🔍</button>
     <button data-view="settings" class="nav-btn">⚙️</button>
   </nav>
+  <button id="fab-account" class="hidden" data-i18n="fab-account">Make an account</button>
 </div>
 <script src="config.js"></script>
 <script src="app.js"></script>
