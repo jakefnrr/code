@@ -1,1 +1,0 @@
-export const emptyDash="No signal — forge a file to ignite the grid."

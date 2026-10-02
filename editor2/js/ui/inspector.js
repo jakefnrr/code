@@ -1,1 +1,0 @@
-import {stats} from "../../js/project/stats.js";export function renderInspector(el,fs,active,errors){const s=stats(fs.all());el.innerHTML=`<h3>INSPECTOR</h3><p>Active: ${active||"—"}</p><p>Files ${s.files} · Dirs ${s.dirs}</p><h3>DIAGNOSTICS</h3><pre>${(errors||[]).join("\n")||"No anomalies"}</pre><h3>HEX ACTIONS</h3><button id="iFmt">Format</button>`}

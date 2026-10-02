@@ -1,1 +1,0 @@
-import {store} from "../util/storage.js";export const state={ws:"/default",settings:store.get("settings",{theme:"neon",font:13,wrap:true,tab:2,auto:true}),docs:[],active:null};export function saveSettings(){store.set("settings",state.settings)}

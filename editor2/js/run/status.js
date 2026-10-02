@@ -1,1 +1,0 @@
-export const rs={s:"idle",set(x){this.s=x}}

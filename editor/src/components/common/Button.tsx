@@ -1,1 +1,0 @@
-export function Btn({children,onClick}:{children:any;onClick?:()=>void}){return <button onClick={onClick} style={{background:'#7c5cff',color:'#fff',border:0,borderRadius:8,padding:'6px 12px',cursor:'pointer'}}>{children}</button>}

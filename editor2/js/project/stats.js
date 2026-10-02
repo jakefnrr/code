@@ -1,1 +1,0 @@
-export function stats(files){const f=files.filter(x=>x.type==="file");const bytes=f.reduce((a,b)=>a+String(b.content||"").length,0);const langs={};f.forEach(x=>{const e=(x.path.split(".").pop()||"").toLowerCase();langs[e]=(langs[e]||0)+1});return {files:f.length,dirs:files.length-f.length,bytes,langs}}

@@ -1,1 +1,0 @@
-import {state,saveSettings} from "../state/store.js";let t;export function scheduleSave(fn){if(!state.settings.auto)return;clearTimeout(t);t=setTimeout(fn,800)}

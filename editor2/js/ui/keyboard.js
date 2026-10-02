@@ -1,1 +1,0 @@
-export function bindKeys(map){document.addEventListener("keydown",e=>{const k=e.key;if(map[k])map[k]()})}

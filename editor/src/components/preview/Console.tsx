@@ -1,1 +1,0 @@
-export function PreviewConsole({logs}:{logs:string[]}){return <div style={{background:'#000',color:'#0f0',fontFamily:'monospace',fontSize:12,padding:8,maxHeight:120,overflow:'auto'}}>{logs.map((l,i)=><div key={i}>{l}</div>)}</div>}

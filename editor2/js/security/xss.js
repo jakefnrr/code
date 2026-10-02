@@ -1,1 +1,0 @@
-export function safeHTML(s){return s.replace(/</g,"&lt;")}

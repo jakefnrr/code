@@ -1,1 +1,0 @@
-export function renderDockTabs(el,tabs,cur,set){el.innerHTML="";tabs.forEach(t=>{const b=document.createElement("button");b.textContent=t.label;b.className=cur===t.id?"on":"";b.onclick=()=>set(t.id);el.appendChild(b)})}

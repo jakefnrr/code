@@ -1,1 +1,0 @@
-@media(max-width:900px){#shell{grid-template-columns:52px 1fr;}#deck,#inspector{display:none}#deck.open,#inspector.open{display:block;position:fixed;top:60px;bottom:180px;z-index:20;width:80vw}}

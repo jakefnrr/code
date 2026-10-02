@@ -1,1 +1,0 @@
-export function multiEdit(s,edits){let o=s;edits.forEach(([a,b])=>{o=o.replace(a,b)});return o}

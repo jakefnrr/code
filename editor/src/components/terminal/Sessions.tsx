@@ -1,1 +1,0 @@
-export function Sessions({names,active,onSel,onNew}:{names:string[];active:string;onSel:(s:string)=>void;onNew:()=>void}){return <div style={{display:'flex',gap:4}}>{names.map(n=><button key={n} onClick={()=>onSel(n)} style={{background:n===active?'#7c5cff':'#222',color:'#fff',border:0,borderRadius:6,padding:'2px 8px'}}>{n}</button>)}<button onClick={onNew}>+</button></div>}

@@ -1,1 +1,0 @@
-import {store} from "../util/storage.js";let r=store.get("recentFiles",[]);export const recent={touch(p){r=[p,...r.filter(x=>x!==p)].slice(0,12);store.set("recentFiles",r);return r},list:()=>r}

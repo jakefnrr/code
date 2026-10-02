@@ -1,1 +1,0 @@
-let h=[];export const shist={add(q){h=[q,...h.filter(x=>x!==q)].slice(0,20)},list:()=>h}

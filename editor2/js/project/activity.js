@@ -1,1 +1,0 @@
-const log=[];export const activity={push(a){log.unshift({t:Date.now(),...a});return log.slice(0,30)},list(){return log.slice(0,30)}}

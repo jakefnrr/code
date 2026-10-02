@@ -1,1 +1,0 @@
-export const langMap={html:"html",css:"css",js:"javascript",ts:"typescript",json:"json",py:"python",md:"markdown",xml:"xml",yml:"yaml",yaml:"yaml",sh:"shell",sql:"sql",java:"java",c:"c",cpp:"cpp",cs:"csharp",php:"php"};export function langOf(p){return langMap[(p.split(".").pop()||"").toLowerCase()]||"plaintext"}

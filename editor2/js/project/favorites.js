@@ -1,1 +1,0 @@
-import {store} from "../util/storage.js";let f=store.get("fav",[]);export const favs={list:()=>f,toggle(p){f=f.includes(p)?f.filter(x=>x!==p):[...f,p];store.set("fav",f);return f},has:p=>f.includes(p)}

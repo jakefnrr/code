@@ -1,2 +1,0 @@
-import type {FileNode} from '../types';
-export const seedFiles:FileNode[]=[{id:'/readme',name:'README.md',path:'/README.md',kind:'file',content:'# Strata Workbench\nWelcome! Open index.html then press Preview.',lang:'markdown'},{id:'/web',name:'web',path:'/web',kind:'folder',children:[{id:'/web/index',name:'index.html',path:'/web/index.html',kind:'file',content:'<h1>Hello Strata</h1><style>h1{color:#7c5cff}</style>',lang:'html'},{id:'/web/app',name:'app.js',path:'/web/app.js',kind:'file',content:'console.log("hi")',lang:'javascript'}]}];

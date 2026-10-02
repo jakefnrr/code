@@ -1,1 +1,0 @@
-export const monacoOpts=(s:any)=>({fontSize:s.fontSize??14,tabSize:s.tabSize??2,wordWrap:(s.wordWrap?'on':'off') as any,minimap:{enabled:!!s.minimap},automaticLayout:true,bracketPairColorization:{enabled:true}});

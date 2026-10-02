@@ -1,1 +1,0 @@
-export function readUpload(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsText(file)})}

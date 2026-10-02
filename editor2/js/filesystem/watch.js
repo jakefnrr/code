@@ -1,1 +1,0 @@
-export function watch(fs,cb){return {close(){}}}

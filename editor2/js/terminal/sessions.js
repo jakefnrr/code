@@ -1,1 +1,0 @@
-import {uid} from "../util/id.js";export function createSessions(){const s=[{id:uid(),name:"grid-1",hist:[],cwd:"/"}];return {list:s,add(){const n={id:uid(),name:"grid-"+(s.length+1),hist:[],cwd:"/"};s.push(n);return n}}}

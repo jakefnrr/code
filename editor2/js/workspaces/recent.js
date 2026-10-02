@@ -1,1 +1,0 @@
-export const wrecent={l:[],touch(w){this.l=[w,...this.l.filter(x=>x!==w)].slice(0,8)}}

@@ -1,1 +1,0 @@
-export const abyss={name:"abyss",apply(){document.body.dataset.theme="abyss";document.documentElement.style.setProperty("--neon","#4d7cff")}}

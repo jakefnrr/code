@@ -1,1 +1,0 @@
-export function toRegExp(q:string,o:{regex:boolean;caseSensitive:boolean;wholeWord:boolean}){let s=o.regex?q:q.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');if(o.wholeWord)s='\\b'+s+'\\b';return new RegExp(s,o.caseSensitive?'g':'gi')}

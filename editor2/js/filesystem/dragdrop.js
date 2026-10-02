@@ -1,1 +1,0 @@
-export function dropPaths(dt){return [...(dt.files||[])].map(f=>f.name)}

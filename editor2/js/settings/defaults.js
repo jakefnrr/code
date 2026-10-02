@@ -1,1 +1,0 @@
-export const defaults={font:13,tab:2,wrap:true,auto:true,theme:"neon"}

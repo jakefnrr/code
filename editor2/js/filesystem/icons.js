@@ -1,1 +1,0 @@
-export function iconFor(name,type){if(type==="dir")return "◈";const e=name.split(".").pop().toLowerCase();return {html:"⬢",css:"⬣",js:"⬥",ts:"⬥",json:"⬔",py:"⬓",md:"⬒",sql:"⬕",sh:"⬖",java:"⬘",c:"⬙",cpp:"⬙",php:"⬗",xml:"⬆",yml:"⬆",yaml:"⬆"}[e]||"▤"}

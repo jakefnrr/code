@@ -1,1 +1,0 @@
-const cmds=[];export const registry={add(id,title,run){cmds.push({id,title,run})},list:()=>cmds,find:q=>cmds.filter(c=>c.title.toLowerCase().includes(q.toLowerCase()))}

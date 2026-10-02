@@ -1,1 +1,0 @@
-export function sandboxHTML(inner){return inner}

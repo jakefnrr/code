@@ -1,1 +1,0 @@
-# Strata Workbench\nOriginal browser IDE.\n\nRun: npm install && npm run dev\nBuild: npm run build\nTest: npm run test\n

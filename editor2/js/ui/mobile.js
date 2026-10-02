@@ -1,1 +1,0 @@
-export function initMobile(){const d=document.getElementById("deck"),i=document.getElementById("inspector");window.pulsarNav=w=>{if(w==="files")d.classList.toggle("open");if(w==="inspect")i.classList.toggle("open")}}

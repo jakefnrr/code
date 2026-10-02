@@ -1,1 +1,0 @@
-export function StatusBar({file,dirty}:{file:string|null;dirty:boolean}){return <div style={{display:'flex',justifyContent:'space-between',padding:'4px 12px',background:'#10142a',fontSize:12}}><span>{file??'No file'}{dirty?' • unsaved':''}</span><span>Strata Workbench • browser sandbox</span></div>}

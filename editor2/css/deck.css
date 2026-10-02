@@ -1,1 +1,0 @@
-#deck{background:var(--glass);border-right:1px solid var(--line);overflow:auto;padding:12px}.ftree .node{padding:6px 8px;border-radius:8px;cursor:pointer;display:flex;gap:8px}#deck .node:hover{background:rgba(0,240,255,.08)}.node.sel{background:rgba(181,55,242,.18);box-shadow:inset 0 0 0 1px var(--neon2)}

@@ -1,1 +1,0 @@
-export function overview(fs){return {count:fs.all().length}}

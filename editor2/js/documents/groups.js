@@ -1,1 +1,0 @@
-export function groups(docs){return {pinned:docs.filter(d=>d.pinned),open:docs.filter(d=>!d.pinned)}}
