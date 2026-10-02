@@ -48,8 +48,8 @@ async function verifyPw(pw, stored) {
 const K = { user: id => `gc:user:${id}`, uname: n => `gc:uname:${n.toLowerCase()}`, sess: t => `gc:sess:${t}`, req: id => `gc:req:${id}`, reqs: uid => `gc:reqs:${uid}`, friends: uid => `gc:friends:${uid}`, convo: id => `gc:convo:${id}`, msgs: id => `gc:msgs:${id}`, unread: (c, u) => `gc:unread:${c}:${u}` };
 async function kvGet(env, k, fb = null) { try { const v = await env.SHARED_KV.get(k, "json"); return v ?? fb; } catch { return fb; } }
 async function kvPut(env, k, v) { await env.SHARED_KV.put(k, JSON.stringify(v)); }
-const json = (d, s = 200, extra = {}) => new Response(JSON.stringify(d), { status: s, headers: { "Content-Type": "application/json", ...cors(), ...extra } });
-function cors() { return { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Credentials": "true" }; }
+const json = (d, s = 200, extra = {}, req) => new Response(JSON.stringify(d), { status: s, headers: { "Content-Type": "application/json", ...(cors(req) || {}), ...extra } });
+function cors(req) { const o = req && req.headers ? req.headers.get("Origin") || "*" : "*"; return { "Access-Control-Allow-Origin": o || "*", "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Credentials": "true" }; }
 function cookie(req) { const h = req.headers.get("Cookie") || ""; const m = h.match(/gc_session=([a-f0-9]+)/); return m ? m[1] : null; }
 async function me(env, req) { const t = cookie(req); if (!t) return null; const s = await kvGet(env, K.sess(await sha(t))); if (!s) return null; return kvGet(env, K.user(s.uid)); }
 async function saveMessage(env, convoId, from, text) {
@@ -70,7 +70,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const path = url.pathname;
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors() });
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
     const needKV = ["/api/register", "/api/me", "/api/convos", "/api/friends", "/api/requests", "/api/users", "/api/logout", "/api/ws"];
     if (needKV.some(p => path.startsWith(p)) && !env.SHARED_KV) return json({ error: "SHARED_KV not bound" }, 501);
 

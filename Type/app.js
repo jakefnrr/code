@@ -526,6 +526,17 @@ window.addEventListener("keydown", function (e) {
   } else if (document.activeElement !== inputArea && !inputArea.disabled) {
     e.preventDefault();
     inputArea.focus();
+  } else if (phase === "race" && !isDone && startTime !== null && typed.length < target.length) {
+    let pos = typed.length;
+    let nextSpace = target.indexOf(" ", pos);
+    if (nextSpace === -1) {
+      typed = target;
+    } else {
+      typed = target.slice(0, nextSpace + 1);
+    }
+    repaint();
+    updateStats();
+    e.preventDefault();
   }
 });
 
