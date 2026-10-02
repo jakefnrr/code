@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GreenChat</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h1>GreenChat</h1>
+        <a class="all-projects" href="../index.html">ALL PROJECTS</a>
+    </header>
+    <main>
+        <section class="friends">
+            <h2>Friends</h2>
+            <ul id="friendList"></ul>
+            <input type="text" id="newFriend" placeholder="Add friend by name" />
+            <button id="addFriendBtn">Add Friend</button>
+        </section>
+        <section class="chat">
+            <h2 id="chatWith">Select a friend</h2>
+            <div id="messages" class="messages"></div>
+            <form id="msgForm">
+                <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off" />
+                <button type="submit">Send</button>
+            </form>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
