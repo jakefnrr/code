@@ -70,6 +70,18 @@
           <button data-setlang="fr">Français</button>
         </div>
         <button id="set-logout" data-i18n="settings-logout">Log out this device</button>
+        <hr class="sep">
+        <div id="del-zone">
+          <button id="del-btn" class="danger" data-i18n="del-btn">Delete my account</button>
+          <div id="del-step1" class="hidden">
+            <p data-i18n="del-sure1">Are you sure you want to delete your account?</p>
+            <div class="lang-pick"><button id="del-yes1" data-i18n="del-yes">Yes, continue</button><button id="del-no1" data-i18n="del-cancel">Cancel</button></div>
+          </div>
+          <div id="del-step2" class="hidden">
+            <p data-i18n="del-sure2">Are you really sure? This cannot be undone.</p>
+            <div class="lang-pick"><button id="del-yes2" class="danger" data-i18n="del-confirm">Yes, delete it</button><button id="del-no2" data-i18n="del-cancel">Cancel</button></div>
+          </div>
+        </div>
         <p class="muted">Backend: <span id="backend-url"></span></p>
       </div>
     </section>

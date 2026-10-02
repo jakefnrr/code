@@ -100,6 +100,40 @@ export default {
     const body = async () => { try { return await req.json(); } catch { return {}; } };
 
     if (path === "/api/me" && req.method === "GET") return json(pub(u));
+    if (path === "/api/me" && req.method === "DELETE") {
+      const uid = u.id;
+      const friends = (await kvGet(env, K.friends(uid), [])) || [];
+      for (const fid of friends) {
+        // remove me from their list + delete our shared DM
+        const fl = ((await kvGet(env, K.friends(fid), [])) || []).filter(x => x !== uid);
+        await kvPut(env, K.friends(fid), fl);
+        const cid = "dm_" + [uid, fid].sort().join("_");
+        await env.SHARED_KV.delete(K.convo(cid));
+        await env.SHARED_KV.delete(K.msgs(cid));
+        await env.SHARED_KV.delete(K.unread(cid, uid));
+        await env.SHARED_KV.delete(K.unread(cid, fid));
+      }
+      // delete requests involving me
+      const rids = (await kvGet(env, K.reqs(uid), [])) || [];
+      for (const rid of rids) {
+        const r = await kvGet(env, K.req(rid));
+        if (r) {
+          const other = r.from === uid ? r.to : r.from;
+          const ol = ((await kvGet(env, K.reqs(other), [])) || []).filter(x => x !== rid);
+          await kvPut(env, K.reqs(other), ol);
+          await env.SHARED_KV.delete(K.req(rid));
+        }
+      }
+      const t = cookie(req); if (t) await env.SHARED_KV.delete(K.sess(await sha(t)));
+      await env.SHARED_KV.delete(K.user(uid));
+      await env.SHARED_KV.delete(K.uname(u.username));
+      await env.SHARED_KV.delete(K.friends(uid));
+      await env.SHARED_KV.delete(K.reqs(uid));
+      await env.SHARED_KV.delete(`gc:rl:${uid}`);
+      const idx = ((await kvGet(env, "gc:usernames", [])) || []).filter(x => x !== u.username);
+      await kvPut(env, "gc:usernames", idx);
+      return json({ ok: true }, 200, { "Set-Cookie": "gc_session=; HttpOnly; Path=/; Max-Age=0" });
+    }
     if (path === "/api/me" && req.method === "PATCH") {
       const b = await body();
       if (LANGS.includes(b.lang)) { u.lang = b.lang; await kvPut(env, K.user(u.id), u); }
