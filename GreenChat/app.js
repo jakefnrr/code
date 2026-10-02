@@ -27,7 +27,6 @@ function avatarHTML(u) { const t = esc((u.username || "?")).trim()[0] || "?"; re
 function fmtTs(t) { return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
 
 async function boot() {
-  $("backend-url").textContent = API || "(same origin)";
   try {
     state.me = await api("/api/me").then(j);
   } catch { state.me = null; }
