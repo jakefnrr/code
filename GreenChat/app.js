@@ -57,6 +57,9 @@ function onLogin() {
   $("profile-edit").style.display = "inline";
   $("profile-edit").onclick = editUsername;
   
+  // Update settings username display
+  $("settings-username-display").textContent = `Username: ${state.me.username}`;
+  
   switchView("chats"); refreshAll(); connectWS();
 }
 
@@ -147,7 +150,6 @@ document.querySelectorAll("[data-setlang]").forEach(b => b.onclick = async () =>
 });
 const delReset = () => { $("del-btn").classList.remove("hidden"); $("del-step1").classList.add("hidden"); $("del-step2").classList.add("hidden"); };
 function forceSignupReset() {
-  closeWS(); clearInterval(state.poll); state.poll = null;
   state.me = null; state.convos = []; state.active = null; state.lastMsg = 0; state.wsRetry = 0;
   document.body.classList.remove("chatting");
   const ac = $("active-chat"), nc = $("no-chat");
@@ -167,7 +169,6 @@ $("del-btn").onclick = () => { $("del-btn").classList.add("hidden"); $("del-step
 $("del-no1").onclick = delReset;
 $("del-yes1").onclick = () => { $("del-step1").classList.add("hidden"); $("del-step2").classList.remove("hidden"); };
 $("del-no2").onclick = delReset;
-$("reset-btn").onclick = () => { forceSignupReset(); };
 $("del-yes2").onclick = async () => {
   try { await api("/api/me", { method: "DELETE" }); } catch {}
   forceSignupReset();
