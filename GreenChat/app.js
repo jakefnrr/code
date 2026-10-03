@@ -37,9 +37,11 @@ async function boot() {
     $("setup-login-step").classList.add("hidden");
     $("setup-overlay").classList.remove("hidden");
     $("fab-account").classList.remove("hidden");
+    $("bottom-left-account").classList.remove("hidden");
     return;
   }
   $("fab-account").classList.add("hidden");
+  $("bottom-left-account").classList.add("hidden");
   applyLang(state.me.lang || "en");
   onLogin();
 }
@@ -94,10 +96,16 @@ $("fab-account").onclick = () => {
   $("setup-login-step").classList.add("hidden");
   $("setup-overlay").classList.remove("hidden");
 };
+$("bottom-left-account").onclick = () => {
+  $("setup-lang-step").classList.remove("hidden");
+  $("setup-user-step").classList.add("hidden");
+  $("setup-login-step").classList.add("hidden");
+  $("setup-overlay").classList.remove("hidden");
+};
 
 function switchView(v) {
   document.querySelectorAll("#sidebar .nav-btn,#bottomnav .nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === v));
-  ["chats", "friends", "requests", "search", "settings"].forEach(x => $("view-" + x).classList.toggle("hidden", x !== v));
+  ["chats", "friends", "requests", "search", "settings"].forEach(x => { const el = $("view-" + x); if (el) el.classList.toggle("hidden", x !== v); });
   document.body.classList.remove("chatting");
 }
 document.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => { switchView(b.dataset.view); if (b.dataset.view === "requests") loadRequests(); if (b.dataset.view === "chats") loadConvos(); });
