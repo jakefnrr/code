@@ -18,6 +18,129 @@
             background: #080808;
             color: white;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* BIRTHDAY BUTTON */
+        #birthday-button {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+
+            width: 200px;
+            height: 200px;
+
+            background: linear-gradient(135deg, #ff6b6b, #5f27cd);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            box-shadow:
+                0 0 30px rgba(255, 107, 107, 0.5),
+                0 0 60px rgba(95, 39, 205, 0.5);
+
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        #birthday-button:hover {
+            transform: translateX(-50%) scale(1.15);
+            box-shadow:
+                0 0 40px rgba(255, 107, 107, 0.7),
+                0 0 80px rgba(95, 39, 205, 0.7);
+        }
+
+        /* BIRTHDAY OVERLAY */
+        #birthday-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 20%, #ff6b6b 0%, #080808 50%),
+                radial-gradient(circle at 80% 80%, #5f27cd 0%, #080808 50%),
+                radial-gradient(circle at 60% 40%, #ffd93d 0%, #080808 50%);
+            z-index: 9997;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #birthday-overlay.active {
+            display: flex;
+        }
+
+        .birthday-text {
+            font-size: 64px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ff6b6b;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .balloon {
+            width: 40px;
+            height: 70px;
+            background: #ff6b6b;
+            border-radius: 50% 50% 30px 30px;
+            margin: 5px;
+            position: relative;
+            animation: float-up 3s infinite;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .balloon::after {
+            content: "";
+            width: 10px;
+            height: 20px;
+            background: #fff;
+            border-radius: 2px;
+            position: absolute;
+            top: 5px;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: randomColor();
+            left: randomLeft();
+            animation: confetti-fall 3s forwards;
+            z-index: 9998;
+        }
+
+        @keyframes confetti-fall {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
         }
 
         /* TOP BAR */
@@ -512,6 +635,10 @@
 
 <body>
 
+    <div id="birthday-button" onclick="showBirthday()">
+        HAPPY BIRTHDAY DADDY 🎂
+    </div>
+
     <!-- HEADER -->
     <header>
 
@@ -576,6 +703,11 @@
                 Money
             </a>
 
+            <!-- ALL PROJECTS BUTTON -->
+            <a id="all-projects-button" href="/" style="margin-left: 20px; padding: 7px 14px; background: #111; color: #ccc; border: 1px solid #333; border-radius: 8px; font-size: 14px; font-weight: bold; text-decoration: none; transition: 0.2s;" data-i18n="all-projects">
+                ALL PROJECTS
+            </a>
+
             <!-- JAPANESE PAGE BUTTON -->
             <a id="language-button" href="Japanese/index.html">
                 Japanese
@@ -594,6 +726,12 @@
 
     </header>
 
+
+    <!-- BIRTHDAY OVERLAY -->
+    <div id="birthday-overlay">
+        <div class="birthday-text">HAPPY BIRTHDAY!</div>
+        <div id="balloons"></div>
+    </div>
 
     <!-- THE LINE ACROSS THE SCREEN WITH THE TABS -->
     <div class="tab-bar">
@@ -804,6 +942,61 @@
                     href="GreenChat/index.html"
                 >
                     OPEN GREENCHAT
+                </a>
+
+            </div>
+
+
+            <!-- CHAT -->
+            <div class="project">
+
+                <div>
+
+                    <div class="project-number">
+                        PROJECT 10
+                    </div>
+
+                    <h2 data-i18n="chat-title">Chat</h2>
+
+                    <p data-i18n="chat-desc">A modern web chat application</p>
+
+                </div>
+
+                <a
+                    class="project-button"
+                    href="Chat/index.html"
+                    data-i18n="chat-btn"
+                >
+                    OPEN CHAT
+                </a>
+
+            </div>
+
+
+            <!-- BLUECHAT -->
+            <div class="project">
+
+                <div>
+
+                    <div class="project-number">
+                        PROJECT 10
+                    </div>
+
+                    <h2>
+                        BlueChat
+                    </h2>
+
+                    <p>
+                        Real-time blue-themed chat.
+                    </p>
+
+                </div>
+
+                <a
+                    class="project-button"
+                    href="Chat/index.html"
+                >
+                    OPEN BLUECHAT
                 </a>
 
             </div>
@@ -1042,6 +1235,9 @@
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "A neon-themed chat app to connect with friends",
                 "neonchat-btn": "OPEN NEONCHAT",
+                "chat-title": "Chat",
+                "chat-desc": "A modern web chat application",
+                "chat-btn": "OPEN CHAT",
                 footer: "My Coding Project Collection",
                 "enter-placeholder": "Enter code",
                 "enter-btn": "ENTER",
@@ -1130,6 +1326,9 @@
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Une application de chat à thème néon pour discuter avec tes amis",
                 "neonchat-btn": "OUVRIR NEONCHAT",
+                "chat-title": "Chat",
+                "chat-desc": "Une application web de chat moderne",
+                "chat-btn": "OUVRIR CHAT",
                 footer: "Ma collection de projets de programmation",
                 "enter-placeholder": "Entrer le code",
                 "enter-btn": "ENTRER",
@@ -1174,6 +1373,9 @@
                 "neonchat-title": "NeonChat",
                 "neonchat-desc": "Una aplicación de chat con temática neón para conectarte con amigos",
                 "neonchat-btn": "ABRIR NEONCHAT",
+                "chat-title": "Chat",
+                "chat-desc": "Una aplicación web de chat moderna",
+                "chat-btn": "OUVRIR CHAT",
                 footer: "Mi colección de proyectos de programación",
                 "enter-placeholder": "Ingresar código",
                 "enter-btn": "ENTRAR",
@@ -1217,7 +1419,10 @@
 
                 "neonchat-title": "ネオンチャット",
                 "neonchat-desc": "友達とチャットできるネオンテーマのアプリ",
-                "neonchat-btn": "ネオンチャットを開く",
+"neonchat-btn": "ネオンチャットを開く",
+                "chat-title": "Chat",
+                "chat-desc": "モダンなウェブチャットアプリケーション",
+                "chat-btn": "OPEN CHAT",
                 footer: "私のコーディングプロジェクト集",
                 "enter-placeholder": "コードを入力",
                 "enter-btn": "入力",
@@ -1253,21 +1458,26 @@
                 "siam-desc": "关于 Siam Smart Home 的信息。",
                 "siam-btn": "打开 Siam Smart Home",
                 "zoo-title": "动物园",
-                "zoo-desc": "动物园的照片和有趣的动物小知识。",
+                "zoo-desc": "动物园的照片と楽しい動物の豆知識。",
                 "zoo-btn": "打开动物园",
                 "type-title": "打字速度测试",
-                "type-desc": "测试您的打字速度和准确度。",
-                "type-btn": "打开打字测试",
+                "type-desc": "测试您の打字速度と准確度。",
+                "type-btn": "打開打字テスト",
 
                 "neonchat-title": "霓虹聊天",
-                "neonchat-desc": "一个霓虹主题的聊天应用，与朋友保持联系",
-                "neonchat-btn": "打开霓虹聊天",
+                "neonchat-desc": "一个霓虹主题的聊天应用，與朋友保持聯繫",
+                "neonchat-btn": "打開霓虹聊天",
+                "chat-title": "Chat",
+                "chat-desc": "现代网络聊天应用",
+                "chat-btn": "OPEN CHAT",
                 footer: "我的编程项目集",
                 "enter-placeholder": "输入密码",
                 "enter-btn": "确认",
                 "normal-btn": "返回普通模式",
                 "mode-message": "进入 Jake 模式"
             }
+
+        };
 
         };
 
@@ -1558,6 +1768,62 @@
 
         normalModeButton.addEventListener("click", exitJakeMode);
 
+        // ==========================================
+        // BIRTHDAY MODE
+        // ==========================================
+
+        function showBirthday() {
+            const overlay = document.getElementById("birthday-overlay");
+            overlay.classList.add("active");
+
+            // Create balloons
+            const balloonsContainer = document.getElementById("balloons");
+            const colors = ["#ff6b6b", "#5f27cd", "#ffd93d", "#4ecdc4", "#ffe66d"];
+
+            for (let i = 0; i < 50; i++) {
+                const balloon = document.createElement("div");
+                balloon.className = "balloon";
+                balloon.style.left = Math.random() * 100 + "%";
+                balloon.style.background = colors[Math.floor(Math.random() * colors.length)];
+                balloon.style.animationDuration = (3 + Math.random() * 2) + "s";
+                balloon.style.animationDelay = (Math.random() * 5) + "s";
+                const ribbonCount = Math.floor(Math.random() * 3) + 1;
+                for (let j = 0; j < ribbonCount; j++) {
+                    const ribbon = document.createElement("div");
+                    ribbon.style.width = "2px";
+                    ribbon.style.height = "15px";
+                    ribbon.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    ribbon.style.margin = "2px 0";
+                    ribbon.style.position = "absolute";
+                    ribbon.style.left = "50%";
+                    ribbon.style.transform = "translateX(-50%)";
+                    balloon.appendChild(ribbon);
+                }
+                balloonsContainer.appendChild(balloon);
+            }
+
+            // Confetti
+            setTimeout(createConfetti, 500);
+        }
+
+        function createConfetti() {
+            const colors = ["#ff6b6b", "#5f27cd", "#ffd93d", "#4ecdc4", "#ffe66d"];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + "%";
+                confetti.style.animationDuration = (Math.random() * 2 + 1) + "s";
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+            setTimeout(hideOverlay, 3500);
+        }
+
+        function hideOverlay() {
+            document.getElementById("birthday-overlay").classList.remove("active");
+            document.getElementById("balloons").innerHTML = "";
+        }
 
         // ==========================================
         // START UP
