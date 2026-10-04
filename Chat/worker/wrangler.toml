@@ -1,0 +1,3 @@
+name = "chat-api"
+kv_bindings = [{ binding = "SHARED_KV", id = "d726fc2081e044f7b7ed1bc7b9b9d543" }]
+routes = [{ pattern = "/api/*" }]
