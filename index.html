@@ -126,6 +126,7 @@ h1 span{color:#4cff93}
 .section{
     width:min(1250px,100%);
     margin:auto;
+    padding-top:5px;
 }
 .label{
     display:flex;
@@ -135,7 +136,7 @@ h1 span{color:#4cff93}
     font-size:10px;
     font-weight:800;
     letter-spacing:2.5px;
-    margin-bottom:15px;
+    margin-bottom:5px;
 }
 .label:after{
     content:"";
@@ -393,6 +394,7 @@ footer{
    main.py
    ========================================================= */
 const projects = [
+    ["Arcade","Arcade/index.html","🎮"],
     ["Grind Hub","GrindHub/index.html","⚡"],
     ["Japanese","Japanese/index.html","日"],
     ["Massage","Massage/index.html","✦"],
@@ -400,7 +402,8 @@ const projects = [
     ["Notes","Notes/","✎"],
     ["Siam Smart Home","SiamSmartHome/","⌂"],
     ["Type","Type/","T"],
-    ["Zoo","Zoo/","◈"]
+    ["Zoo","Zoo/","◈"],
+    ["App Maker","appmaker.html","✦"]
 ];
 
 const projectsEl = document.getElementById("projects");
