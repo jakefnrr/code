@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jake's Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#020806;color:#eafff1}
+body{overflow-x:hidden}
+
+/* Full-screen silent animated background */
+#bg{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    pointer-events:none;
+}
+.overlay{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 42%,rgba(30,255,120,.08),transparent 35%),
+      radial-gradient(circle at 10% 90%,rgba(0,255,130,.07),transparent 28%),
+      linear-gradient(180deg,rgba(0,8,4,.35),rgba(0,0,0,.72));
+}
+.scanlines{
+    position:fixed;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    opacity:.045;
+    background:repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      #8affb2 4px
+    );
+}
+
+.app{
+    position:relative;
+    z-index:3;
+    min-height:100vh;
+    padding:25px 30px 80px;
+}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+.corner-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    text-decoration:none;
+    color:#dffff0;
+    background:rgba(3,25,13,.58);
+    border:1px solid rgba(67,255,143,.42);
+    border-radius:13px;
+    padding:13px 17px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    backdrop-filter:blur(12px);
+    box-shadow:0 0 18px rgba(39,255,126,.09);
+    transition:.22s ease;
+}
+.corner-btn:hover{
+    color:#001b0b;
+    background:#45ff90;
+    border-color:#aaffc9;
+    box-shadow:0 0 15px #45ff90,0 0 45px rgba(69,255,144,.35);
+    transform:translateY(-2px) scale(1.025);
+}
+
+.hero{
+    text-align:center;
+    max-width:1050px;
+    margin:60px auto 42px;
+}
+.live{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border:1px solid rgba(69,255,144,.3);
+    border-radius:99px;
+    color:#71ffa6;
+    background:rgba(0,25,12,.42);
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:2px;
+}
+.dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#4cff94;
+    box-shadow:0 0 10px #4cff94;
+    animation:blink 1.4s infinite;
+}
+@keyframes blink{50%{opacity:.3;transform:scale(.65)}}
+
+h1{
+    margin-top:18px;
+    font-size:clamp(43px,8vw,92px);
+    line-height:.9;
+    letter-spacing:5px;
+    text-shadow:0 0 12px rgba(77,255,149,.7),0 0 45px rgba(77,255,149,.25);
+}
+h1 span{color:#4cff93}
+.subtitle{
+    margin-top:16px;
+    color:rgba(226,255,237,.58);
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+}
+
+.section{
+    width:min(1250px,100%);
+    margin:auto;
+}
+.label{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    color:#72ffa6;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:2.5px;
+    margin-bottom:15px;
+}
+.label:after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:linear-gradient(90deg,rgba(75,255,146,.4),transparent);
+}
+
+/* Important shortcuts */
+.shortcuts{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:32px;
+}
+.shortcut{
+    min-height:112px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-decoration:none;
+    color:#edfff3;
+    padding:20px;
+    border:1px solid rgba(74,255,146,.5);
+    border-radius:17px;
+    background:linear-gradient(145deg,rgba(10,48,26,.75),rgba(2,15,8,.68));
+    backdrop-filter:blur(12px);
+    box-shadow:0 0 24px rgba(55,255,137,.1),inset 0 0 25px rgba(55,255,137,.035);
+    transition:.25s ease;
+}
+.shortcut:hover{
+    transform:translateY(-6px);
+    border-color:#7dffad;
+    box-shadow:0 0 20px rgba(69,255,145,.3),0 0 65px rgba(69,255,145,.12);
+}
+.shortcut .bigicon{
+    font-size:23px;
+    margin-bottom:11px;
+    filter:drop-shadow(0 0 8px rgba(70,255,145,.6));
+}
+.shortcut strong{
+    font-size:15px;
+    letter-spacing:1px;
+}
+
+.priority{
+    border-color:rgba(34,139,34,.7);
+    box-shadow:0 0 28px rgba(34,139,34,.14),inset 0 0 30px rgba(34,139,34,.04);
+}
+
+.green-mode .shortcut{
+    border-color:#228B22;
+    background:rgba(34,139,34,.7);
+    box-shadow:0 0 20px #228B22,0 0 50px rgba(34,139,34,.2);
+}
+
+.blue-mode .shortcut{
+    border-color:#57caff;
+    background:rgba(30,60,140,.7);
+    box-shadow:0 0 20px #57caff,0 0 50px rgba(30,60,140,.2);
+}
+
+/* All projects */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(175px,1fr));
+    gap:13px;
+}
+.card{
+    min-height:115px;
+    display:block;
+    text-decoration:none;
+    color:#eafff1;
+    padding:18px;
+    border:1px solid rgba(100,255,165,.18);
+    border-radius:15px;
+    background:rgba(4,25,13,.55);
+    backdrop-filter:blur(10px);
+    transition:.22s ease;
+    animation:appear .5s both;
+}
+@keyframes appear{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+}
+.card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(90,255,157,.7);
+    background:rgba(7,40,20,.7);
+    box-shadow:0 0 25px rgba(55,255,137,.12);
+}
+.icon{
+    width:34px;height:34px;
+    display:grid;place-items:center;
+    border-radius:9px;
+    margin-bottom:15px;
+    color:#54ff98;
+    border:1px solid rgba(84,255,152,.3);
+    background:rgba(70,255,145,.05);
+    font-weight:800;
+}
+.name{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+.path{
+    margin-top:7px;
+    color:rgba(210,255,225,.34);
+    font-size:9px;
+}
+
+.mode{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:10;
+    width:235px;
+    padding:12px;
+    border:1px solid rgba(74,255,145,.3);
+    border-radius:13px;
+    background:rgba(2,18,9,.78);
+    backdrop-filter:blur(15px);
+    box-shadow:0 0 28px rgba(0,0,0,.35);
+}
+.mode-title{
+    color:rgba(210,255,226,.48);
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:1.8px;
+    margin:0 0 8px 3px;
+}
+.mode-row{display:flex;gap:6px}
+#code{
+    flex:1;
+    min-width:0;
+    border:1px solid rgba(75,255,147,.25);
+    border-radius:8px;
+    outline:none;
+    color:#baffd2;
+    background:rgba(0,0,0,.35);
+    padding:9px;
+    font-size:10px;
+}
+#code:focus{border-color:rgba(75,255,147,.7);box-shadow:0 0 12px rgba(75,255,147,.1)}
+#go,#back{
+    border:1px solid rgba(75,255,147,.55);
+    border-radius:8px;
+    color:#001b0b;
+    background:#4cff93;
+    cursor:pointer;
+    font-size:9px;
+    font-weight:900;
+    padding:0 11px;
+}
+#back{width:100%;padding:10px}
+
+footer{
+    position:fixed;
+    z-index:5;
+    left:50%;
+    bottom:10px;
+    transform:translateX(-50%);
+    color:rgba(210,255,226,.32);
+    font-size:9px;
+    letter-spacing:2px;
+    white-space:nowrap;
+    pointer-events:none;
+}
+
+.toast{
+    position:fixed;
+    z-index:30;
+    left:50%;top:50%;
+    transform:translate(-50%,-50%) scale(.85);
+    opacity:0;
+    pointer-events:none;
+    padding:27px 36px;
+    text-align:center;
+    border:1px solid rgba(83,255,151,.8);
+    border-radius:16px;
+    background:rgba(0,20,10,.92);
+    color:#70ffa5;
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:2px;
+    box-shadow:0 0 30px rgba(65,255,143,.3),0 0 100px rgba(65,255,143,.13);
+    transition:.3s;
+}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+@media(max-width:850px){
+    .shortcuts{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+    .app{padding:18px 14px 100px}
+    .hero{margin-top:45px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:9px}
+    .shortcuts{gap:9px}
+    .shortcut{min-height:100px;padding:15px}
+    .card{min-height:105px;padding:14px}
+    .mode{bottom:35px;right:10px;width:215px}
+    footer{font-size:7px;bottom:8px}
+}
+@media(max-width:390px){
+    .grid{grid-template-columns:1fr}
+    .shortcuts{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="overlay"></div>
+<div class="scanlines"></div>
+
+<div class="app">
+    <div class="top">
+        <a id="grind" class="corner-btn" href="GrindHub/">⚡ Grind Hub</a>
+        <a class="corner-btn" href="ai.html">Jake AI</a>
+        <a class="corner-btn" href="Japanese/">日本語 · Japanese</a>
+    </div>
+
+    <section class="section">
+        <div class="label">ALL PROJECTS</div>
+        <div id="projects" class="grid"></div>
+    </section>
+</div>
+
+<div id="mode" class="mode">
+    <div class="mode-title">JAKE MODE ACCESS</div>
+    <div class="mode-row">
+        <input id="code" type="password" placeholder="ACCESS CODE" autocomplete="off">
+        <button id="go">GO</button>
+    </div>
+</div>
+
+<div id="toast" class="toast">
+    ENTERING JAKE MODE
+    <div style="font-size:8px;margin-top:9px;opacity:.5">SYSTEM UPDATED</div>
+</div>
+
+<footer>MADE BY JAKE SCALZO</footer>
+
+<script>
+/* =========================================================
+   PROJECTS
+   Ignored items are NOT included:
+   python/
+   stuff/
+   test.html
+   main.py
+   ========================================================= */
+const projects = [
+    ["Functions","functions/index.html","ƒ"],
+    ["Grind Hub","GrindHub/index.html","⚡"],
+    ["Japanese","Japanese/index.html","日"],
+    ["Language","language/index.html","文"],
+    ["Massage","Massage/index.html","✦"],
+    ["Money","Money/index.html","$"],
+    ["Notes","Notes/","✎"],
+    ["Shared","shared/","↔"],
+    ["Siam Smart Home","SiamSmartHome/","⌂"],
+    ["Type","Type/","T"],
+    ["Zoo","Zoo/","◈"]
+];
+
+const projectsEl = document.getElementById("projects");
+
+projects.forEach((p,i)=>{
+    const a=document.createElement("a");
+    a.className="card";
+    a.href=p[1];
+    a.style.animationDelay=(i*35)+"ms";
+    a.innerHTML=`
+        <div class="icon">${p[2]}</div>
+        <div class="name">${p[0]}</div>
+        <div class="path">${p[1]}</div>
+    `;
+    projectsEl.appendChild(a);
+});
+
+/* =========================================================
+   JAKE MODE
+   ========================================================= */
+const SECRET="jjaakkeelol";
+const grind=document.getElementById("grind");
+const mode=document.getElementById("mode");
+const toast=document.getElementById("toast");
+
+function enterJakeMode(){
+    toast.classList.add("show");
+
+    setTimeout(()=>{
+        toast.classList.remove("show");
+
+        grind.textContent="★ My Grind Hub";
+        grind.href="MyGrindHub/";
+
+        mode.innerHTML=`
+            <div class="mode-title">JAKE MODE ACTIVE</div>
+            <button id="back">BACK TO NORMAL MODE</button>
+        `;
+
+        document.getElementById("back").onclick=exitJakeMode;
+    },1000);
+}
+
+function exitJakeMode(){
+    grind.textContent="⚡ Grind Hub";
+    grind.href="GrindHub/";
+
+    mode.innerHTML=`
+        <div class="mode-title">JAKE MODE ACCESS</div>
+        <div class="mode-row">
+            <input id="code" type="password" placeholder="ACCESS CODE" autocomplete="off">
+            <button id="go">GO</button>
+        </div>
+    `;
+
+    document.getElementById("go").onclick=checkCode;
+    document.getElementById("code").addEventListener("keydown",e=>{
+        if(e.key==="Enter")checkCode();
+    });
+}
+
+function checkCode(){
+    const input=document.getElementById("code");
+    if(input.value===SECRET){
+        enterJakeMode();
+    }else{
+        input.animate([
+            {transform:"translateX(-5px)"},
+            {transform:"translateX(5px)"},
+            {transform:"translateX(0)"}
+        ],{duration:220});
+        input.value="";
+        input.placeholder="WRONG CODE";
+    }
+}
+
+document.getElementById("go").onclick=checkCode;
+document.getElementById("code").addEventListener("keydown",e=>{
+    if(e.key==="Enter")checkCode();
+});
+
+/* =========================================================
+   SILENT ANIMATED NEON BACKGROUND
+   No sound. No external video required.
+   ========================================================= */
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
+let w,h,dpr;
+let particles=[];
+let lines=[];
+let t=0;
+
+function resize(){
+    dpr=Math.min(devicePixelRatio||1,2);
+    w=innerWidth;
+    h=innerHeight;
+    canvas.width=w*dpr;
+    canvas.height=h*dpr;
+    canvas.style.width=w+"px";
+    canvas.style.height=h+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    particles=[];
+    const count=Math.min(110,Math.floor((w*h)/15000));
+    for(let i=0;i<count;i++){
+        particles.push({
+            x:Math.random()*w,
+            y:Math.random()*h,
+            r:Math.random()*1.8+.25,
+            vx:(Math.random()-.5)*.22,
+            vy:(Math.random()-.5)*.22,
+            a:Math.random()*.65+.15
+        });
+    }
+}
+addEventListener("resize",resize);
+resize();
+
+function drawGrid(){
+    const spacing=70;
+    const move=(t*.012)%spacing;
+
+    ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(55,255,135,.055)";
+
+    for(let x=-spacing+move;x<w+spacing;x+=spacing){
+        ctx.beginPath();
+        ctx.moveTo(x,0);
+        ctx.lineTo(x,h);
+        ctx.stroke();
+    }
+
+    for(let y=-spacing+move;y<h+spacing;y+=spacing){
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(w,y);
+        ctx.stroke();
+    }
+}
+
+function drawGlowWave(){
+    for(let k=0;k<3;k++){
+        ctx.beginPath();
+
+        const base=h*(.26+k*.27);
+        for(let x=0;x<=w;x+=12){
+            const y=base+
+                Math.sin(x*.006+t*.0012+k)*25+
+                Math.sin(x*.013-t*.0008)*11;
+
+            if(x===0)ctx.moveTo(x,y);
+            else ctx.lineTo(x,y);
+        }
+
+        ctx.strokeStyle=`rgba(50,255,130,${.045-k*.011})`;
+        ctx.lineWidth=2+k;
+        ctx.shadowBlur=20;
+        ctx.shadowColor="rgba(50,255,130,.3)";
+        ctx.stroke();
+        ctx.shadowBlur=0;
+    }
+}
+
+function drawParticles(){
+    for(const p of particles){
+        p.x+=p.vx;
+        p.y+=p.vy;
+
+        if(p.x<-5)p.x=w+5;
+        if(p.x>w+5)p.x=-5;
+        if(p.y<-5)p.y=h+5;
+        if(p.y>h+5)p.y=-5;
+
+        const pulse=.65+.35*Math.sin(t*.002+p.x);
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(100,255,165,${p.a*pulse})`;
+        ctx.shadowBlur=9;
+        ctx.shadowColor="rgba(55,255,135,.7)";
+        ctx.fill();
+        ctx.shadowBlur=0;
+    }
+}
+
+function draw(){
+    t++;
+    ctx.clearRect(0,0,w,h);
+
+    const gradient=ctx.createRadialGradient(
+        w*.5,h*.45,0,
+        w*.5,h*.45,Math.max(w,h)*.75
+    );
+    gradient.addColorStop(0,"rgba(4,45,22,.34)");
+    gradient.addColorStop(.45,"rgba(1,15,8,.18)");
+    gradient.addColorStop(1,"rgba(0,3,2,.95)");
+    ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,w,h);
+
+    drawGrid();
+    drawGlowWave();
+    drawParticles();
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
