@@ -393,14 +393,11 @@ footer{
    main.py
    ========================================================= */
 const projects = [
-    ["Functions","functions/index.html","ƒ"],
     ["Grind Hub","GrindHub/index.html","⚡"],
     ["Japanese","Japanese/index.html","日"],
-    ["Language","language/index.html","文"],
     ["Massage","Massage/index.html","✦"],
     ["Money","Money/index.html","$"],
     ["Notes","Notes/","✎"],
-    ["Shared","shared/","↔"],
     ["Siam Smart Home","SiamSmartHome/","⌂"],
     ["Type","Type/","T"],
     ["Zoo","Zoo/","◈"]
@@ -416,7 +413,6 @@ projects.forEach((p,i)=>{
     a.innerHTML=`
         <div class="icon">${p[2]}</div>
         <div class="name">${p[0]}</div>
-        <div class="path">${p[1]}</div>
     `;
     projectsEl.appendChild(a);
 });
