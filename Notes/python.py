@@ -2,7 +2,7 @@ import ctypes
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QPointF, QTimer, Qt, QUrl
+from PySide6.QtCore import QPointF, QMimeData, QTimer, Qt, QUrl
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import (
     QApplication,
@@ -301,9 +301,50 @@ CLIPBOARD_SHIM_JS = """
 DATA_DIR = Path.home() / ".python_browser"
 PROFILE_DIR = DATA_DIR / "profile"
 CACHE_DIR = DATA_DIR / "cache"
+DOWNLOAD_DIR = DATA_DIR / "downloads"
 
 PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# ---------------------------------------------------------
+# Download manager
+# ---------------------------------------------------------
+
+class DownloadItem:
+    def __init__(self, url, filename, browser_page):
+        self.url = url
+        self.filename = filename
+        self.browser_page = browser_page
+        self.local_path = None
+        self._canceled = False
+        self._saved = False
+
+    def save(self, path):
+        self.local_path = path
+        self._saved = True
+
+    def cancel(self):
+        self._canceled = True
+
+
+class DownloadManager:
+    def __init__(self, profile, parent=None):
+        self.profile = profile
+        self.parent = parent
+        self.downloads = []
+        self._next_id = 1
+
+    def start_download(self, url, suggested_filename):
+        download = DownloadItem(url, suggested_filename, None)
+        download._id = self._next_id
+        self._next_id += 1
+        self.downloads.append(download)
+        return download, download._id
+
+    def remove_download(self, id_):
+        self.downloads = [d for d in self.downloads if d is not None and id_ not in getattr(d, '_id', [])]
 
 
 # ---------------------------------------------------------
@@ -349,6 +390,15 @@ class BrowserPage(QWebEnginePage):
 
         super().featurePermissionRequested(url, feature)
 
+    def downloadRequested(self, download):
+        download_item, id_ = self.manager.start_download(
+            download.url(),
+            download.suggestedFileName()
+        )
+        download_item._id = id_
+        download.setDownloadPath(str(DOWNLOAD_DIR / download.suggestedFileName()))
+        download.accept()
+
     def javaScriptConsoleMessage(self, level, message, line, source):
 
         if message.startswith(LOCK_MARKER):
@@ -385,10 +435,11 @@ class BrowserPage(QWebEnginePage):
 
 class BrowserTab(QWebEngineView):
 
-    def __init__(self, profile):
+    def __init__(self, profile, manager):
         super().__init__()
 
         page = BrowserPage(profile, self)
+        page.manager = manager
         self.setPage(page)
 
         self._capture_active = False
@@ -549,6 +600,9 @@ class Browser(QMainWindow):
             "en-US,en;q=0.9"
         )
 
+        # Download manager
+        self.manager = DownloadManager(self.profile, self)
+
         # -------------------------------------------------
         # Tabs
         # -------------------------------------------------
@@ -653,6 +707,11 @@ class Browser(QMainWindow):
         new_tab_button.clicked.connect(self.new_tab)
         toolbar.addWidget(new_tab_button)
 
+        downloads_button = compact(QPushButton("↓"))
+        downloads_button.setToolTip("Downloads")
+        downloads_button.clicked.connect(self.show_downloads)
+        toolbar.addWidget(downloads_button)
+
         # -------------------------------------------------
         # First tab
         # -------------------------------------------------
@@ -672,7 +731,7 @@ class Browser(QMainWindow):
 
     def new_tab(self, url=HOME_PAGE):
 
-        browser = BrowserTab(self.profile)
+        browser = BrowserTab(self.profile, self.manager)
 
         index = self.tabs.addTab(
             browser,
@@ -1006,6 +1065,67 @@ class Browser(QMainWindow):
             self.showFullScreen()
         else:
             self.showNormal()
+
+    def __downloads(self):
+
+        return self.manager.downloads
+
+    def show_downloads(self):
+
+        downloads = self.__downloads()
+        if not downloads:
+            return
+
+        # Simple downloads window
+        from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
+        from PySide6.QtCore import Qt, QMimeData
+
+        widget = QWidget()
+        widget.setWindowTitle("Downloads")
+        widget.setFixedSize(300, 400)
+        widget.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
+
+        layout = QVBoxLayout(widget)
+
+        if not downloads:
+            label = QLabel("No downloads")
+            label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(label)
+        else:
+            for dl in downloads:
+                item = QLabel(f"{dl.filename} ({dl.local_path.name if dl.local_path else 'pending'})")
+                item.setAlignment(Qt.AlignCenter)
+                item.setFixedHeight(30)
+                item.setMouseTracking(True)
+                item._download = dl
+                item.installEventFilter(self)
+                layout.addWidget(item)
+
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(widget.close)
+        layout.addWidget(close_btn)
+
+        widget.show()
+
+    def eventFilter(self, obj, event):
+
+        if event.type() == event.MouseButtonPress and hasattr(obj, '_download'):
+            obj._drag_start = event.globalPos()
+            return True
+        if event.type() == event.MouseMove and hasattr(obj, '_download'):
+            if abs(event.globalPos().x() - obj._drag_start.x()) > 3 or abs(event.globalPos().y() - obj._drag_start.y()) > 3:
+                dl = obj._download
+                mime = QMimeData()
+                mime.setText(dl.local_path.as_posix() if dl.local_path else dl.filename)
+                drag = obj.startDrag(Qt.MoveAction, mime)
+                return True
+        return super().eventFilter(obj, event)
+
+    def _open_download(self, dl):
+
+        if dl.local_path and dl.local_path.exists():
+            import subprocess
+            subprocess.Popen(["open", str(dl.local_path)])
 
 
 # ---------------------------------------------------------
