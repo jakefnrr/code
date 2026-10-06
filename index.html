@@ -58,20 +58,20 @@ body{overflow-x:hidden}
 .corner-btn{
     display:inline-flex;
     align-items:center;
-    gap:9px;
+    gap:6px;
     text-decoration:none;
     color:#dffff0;
     background:rgba(3,25,13,.58);
     border:1px solid rgba(67,255,143,.42);
-    border-radius:13px;
-    padding:13px 17px;
-    font-size:12px;
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:10px;
     font-weight:800;
-    letter-spacing:1.2px;
+    letter-spacing:1px;
     text-transform:uppercase;
     backdrop-filter:blur(12px);
-    box-shadow:0 0 18px rgba(39,255,126,.09);
-    transition:.22s ease;
+    box-shadow:0 0 12px rgba(39,255,126,.07);
+    transition:.18s ease;
 }
 .corner-btn:hover{
     color:#001b0b;
@@ -359,6 +359,7 @@ footer{
 <div class="app">
     <div class="top">
         <a id="grind" class="corner-btn" href="GrindHub/index.html">⚡ Grind Hub</a>
+        <a class="corner-btn" href="Money/index.html">Money</a>
         <a class="corner-btn" href="ai.html">Jake AI</a>
         <a class="corner-btn" href="Japanese/index.html">日本語 · Japanese</a>
     </div>
@@ -395,15 +396,11 @@ footer{
    ========================================================= */
 const projects = [
     ["Arcade","Arcade/index.html","🎮"],
-    ["Grind Hub","GrindHub/index.html","⚡"],
-    ["Japanese","Japanese/index.html","日"],
+    ["App Maker","appmaker.html","✦"],
     ["Massage","Massage/index.html","✦"],
-    ["Money","Money/index.html","$"],
     ["Notes","Notes/index.html","✎"],
     ["Siam Smart Home","SiamSmartHome/index.html","⌂"],
-    ["Type","Type/index.html","T"],
-    ["Zoo","Zoo/index.html","◈"],
-    ["App Maker","appmaker.html","✦"]
+    ["Zoo","Zoo/index.html","◈"]
 ];
 
 const projectsEl = document.getElementById("projects");
