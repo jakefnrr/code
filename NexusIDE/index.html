@@ -800,7 +800,6 @@
       <div class="toolbar-left"><span id="saveStatus" class="muted">saved</span></div>
       <div class="toolbar-right">
         <button class="control run-button" id="runButton" type="button">▷ RUN</button>
-        <button class="control" id="downloadProjectButton" type="button">↓ Download project</button>
         <button class="control" id="newButton" type="button">＋ New</button>
         <button class="icon-button" id="settingsButton" type="button" aria-label="Settings" title="Settings">⚙</button>
       </div>
@@ -810,7 +809,12 @@
         <div class="files-panel">
           <div class="section-head">
             <h2>FILES</h2>
-            <div class="file-actions"><button class="small-button" id="addFileButton" type="button">＋ Add file</button><button class="small-button" id="addFolderButton" type="button">＋ Add folder</button></div>
+            <div class="file-actions">
+              <button class="small-button" id="addFileButton" type="button">＋ Add file</button>
+              <button class="small-button" id="addFolderButton" type="button">＋ Add folder</button>
+              <button class="small-button" id="uploadButton" type="button" title="Upload files">↑</button>
+              <button class="small-button" id="downloadButton" type="button" title="Download">↓</button>
+            </div>
           </div>
           <div class="file-list" id="fileList"></div>
           <div class="empty-state" id="filesEmpty" hidden>No files yet. Add a file or folder to get started.</div>
@@ -818,7 +822,7 @@
       </section>
       <section class="view active" id="editorView" aria-label="Editor">
         <div class="editor-shell">
-          <div class="editor-heading"><span class="editor-file" id="activeFileName">Select a file to edit</span><span class="file-spacer"></span><button class="icon-button" id="downloadButton" type="button" title="Download file" aria-label="Download file">↓</button><button class="icon-button" id="uploadButton" type="button" title="Upload files" aria-label="Upload files">↑</button><input id="filePicker" type="file" multiple hidden></div>
+          <div class="editor-heading"><span class="editor-file" id="activeFileName">Select a file to edit</span><span class="file-spacer"></span><input id="filePicker" type="file" multiple hidden></div>
           <div class="editor-body" id="editorBody" hidden>
             <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div><textarea class="code-editor" id="codeEditor" aria-label="Code editor" spellcheck="false" autocomplete="off"></textarea>
           </div>
@@ -969,38 +973,6 @@
         } catch {
           notify('Could not save: browser storage may be full');
         }
-      }
-
-      function downloadProject() {
-        if (!currentProject) {
-          showGate();
-          return;
-        }
-        const projectData = projects[currentProject];
-        if (!projectData || Object.keys(projectData.files).length === 0) {
-          notify('Project is empty');
-          return;
-        }
-        let zipContent = '';
-        zipContent += `NEXUSIDE Project: ${currentProject}\n\n`;
-        zipContent += `Files:\n`;
-        const fileKeys = Object.keys(projectData.files).sort();
-        fileKeys.forEach((filePath) => {
-          zipContent += `- ${filePath}: ${projectData.files[filePath].substring(0, 50)}${projectData.files[filePath].length > 50 ? '...' : ''}\n`;
-        });
-        zipContent += `\nFolders:\n`;
-        projectData.folders.forEach((folder) => {
-          zipContent += `- ${folder}\n`;
-        });
-        zipContent += `\nTotal files: ${fileKeys.length}\nTotal folders: ${projectData.folders.length}`;
-        const blob = new Blob([zipContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentProject}-project.txt`;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        notify('Project download started');
       }
 
       function createProject(rawName) {
@@ -1742,7 +1714,6 @@
         $('#confirmModal').classList.remove('open');
       });
       $('#runButton').addEventListener('click', runPreview);
-      $('#downloadProjectButton').addEventListener('click', downloadProject);
       editor.addEventListener('input', () => {
         if (!activeFile) return;
         state.files[activeFile] = editor.value;
