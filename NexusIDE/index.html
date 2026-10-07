@@ -800,6 +800,7 @@
       <div class="toolbar-left"><span id="saveStatus" class="muted">saved</span></div>
       <div class="toolbar-right">
         <button class="control run-button" id="runButton" type="button">▷ RUN</button>
+        <button class="control" id="downloadProjectButton" type="button">↓ Download project</button>
         <button class="control" id="newButton" type="button">＋ New</button>
         <button class="icon-button" id="settingsButton" type="button" aria-label="Settings" title="Settings">⚙</button>
       </div>
@@ -968,6 +969,38 @@
         } catch {
           notify('Could not save: browser storage may be full');
         }
+      }
+
+      function downloadProject() {
+        if (!currentProject) {
+          showGate();
+          return;
+        }
+        const projectData = projects[currentProject];
+        if (!projectData || Object.keys(projectData.files).length === 0) {
+          notify('Project is empty');
+          return;
+        }
+        let zipContent = '';
+        zipContent += `NEXUSIDE Project: ${currentProject}\n\n`;
+        zipContent += `Files:\n`;
+        const fileKeys = Object.keys(projectData.files).sort();
+        fileKeys.forEach((filePath) => {
+          zipContent += `- ${filePath}: ${projectData.files[filePath].substring(0, 50)}${projectData.files[filePath].length > 50 ? '...' : ''}\n`;
+        });
+        zipContent += `\nFolders:\n`;
+        projectData.folders.forEach((folder) => {
+          zipContent += `- ${folder}\n`;
+        });
+        zipContent += `\nTotal files: ${fileKeys.length}\nTotal folders: ${projectData.folders.length}`;
+        const blob = new Blob([zipContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentProject}-project.txt`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        notify('Project download started');
       }
 
       function createProject(rawName) {
@@ -1709,6 +1742,7 @@
         $('#confirmModal').classList.remove('open');
       });
       $('#runButton').addEventListener('click', runPreview);
+      $('#downloadProjectButton').addEventListener('click', downloadProject);
       editor.addEventListener('input', () => {
         if (!activeFile) return;
         state.files[activeFile] = editor.value;
