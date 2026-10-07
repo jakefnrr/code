@@ -352,6 +352,15 @@ footer{
     .grid{grid-template-columns:1fr}
     .shortcuts{grid-template-columns:1fr}
 }
+@media(max-width:850px){
+    .top{flex-direction:column;gap:8px;padding:10px 0}
+    .corner-btn{width:100%;justify-content:center}
+    .corner-btn-big{display:none}
+}
+@media(max-width:600px){
+    .top{padding:8px 0}
+    .corner-btn{padding:8px 8px;font-size:9px}
+}
 </style>
 </head>
 <body>
@@ -361,6 +370,13 @@ footer{
 <div class="scanlines"></div>
 
 <div class="app">
+    <div class="top">
+        <a href="Arcade/index.html" class="corner-btn">Arcade</a>
+        <a href="appmaker.html" class="corner-btn">App Maker</a>
+        <a href="Massage/index.html" class="corner-btn">Massage</a>
+        <a href="Notes/index.html" class="corner-btn">Notes</a>
+        <a href="SiamSmartHome/index.html" class="corner-btn">Siam Home</a>
+    </div>
     <section class="section">
         <div class="label">ALL PROJECTS</div>
         <div id="projects" class="grid"></div>
