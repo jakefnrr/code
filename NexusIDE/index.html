@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020908">
+  <title>NEXUSIDE — Code workspace</title>
+  <link rel="stylesheet" href="./theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-primary: #00efa2;
+      --color-primary-contrast: #03130f;
+      --color-bg: #020908;
+      --color-surface: #061512;
+      --color-text: #d5f5e9;
+      --color-muted: #75a895;
+      --color-border: #173d30;
+      --color-editor: #020908;
+      --color-preview-bg: #ffffff;
+      --color-preview-text: #414141;
+      --color-preview-muted: #737373;
+      --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+      --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+      --radius: 12px;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font: 14px/1.5 var(--font-body);
+    }
+
+    button,
+    input,
+    textarea {
+      color: inherit;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar,
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px clamp(12px, 2vw, 26px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .topbar {
+      min-height: 64px;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--color-text);
+      text-decoration: none;
+      font: 900 21px var(--font-heading);
+      letter-spacing: .14em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 55%, transparent);
+    }
+
+    .brand-accent {
+      color: var(--color-primary);
+    }
+
+    .project-wrap {
+      position: relative;
+      margin-left: auto;
+    }
+
+    .project-select,
+    .control,
+    .icon-button {
+      min-height: 40px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    .project-select {
+      max-width: min(32vw, 250px);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .project-select span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-menu {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 7px);
+      right: 0;
+      width: min(270px, 88vw);
+      max-height: 330px;
+      overflow: auto;
+      padding: 7px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: 0 18px 45px color-mix(in srgb, var(--color-bg) 75%, transparent);
+    }
+
+    .project-menu button {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      text-align: left;
+    }
+
+    .project-menu button:hover,
+    .project-menu button.current {
+      background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+      color: var(--color-primary);
+    }
+
+    .control {
+      padding: 0 14px;
+      font-weight: 750;
+    }
+
+    .control:hover,
+    .icon-button:hover,
+    .project-select:hover,
+    .small-button:hover {
+      border-color: var(--color-primary);
+    }
+
+    .run-button {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      font-weight: 900;
+    }
+
+    .icon-button {
+      width: 40px;
+      display: inline-grid;
+      place-items: center;
+      background: transparent;
+      font-size: 18px;
+    }
+
+    .toolbar {
+      min-height: 58px;
+      justify-content: space-between;
+      background: var(--color-surface);
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-right {
+      margin-left: auto;
+    }
+
+    .muted {
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      background: var(--color-editor);
+    }
+
+    .view {
+      display: none;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .view.active {
+      display: flex;
+    }
+
+    .files-panel {
+      width: min(820px, 100%);
+      margin: 0 auto;
+      padding: 20px clamp(14px, 3vw, 28px);
+      overflow: auto;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      color: var(--color-muted);
+      font-size: 12px;
+      letter-spacing: .16em;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 7px;
+    }
+
+    .small-button {
+      padding: 7px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      font-size: 12px;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 3px;
+    }
+
+    .file-row {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 9px;
+      border-radius: var(--radius);
+      color: var(--color-muted);
+    }
+
+    .file-row:hover {
+      background: color-mix(in srgb, var(--color-text) 5%, transparent);
+      color: var(--color-text);
+    }
+
+    .file-row.active {
+      background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+      color: var(--color-primary);
+    }
+
+    .file-row button {
+      border: 0;
+      background: transparent;
+    }
+
+    .file-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .file-spacer {
+      flex: 1;
+    }
+
+    .delete-file {
+      opacity: .65;
+      color: var(--color-muted);
+    }
+
+    .editor-shell {
+      width: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-heading,
+    .preview-bar,
+    .terminal-heading {
+      min-height: 44px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-muted);
+    }
+
+    .editor-file {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--color-text);
+    }
+
+    .editor-body {
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      overflow: auto;
+    }
+
+    .line-numbers {
+      min-width: 48px;
+      padding: 15px 12px 30px 8px;
+      color: var(--color-muted);
+      opacity: .7;
+      text-align: right;
+      user-select: none;
+      white-space: pre;
+      font: 14px/1.75 ui-monospace, monospace;
+    }
+
+    .code-editor {
+      width: 100%;
+      min-width: 0;
+      min-height: 100%;
+      padding: 15px 16px 30px 0;
+      resize: none;
+      outline: 0;
+      border: 0;
+      background: transparent;
+      color: var(--color-text);
+      tab-size: 2;
+      white-space: pre;
+      overflow: auto;
+      font: 14px/1.75 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .code-editor.wrap {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-state {
+      margin: auto;
+      padding: 28px;
+      color: var(--color-muted);
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--color-text);
+      font-size: 21px;
+    }
+
+    .preview-view,
+    .terminal-view {
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+
+    .preview-bar {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .13em;
+    }
+
+    .preview-address {
+      margin-left: auto;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .preview-empty {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      background: var(--color-preview-bg);
+      color: var(--color-preview-muted);
+      text-align: center;
+    }
+
+    .preview-frame {
+      width: 100%;
+      min-height: 0;
+      flex: 1;
+      border: 0;
+      background: var(--color-preview-bg);
+    }
+
+    .terminal-heading {
+      min-height: 47px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    .terminal-output {
+      min-height: 260px;
+      flex: 1;
+      padding: 15px 18px;
+      overflow: auto;
+      color: var(--color-muted);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: 13px/1.7 ui-monospace, monospace;
+    }
+
+    .terminal-line {
+      margin: 0 0 5px;
+    }
+
+    .terminal-command {
+      color: var(--color-primary);
+    }
+
+    .terminal-error {
+      color: var(--color-muted);
+    }
+
+    .terminal-form {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      padding: 11px 17px 15px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .terminal-prompt {
+      color: var(--color-primary);
+      font: 12px ui-monospace, monospace;
+      white-space: nowrap;
+    }
+
+    .terminal-input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--color-text);
+      font: 13px ui-monospace, monospace;
+    }
+
+    .bottom-nav {
+      min-height: 62px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    .nav-button {
+      min-width: 0;
+      border: 0;
+      border-top: 3px solid transparent;
+      background: transparent;
+      color: var(--color-muted);
+      font-weight: 750;
+    }
+
+    .nav-button.active {
+      border-top-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .screen {
+      position: fixed;
+      z-index: 30;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow: auto;
+      background: var(--color-bg);
+    }
+
+    .card {
+      width: min(760px, 100%);
+      max-height: calc(100dvh - 36px);
+      overflow: auto;
+      padding: clamp(24px, 6vw, 54px);
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) + 7px);
+      background: var(--color-surface);
+      box-shadow: 0 0 65px color-mix(in srgb, var(--color-primary) 9%, transparent);
+    }
+
+    .card.center {
+      width: min(600px, 100%);
+      text-align: center;
+    }
+
+    .card h1 {
+      margin: 0 0 10px;
+      font: 800 clamp(32px, 6vw, 48px)/1.1 var(--font-heading);
+    }
+
+    .card>p {
+      margin: 0 auto 23px;
+      max-width: 540px;
+      color: var(--color-muted);
+    }
+
+    .gate-form {
+      display: flex;
+      gap: 8px;
+      max-width: 460px;
+      margin: auto;
+    }
+
+    .gate-input,
+    .modal-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-bg);
+    }
+
+    .saved-heading {
+      max-width: 460px;
+      margin: 25px auto 9px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted);
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .saved-projects {
+      max-width: 460px;
+      margin: auto;
+      display: grid;
+      gap: 6px;
+    }
+
+    .saved-projects button,
+    .project-card {
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-bg);
+      text-align: left;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+      gap: 10px;
+    }
+
+    .project-card {
+      min-height: 95px;
+      color: var(--color-text);
+      cursor: pointer;
+    }
+
+    .project-card strong,
+    .project-card span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .project-card span {
+      margin-top: 7px;
+      color: var(--color-muted);
+      font-size: 12px;
+    }
+
+    .project-card.new-card {
+      display: grid;
+      place-items: center;
+      border-style: dashed;
+      color: var(--color-primary);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(430px, 100%);
+      padding: 20px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+    }
+
+    .modal h2 {
+      margin: 0 0 12px;
+      font-size: 19px;
+    }
+
+    .modal p {
+      margin: 0 0 13px;
+      color: var(--color-muted);
+      font-size: 13px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .guide-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+      gap: 9px;
+    }
+
+    .guide-item {
+      padding: 13px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-bg);
+    }
+
+    .guide-item code {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .guide-item span {
+      display: block;
+      margin-top: 5px;
+      color: var(--color-muted);
+      font-size: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 80;
+      right: 14px;
+      bottom: 76px;
+      padding: 10px 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(7px);
+      transition: .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        min-height: 56px;
+        padding: 7px 9px;
+        gap: 6px;
+      }
+
+      .brand {
+        gap: 7px;
+        font-size: 16px;
+        letter-spacing: .1em;
+      }
+
+      .brand-mark {
+        width: 12px;
+        height: 12px;
+      }
+
+      .project-wrap {
+        margin-left: auto;
+      }
+
+      .project-select {
+        max-width: 28vw;
+        min-height: 36px;
+        padding: 0 8px;
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .control {
+        min-height: 36px;
+        padding: 0 9px;
+        font-size: 10px;
+      }
+
+      .toolbar {
+        min-height: 52px;
+        padding: 6px 8px;
+        gap: 5px;
+      }
+
+      .toolbar-left,
+      .toolbar-right {
+        gap: 5px;
+      }
+
+      .icon-button {
+        width: 35px;
+        min-height: 36px;
+      }
+
+      .terminal-prompt {
+        max-width: 145px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .gate-form {
+        flex-direction: column;
+      }
+
+      .gate-form .control {
+        min-height: 44px;
+      }
+
+      .nav-button {
+        font-size: 12px;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .file-actions {
+        flex-wrap: wrap;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <a class="brand" href="#workspace" id="homeBrand" aria-label="NEXUSIDE home"><span class="brand-mark" aria-hidden="true"></span><span>NEXUS<span class="brand-accent">IDE</span></span></a>
+      <div class="project-wrap">
+        <button class="project-select" id="projectSelect" type="button" aria-expanded="false"><span id="projectName">Choose project</span><span aria-hidden="true">⌄</span></button>
+        <div class="project-menu" id="projectMenu" hidden></div>
+      </div>
+      <button class="control" id="allProjectsButton" type="button">ALL PROJECTS</button>
+    </header>
+    <div class="toolbar">
+      <div class="toolbar-left"><span id="saveStatus" class="muted">saved</span></div>
+      <div class="toolbar-right">
+        <button class="control run-button" id="runButton" type="button">▷ RUN</button>
+        <button class="control" id="newButton" type="button">＋ New</button>
+        <button class="icon-button" id="settingsButton" type="button" aria-label="Settings" title="Settings">⚙</button>
+      </div>
+    </div>
+    <main class="workspace">
+      <section class="view" id="filesView" aria-label="Files">
+        <div class="files-panel">
+          <div class="section-head">
+            <h2>FILES</h2>
+            <div class="file-actions"><button class="small-button" id="addFileButton" type="button">＋ Add file</button><button class="small-button" id="addFolderButton" type="button">＋ Add folder</button></div>
+          </div>
+          <div class="file-list" id="fileList"></div>
+          <div class="empty-state" id="filesEmpty" hidden>No files yet. Add a file or folder to get started.</div>
+        </div>
+      </section>
+      <section class="view active" id="editorView" aria-label="Editor">
+        <div class="editor-shell">
+          <div class="editor-heading"><span class="editor-file" id="activeFileName">Select a file to edit</span><span class="file-spacer"></span><button class="icon-button" id="downloadButton" type="button" title="Download file" aria-label="Download file">↓</button><button class="icon-button" id="uploadButton" type="button" title="Upload files" aria-label="Upload files">↑</button><input id="filePicker" type="file" multiple hidden></div>
+          <div class="editor-body" id="editorBody" hidden>
+            <div class="line-numbers" id="lineNumbers" aria-hidden="true">1</div><textarea class="code-editor" id="codeEditor" aria-label="Code editor" spellcheck="false" autocomplete="off"></textarea>
+          </div>
+          <div class="empty-state" id="editorEmpty">
+            <div><strong>Select a file to edit</strong>Create a file with New or add one from Files.</div>
+          </div>
+        </div>
+      </section>
+      <section class="view preview-view" id="previewView" aria-label="Preview">
+        <div class="preview-bar"><span>● LIVE PREVIEW</span><span aria-hidden="true">—</span><span class="preview-address" id="previewAddress"></span></div>
+        <div class="preview-empty" id="previewEmpty">No preview running.<br>Open an HTML file or press Run.</div><iframe class="preview-frame" id="previewFrame" title="Live preview" sandbox="allow-scripts allow-forms allow-modals allow-popups" hidden></iframe>
+      </section>
+      <section class="view terminal-view" id="terminalView" aria-label="Terminal">
+        <div class="terminal-heading"><span aria-hidden="true">›_</span><span>TERMINAL</span><button class="icon-button" id="terminalHelpButton" type="button" title="Command guide" aria-label="Command guide">?</button><button class="icon-button" id="clearTerminal" type="button" title="Clear terminal" aria-label="Clear terminal">⌫</button></div>
+        <div class="terminal-output" id="terminalOutput" aria-live="polite"></div>
+        <form class="terminal-form" id="terminalForm"><span class="terminal-prompt" id="terminalPrompt">user@nexuside:~/code $</span><input class="terminal-input" id="terminalInput" placeholder="Type 'help' for commands" autocomplete="off" spellcheck="false" aria-label="Terminal command"></form>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Workspace panels"><button class="nav-button" type="button" data-view="files">Files</button><button class="nav-button active" type="button" data-view="editor">Editor</button><button class="nav-button" type="button" data-view="preview">Preview</button><button class="nav-button" type="button" data-view="terminal">Terminal</button></nav>
+  </div>
+
+  <section class="screen" id="projectGate" aria-labelledby="gateTitle" hidden>
+    <div class="card center">
+      <h1 id="gateTitle">Welcome to <span class="brand-accent">NEXUSIDE</span></h1>
+      <p>Create a project with a name to open your coding workspace. Projects are saved in this browser.</p>
+      <form class="gate-form" id="projectForm"><input class="gate-input" id="projectNameInput" type="text" maxlength="40" placeholder="Name your project" autocomplete="off" aria-label="Project name"><button class="control run-button" type="submit">Create project</button></form>
+      <div class="saved-heading">YOUR PROJECTS</div>
+      <div class="saved-projects" id="savedProjects"></div>
+    </div>
+  </section>
+  <section class="screen" id="projectsPage" hidden>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px"><a class="brand" href="#workspace" id="projectsHomeLink">NEXUS<span class="brand-accent">IDE</span></a><button class="control" id="backWorkspaceButton" type="button">Back to workspace</button></div>
+      <p class="brand-accent" style="margin:0 0 8px;font-size:11px;font-weight:800;letter-spacing:.16em">YOUR WORKSPACE</p>
+      <h1>All projects</h1>
+      <p>Open a saved project or create a new workspace.</p>
+      <div class="project-grid" id="projectGrid"></div>
+      <div style="margin-top:22px;display:flex;gap:8px;flex-wrap:wrap"><button class="small-button" id="helpPageButton" type="button">Workspace help</button><button class="small-button" id="terminalGuideButton" type="button">Terminal command guide</button></div>
+    </div>
+  </section>
+  <section class="screen" id="helpPage" hidden>
+    <div class="card"><button class="control backPageButton" type="button">← Back</button>
+      <p class="brand-accent" style="margin:24px 0 8px;font-size:11px;font-weight:800;letter-spacing:.16em">NEXUSIDE GUIDE</p>
+      <h1>Workspace help</h1>
+      <p>Choose a project from the dropdown, use Files to add and organize items, edit code in Editor, and press Run to preview an HTML page.</p>
+      <div class="guide-list">
+        <div class="guide-item"><code>Projects</code><span>Your projects are stored in this browser.</span></div>
+        <div class="guide-item"><code>Files</code><span>Create files and folders, or upload files from your computer.</span></div>
+        <div class="guide-item"><code>Preview</code><span>Run previews an HTML file and loads matching project CSS and JavaScript.</span></div>
+        <div class="guide-item"><code>Terminal</code><span>Commands manage files in this project, not your computer’s system.</span></div>
+      </div><button class="small-button openTerminalGuide" type="button" style="margin-top:15px">Open terminal command guide</button>
+    </div>
+  </section>
+  <section class="screen" id="terminalGuidePage" hidden>
+    <div class="card"><button class="control backPageButton" type="button">← Back</button>
+      <p class="brand-accent" style="margin:24px 0 8px;font-size:11px;font-weight:800;letter-spacing:.16em">TERMINAL REFERENCE</p>
+      <h1>Project commands</h1>
+      <p>This simulated terminal works with files inside the active NEXUSIDE project. It cannot access your computer’s system files or run arbitrary system programs.</p>
+      <div class="guide-list">
+        <div class="guide-item"><code>pwd · ls · cd · cd ..</code><span>Show the current project location, list items, or move around folders.</span></div>
+        <div class="guide-item"><code>mkdir · touch · rm -r</code><span>Create folders and files or remove project items.</span></div>
+        <div class="guide-item"><code>cat · head · tail · wc</code><span>Read file contents and get basic file counts.</span></div>
+        <div class="guide-item"><code>open · vi · nano</code><span>Open a file in the built-in editor; vi/nano create it if needed.</span></div>
+        <div class="guide-item"><code>cp · mv · find · grep</code><span>Copy or move items, list paths, and search file contents.</span></div>
+        <div class="guide-item"><code>python3</code><span>Python files can be edited here, but this browser workspace does not run Python.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="newModal" role="dialog" aria-modal="true" aria-labelledby="newModalTitle">
+    <div class="modal">
+      <h2 id="newModalTitle">What would you like to add?</h2>
+      <p id="newLocation"></p>
+      <div style="display:flex;gap:8px"><button class="small-button" id="chooseFile" type="button">▤ &nbsp; File</button><button class="small-button" id="chooseFolder" type="button">▱ &nbsp; Folder</button></div>
+      <div class="modal-actions"><button class="small-button close-modal" type="button">Cancel</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="nameModal" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
+    <form class="modal" id="nameForm">
+      <h2 id="nameModalTitle">Name your file</h2>
+      <p id="nameLocation"></p><input class="modal-input" id="newItemName" type="text" autocomplete="off" placeholder="example.html" aria-label="Name">
+      <div class="modal-actions"><button class="small-button close-modal" type="button">Cancel</button><button class="control run-button" type="submit">Create</button></div>
+    </form>
+  </div>
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal">
+      <h2 id="settingsTitle">Settings</h2><label class="file-row">Word wrap <input id="wordWrap" type="checkbox"></label><label class="file-row">Line numbers <input id="showLines" type="checkbox" checked></label><label class="file-row">Auto-save <input id="autoSave" type="checkbox" checked></label>
+      <p style="margin-top:12px">Projects and preferences are stored locally in this browser.</p>
+      <div class="modal-actions"><button class="small-button close-modal" type="button">Done</button></div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal">
+      <h2 id="confirmTitle">Delete item?</h2>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions"><button class="small-button" id="cancelDelete" type="button">Cancel</button><button class="control run-button" id="confirmDelete" type="button">Delete</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const PROJECTS_KEY = 'nexuside-projects-v2';
+      const CURRENT_KEY = 'nexuside-current-project-v2';
+      const $ = (selector) => document.querySelector(selector);
+      function readStorage(key, fallback) {
+        try {
+          return JSON.parse(localStorage.getItem(key)) ?? fallback;
+        } catch {
+          return fallback;
+        }
+      }
+      let projects = readStorage(PROJECTS_KEY, {});
+      let currentProject = '';
+      let state = {
+        files: {},
+        folders: [],
+        activeFile: null
+      };
+      let activeFile = null;
+      let currentFolder = '';
+      let createKind = 'file';
+      let pendingDelete = null;
+      let toastTimer;
+      let commandHistory = [];
+      let historyIndex = 0;
+      const collapsed = new Set();
+      const editor = $('#codeEditor');
+
+      function notify(message) {
+        const toast = $('#toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+      }
+
+      function save() {
+        if (!currentProject) return;
+        if (activeFile && !$('#editorBody').hidden) state.files[activeFile] = editor.value;
+        state.activeFile = activeFile;
+        projects[currentProject] = state;
+        try {
+          localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+          localStorage.setItem(CURRENT_KEY, currentProject);
+          $('#saveStatus').textContent = 'saved';
+        } catch {
+          notify('Could not save: browser storage may be full');
+        }
+      }
+
+      function createProject(rawName) {
+        const name = rawName.trim();
+        if (!name) {
+          $('#projectNameInput').focus();
+          notify('Enter a project name first');
+          return;
+        }
+        const isNewProject = !projects[name];
+        if (isNewProject) projects[name] = {
+          files: {},
+          folders: [],
+          activeFile: null
+        };
+        openProject(name);
+        $('#projectNameInput').value = '';
+        closePage();
+        if (isNewProject) setView('files');
+        notify(`Project “${name}” opened`);
+      }
+
+      function openProject(name) {
+        if (!projects[name]) return;
+        if (currentProject) save();
+        currentProject = name;
+        const stored = projects[name];
+        state = {
+          files: {
+            ...(stored.files || {})
+          },
+          folders: [...(stored.folders || [])],
+          activeFile: stored.activeFile || null
+        };
+        activeFile = state.activeFile && state.files[state.activeFile] !== undefined ? state.activeFile : (Object.keys(state.files)[0] || null);
+        currentFolder = '';
+        collapsed.clear();
+        $('#projectName').textContent = name;
+        $('#projectGate').hidden = true;
+        $('#projectMenu').hidden = true;
+        $('#projectSelect').setAttribute('aria-expanded', 'false');
+        renderProjectLists();
+        renderFiles();
+        if (activeFile) selectFile(activeFile, false);
+        else showEmptyEditor();
+        updatePrompt();
+        save();
+        closePage();
+        if (activeFile && /\.html?$/i.test(activeFile)) runPreview();
+      }
+
+      function renderProjectLists() {
+        const saved = $('#savedProjects');
+        const menu = $('#projectMenu');
+        const grid = $('#projectGrid');
+        saved.replaceChildren();
+        menu.replaceChildren();
+        grid.replaceChildren();
+        Object.keys(projects).sort((a, b) => a.localeCompare(b)).forEach((name) => {
+          const savedButton = document.createElement('button');
+          savedButton.type = 'button';
+          savedButton.textContent = `▱  ${name}`;
+          savedButton.addEventListener('click', () => openProject(name));
+          saved.append(savedButton);
+          const menuButton = document.createElement('button');
+          menuButton.type = 'button';
+          menuButton.className = name === currentProject ? 'current' : '';
+          menuButton.textContent = `${name === currentProject ? '✓  ' : '▱  '}${name}`;
+          menuButton.addEventListener('click', () => openProject(name));
+          menu.append(menuButton);
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'project-card';
+          const title = document.createElement('strong');
+          title.textContent = name;
+          const detail = document.createElement('span');
+          const count = Object.keys(projects[name]?.files || {}).length;
+          detail.textContent = `${count} ${count === 1 ? 'file' : 'files'} · Click to open`;
+          card.append(title, detail);
+          card.addEventListener('click', () => openProject(name));
+          grid.append(card);
+        });
+        const newMenu = document.createElement('button');
+        newMenu.type = 'button';
+        newMenu.textContent = '＋  New project';
+        newMenu.addEventListener('click', () => {
+          $('#projectMenu').hidden = true;
+          $('#projectSelect').setAttribute('aria-expanded', 'false');
+          showGate();
+        });
+        menu.append(newMenu);
+        const addCard = document.createElement('button');
+        addCard.type = 'button';
+        addCard.className = 'project-card new-card';
+        addCard.textContent = '＋ New project';
+        addCard.addEventListener('click', showGate);
+        grid.append(addCard);
+      }
+
+      function showGate() {
+        closePage();
+        $('#projectGate').hidden = false;
+        renderProjectLists();
+        $('#projectNameInput').focus();
+      }
+
+      function showPage(id) {
+        save();
+        $('#projectGate').hidden = true;
+        document.querySelectorAll('.screen').forEach((page) => page.hidden = page.id !== id);
+        $('#projectMenu').hidden = true;
+        $('#projectSelect').setAttribute('aria-expanded', 'false');
+      }
+
+      function closePage() {
+        document.querySelectorAll('.screen').forEach((page) => page.hidden = true);
+      }
+
+      function showEmptyEditor() {
+        activeFile = null;
+        $('#editorBody').hidden = true;
+        $('#editorEmpty').hidden = false;
+        $('#activeFileName').textContent = 'Select a file to edit';
+      }
+
+      function selectFile(path, switchView = true) {
+        if (!Object.prototype.hasOwnProperty.call(state.files, path)) return false;
+        if (activeFile && !$('#editorBody').hidden) state.files[activeFile] = editor.value;
+        activeFile = path;
+        editor.value = state.files[path] ?? '';
+        $('#editorBody').hidden = false;
+        $('#editorEmpty').hidden = true;
+        $('#activeFileName').textContent = path;
+        updateLines();
+        renderFiles();
+        if (switchView) {
+          if (/\.html?$/i.test(path)) runPreview();
+          else setView('editor');
+        }
+        save();
+        return true;
+      }
+
+      function fileIcon(path) {
+        const ext = path.split('.').pop().toLowerCase();
+        return ({
+          html: '◇',
+          htm: '◇',
+          css: '#',
+          js: '⌘',
+          json: '{}',
+          py: 'Py',
+          md: 'M'
+        })[ext] || '·';
+      }
+
+      function renderFiles() {
+        const list = $('#fileList');
+        list.replaceChildren();
+        const folders = [...new Set(state.folders)];
+        Object.keys(state.files).forEach((file) => {
+          let parent = file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : '';
+          let ancestor = '';
+          parent.split('/').filter(Boolean).forEach((part) => {
+            ancestor = ancestor ? `${ancestor}/${part}` : part;
+            if (!folders.includes(ancestor)) folders.push(ancestor);
+          });
+        });
+        $('#filesEmpty').hidden = Object.keys(state.files).length + folders.length > 0;
+        folders.filter((folder) => !folder.includes('/')).sort().forEach((folder) => drawFolder(folder, 0, list, folders));
+        Object.keys(state.files).filter((file) => !file.includes('/')).sort().forEach((file) => drawFile(file, 0, list));
+      }
+
+      function drawFolder(folder, depth, list, folders) {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.style.paddingLeft = `${9 + depth * 18}px`;
+        const toggleFolder = () => {
+          collapsed.has(folder) ? collapsed.delete(folder) : collapsed.add(folder);
+          currentFolder = folder;
+          updatePrompt();
+          renderFiles();
+        };
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.textContent = collapsed.has(folder) ? '›' : '⌄';
+        toggle.setAttribute('aria-label', `${collapsed.has(folder) ? 'Expand' : 'Collapse'} ${folder}`);
+        toggle.addEventListener('click', toggleFolder);
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'file-label';
+        open.textContent = `▱  ${folder}`;
+        open.title = 'Click to collapse or expand this folder';
+        open.addEventListener('click', toggleFolder);
+        const spacer = document.createElement('span');
+        spacer.className = 'file-spacer';
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'small-button';
+        add.textContent = '+';
+        add.title = `Add to ${folder}`;
+        add.addEventListener('click', () => {
+          currentFolder = folder;
+          updatePrompt();
+          openNewModal();
+        });
+        row.append(toggle, open, spacer, add);
+        list.append(row);
+        if (collapsed.has(folder)) return;
+        folders.filter((item) => item.startsWith(`${folder}/`) && !item.slice(folder.length + 1).includes('/')).sort().forEach((child) => drawFolder(child, depth + 1, list, folders));
+        Object.keys(state.files).filter((file) => file.startsWith(`${folder}/`) && !file.slice(folder.length + 1).includes('/')).sort().forEach((file) => drawFile(file, depth + 1, list));
+      }
+
+      function drawFile(path, depth, list) {
+        const row = document.createElement('div');
+        row.className = `file-row${path === activeFile ? ' active' : ''}`;
+        row.style.paddingLeft = `${9 + depth * 18}px`;
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'file-label';
+        open.textContent = `${fileIcon(path)}  ${path.split('/').pop()}`;
+        open.title = path;
+        open.addEventListener('click', () => selectFile(path));
+        const spacer = document.createElement('span');
+        spacer.className = 'file-spacer';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'delete-file';
+        remove.textContent = '×';
+        remove.title = `Delete ${path}`;
+        remove.addEventListener('click', () => askDelete(path));
+        row.append(open, spacer, remove);
+        list.append(row);
+      }
+
+      function openNewModal() {
+        if (!currentProject) {
+          showGate();
+          return;
+        }
+        $('#newLocation').textContent = currentFolder ? `New items will be created in code/${currentFolder}/` : 'New items will be created in code/';
+        $('#newModal').classList.add('open');
+      }
+
+      function openNameModal(kind) {
+        createKind = kind;
+        $('#newModal').classList.remove('open');
+        $('#nameModalTitle').textContent = kind === 'folder' ? 'Name your folder' : 'Name your file';
+        $('#nameLocation').textContent = currentFolder ? `This will go in code/${currentFolder}/` : 'This will go in code/';
+        $('#newItemName').placeholder = kind === 'folder' ? 'folder-name' : 'example.html';
+        $('#newItemName').value = '';
+        $('#nameModal').classList.add('open');
+        $('#newItemName').focus();
+      }
+
+      function ensureParentFolders(path) {
+        const parts = path.split('/');
+        parts.pop();
+        let parent = '';
+        parts.forEach((part) => {
+          parent = parent ? `${parent}/${part}` : part;
+          if (!state.folders.includes(parent)) state.folders.push(parent);
+        });
+      }
+
+      function createNamedItem(raw) {
+        const name = raw.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+        if (!name || name.split('/').some((part) => !part || part === '.' || part === '..')) {
+          notify('Enter a valid name');
+          return false;
+        }
+        const path = currentFolder ? `${currentFolder}/${name}` : name;
+        if (Object.prototype.hasOwnProperty.call(state.files, path) || state.folders.includes(path)) {
+          notify('That name already exists');
+          return false;
+        }
+        if (createKind === 'folder') {
+          state.folders.push(path);
+          renderFiles();
+          save();
+          setView('files');
+          notify(`Folder ${path}/ created`);
+          return true;
+        }
+        ensureParentFolders(path);
+        state.files[path] = '';
+        selectFile(path);
+        notify(`File ${path} created`);
+        return true;
+      }
+
+      function askDelete(path) {
+        pendingDelete = path;
+        $('#confirmMessage').textContent = `Delete “${path}” and its contents?`;
+        $('#confirmModal').classList.add('open');
+      }
+
+      function deletePath(path) {
+        const exists = Object.hasOwn(state.files, path) || state.folders.includes(path) || Object.keys(state.files).some((file) => file.startsWith(`${path}/`));
+        if (!exists) return false;
+        Object.keys(state.files).filter((file) => file === path || file.startsWith(`${path}/`)).forEach((file) => {
+          delete state.files[file];
+          if (activeFile === file) activeFile = null;
+        });
+        state.folders = state.folders.filter((dir) => dir !== path && !dir.startsWith(`${path}/`));
+        if (!activeFile || state.files[activeFile] === undefined) {
+          const next = Object.keys(state.files)[0];
+          if (next) selectFile(next);
+          else showEmptyEditor();
+        }
+        save();
+        renderFiles();
+        return true;
+      }
+
+      function updateLines() {
+        const count = Math.max(1, editor.value.split('\n').length);
+        $('#lineNumbers').textContent = Array.from({
+          length: count
+        }, (_, i) => i + 1).join('\n');
+        $('#lineNumbers').hidden = !$('#showLines').checked;
+      }
+
+      function setView(name) {
+        if (!currentProject) {
+          showGate();
+          return;
+        }
+        closePage();
+        document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.id === `${name}View`));
+        document.querySelectorAll('.nav-button').forEach((button) => button.classList.toggle('active', button.dataset.view === name));
+        if (name === 'files') renderFiles();
+        if (name === 'terminal') setTimeout(() => $('#terminalInput').focus(), 0);
+      }
+
+      function runPreview() {
+        if (!currentProject) {
+          showGate();
+          return;
+        }
+        if (activeFile) state.files[activeFile] = editor.value;
+        const entry = Object.keys(state.files).find((path) => /\.html?$/i.test(path));
+        if (!entry) {
+          notify('Add an HTML file before running a preview');
+          setView('files');
+          return;
+        }
+        const base = entry.includes('/') ? entry.slice(0, entry.lastIndexOf('/') + 1) : '';
+        const html = state.files[entry].replace(/(href|src)=(['"])(?!https?:|data:|#|\/\/)([^'"]+)\2/gi, (match, attr, quote, raw) => {
+          const path = raw.split(/[?#]/)[0];
+          const target = path.startsWith('/') ? path.slice(1) : `${base}${path}`;
+          const content = state.files[target];
+          if (content === undefined) return match;
+          if (/\.css$/i.test(path)) return `href=${quote}data:text/css;charset=utf-8,${encodeURIComponent(content)}${quote}`;
+          if (/\.js$/i.test(path)) return `src=${quote}data:text/javascript;charset=utf-8,${encodeURIComponent(content)}${quote}`;
+          return match;
+        });
+        $('#previewFrame').srcdoc = html;
+        $('#previewFrame').hidden = false;
+        $('#previewEmpty').hidden = true;
+        $('#previewAddress').textContent = entry;
+        save();
+        setView('preview');
+      }
+
+      function terminalWrite(text, type = '') {
+        const line = document.createElement('div');
+        line.className = `terminal-line${type ? ` terminal-${type}` : ''}`;
+        line.textContent = String(text);
+        $('#terminalOutput').append(line);
+        $('#terminalOutput').scrollTop = $('#terminalOutput').scrollHeight;
+      }
+
+      function updatePrompt() {
+        $('#terminalPrompt').textContent = `user@nexuside:~/code${currentFolder ? `/${currentFolder}` : ''} $`;
+      }
+
+      function resolvePath(input = '.') {
+        let raw = input.replace(/\\/g, '/');
+        if (raw.startsWith('/')) {
+          raw = raw.replace(/^\/+/, '');
+          if (raw === 'code') raw = '';
+          else if (raw.startsWith('code/')) raw = raw.slice(5);
+          else if (currentProject && raw.startsWith(`projects/${currentProject}/`)) raw = raw.slice(`projects/${currentProject}/`.length);
+          else if (raw === `projects/${currentProject}`) raw = '';
+          else if (raw.startsWith('projects/')) raw = raw.split('/').slice(2).join('/');
+          else if (currentProject && raw.startsWith(`${currentProject}/`)) raw = raw.slice(currentProject.length + 1);
+        }
+        const parts = raw.startsWith('/') ? [] : currentFolder.split('/').filter(Boolean);
+        raw.split('/').filter(Boolean).forEach((part) => {
+          if (part === '.' || part === '~' || part === 'code') return;
+          if (part === '..') parts.pop();
+          else parts.push(part);
+        });
+        return parts.join('/');
+      }
+
+      function shellWords(text) {
+        const words = [];
+        let word = '';
+        let quote = '';
+        let escaped = false;
+        for (const char of text.trim()) {
+          if (escaped) {
+            word += char;
+            escaped = false;
+            continue;
+          }
+          if (char === '\\' && quote !== "'") {
+            escaped = true;
+            continue;
+          }
+          if (quote) {
+            if (char === quote) quote = '';
+            else word += char;
+          } else if (char === '"' || char === "'") quote = char;
+          else if (/\s/.test(char)) {
+            if (word) {
+              words.push(word);
+              word = '';
+            }
+          } else word += char;
+        }
+        if (escaped) word += '\\';
+        if (word) words.push(word);
+        return words;
+      }
+
+      function listDirectory(path) {
+        const prefix = path ? `${path}/` : '';
+        const children = new Set();
+        state.folders.forEach((folder) => {
+          if (folder.startsWith(prefix)) {
+            const rest = folder.slice(prefix.length);
+            if (rest) children.add(`${rest.split('/')[0]}/`);
+          }
+        });
+        Object.keys(state.files).forEach((file) => {
+          if (file.startsWith(prefix)) {
+            const rest = file.slice(prefix.length);
+            if (rest) children.add(rest.split('/')[0] + (rest.includes('/') ? '/' : ''));
+          }
+        });
+        return [...children].sort();
+      }
+
+      function removeFromTerminal(path, recursive, force) {
+        const isFolder = state.folders.includes(path) || Object.keys(state.files).some((file) => file.startsWith(`${path}/`));
+        if (isFolder && !recursive) {
+          terminalWrite(`rm: ${path}: is a directory (use rm -r)`, 'error');
+          return;
+        }
+        if (!isFolder && !Object.hasOwn(state.files, path)) {
+          if (!force) terminalWrite(`rm: ${path}: no such file or directory`, 'error');
+          return;
+        }
+        Object.keys(state.files).filter((file) => file === path || (recursive && file.startsWith(`${path}/`))).forEach((file) => {
+          delete state.files[file];
+          if (activeFile === file) activeFile = null;
+        });
+        state.folders = state.folders.filter((folder) => folder !== path && !(recursive && folder.startsWith(`${path}/`)));
+        if (currentFolder === path || currentFolder.startsWith(`${path}/`)) currentFolder = '';
+        if (!activeFile || state.files[activeFile] === undefined) {
+          const next = Object.keys(state.files)[0];
+          if (next) selectFile(next, false);
+          else showEmptyEditor();
+        }
+        save();
+        renderFiles();
+        updatePrompt();
+      }
+
+      function executeCommand(raw) {
+        const words = shellWords(raw);
+        const cmd = (words.shift() || '').toLowerCase();
+        if (!cmd) return;
+        const args = words;
+        const argPath = (index = 0, fallback = '.') => resolvePath(args[index] || fallback);
+        const files = Object.keys(state.files);
+        if (cmd === 'help') terminalWrite('Commands: pwd, ls, cd, mkdir, touch, cat, open, vi, nano, rm, cp, mv, find, grep, head, tail, wc, echo, clear, history, date, whoami, python3. All file commands stay inside this project.');
+        else if (cmd === 'clear' || cmd === 'cls') $('#terminalOutput').replaceChildren();
+        else if (cmd === 'pwd') terminalWrite(`/projects/${currentProject}/code${currentFolder ? `/${currentFolder}` : ''}`);
+        else if (cmd === 'whoami') terminalWrite('user');
+        else if (cmd === 'date') terminalWrite(new Date().toString());
+        else if (cmd === 'history') terminalWrite(commandHistory.map((item, index) => `${index + 1}  ${item}`).join('\n') || '(no commands yet)');
+        else if (cmd === 'ls' || cmd === 'dir') {
+          const targetWord = args.find((arg) => !arg.startsWith('-')) || '.';
+          const target = resolvePath(targetWord);
+          if (Object.hasOwn(state.files, target)) terminalWrite(target.split('/').pop());
+          else if (!target || state.folders.includes(target) || files.some((file) => file.startsWith(`${target}/`))) {
+            const names = listDirectory(target);
+            terminalWrite(names.length ? names.join('   ') : '(empty)');
+          } else terminalWrite(`ls: cannot access '${targetWord}': no such file or directory`, 'error');
+        } else if (cmd === 'cd') {
+          const target = resolvePath(args[0] || '');
+          if (!target || state.folders.includes(target) || files.some((file) => file.startsWith(`${target}/`))) {
+            currentFolder = target;
+            updatePrompt();
+          } else terminalWrite(`cd: ${args[0]}: no such directory`, 'error');
+        } else if (cmd === 'mkdir') {
+          const recursive = args.includes('-p') || args.includes('--parents');
+          const word = args.find((arg) => !arg.startsWith('-'));
+          if (!word) terminalWrite('Usage: mkdir [-p] <folder>', 'error');
+          else {
+            const target = resolvePath(word);
+            if (state.folders.includes(target)) {
+              if (!recursive) terminalWrite(`mkdir: ${word}: already exists`, 'error');
+            } else if (Object.hasOwn(state.files, target)) terminalWrite(`mkdir: ${word}: file exists`, 'error');
+            else {
+              if (recursive) ensureParentFolders(target);
+              state.folders.push(target);
+              save();
+              renderFiles();
+            }
+          }
+        } else if (cmd === 'touch') {
+          if (!args[0]) terminalWrite('Usage: touch <file>', 'error');
+          else {
+            const target = resolvePath(args[0]);
+            if (!target || state.folders.includes(target)) terminalWrite(`touch: ${args[0]}: is a directory`, 'error');
+            else {
+              ensureParentFolders(target);
+              if (!Object.hasOwn(state.files, target)) state.files[target] = '';
+              save();
+              renderFiles();
+            }
+          }
+        } else if (['cat', 'head', 'tail', 'wc'].includes(cmd)) {
+          const target = argPath();
+          if (!Object.hasOwn(state.files, target)) terminalWrite(`${cmd}: ${args[0] || 'missing file'}: no such file`, 'error');
+          else if (cmd === 'cat') terminalWrite(state.files[target]);
+          else if (cmd === 'wc') {
+            const text = state.files[target];
+            terminalWrite(`${text.split(/\s+/).filter(Boolean).length} ${text.split('\n').length} ${text.length} ${target}`);
+          } else {
+            const lines = state.files[target].split('\n');
+            const n = args.indexOf('-n');
+            const count = n >= 0 ? Math.max(1, Number(args[n + 1]) || 10) : 10;
+            terminalWrite((cmd === 'head' ? lines.slice(0, count) : lines.slice(-count)).join('\n'));
+          }
+        } else if (cmd === 'echo' || cmd === 'printf') {
+          const i = args.findIndex((arg) => arg === '>' || arg === '>>');
+          if (i >= 0 && args[i + 1]) {
+            const target = resolvePath(args[i + 1]);
+            ensureParentFolders(target);
+            const value = args.slice(0, i).join(' ') + (cmd === 'echo' ? '\n' : '');
+            state.files[target] = args[i] === '>>' ? (state.files[target] || '') + value : value;
+            save();
+            renderFiles();
+          } else terminalWrite(args.join(' '));
+        } else if (cmd === 'rm' || cmd === 'rmdir') {
+          const recursive = cmd === 'rmdir' || args.some((arg) => /^-[^-]*r/.test(arg)) || args.includes('--recursive');
+          const force = args.some((arg) => /^-[^-]*f/.test(arg)) || args.includes('--force');
+          const word = args.find((arg) => !arg.startsWith('-'));
+          if (!word) terminalWrite(`Usage: ${cmd} [-r] <path>`, 'error');
+          else removeFromTerminal(resolvePath(word), recursive, force);
+        } else if (cmd === 'cp' || cmd === 'mv') {
+          const recursive = args.includes('-r') || args.includes('-R');
+          const values = args.filter((arg) => !arg.startsWith('-'));
+          if (values.length < 2) terminalWrite(`Usage: ${cmd} <source> <destination>`, 'error');
+          else {
+            const from = resolvePath(values[0]);
+            const to = resolvePath(values[1]);
+            if (Object.hasOwn(state.files, from)) {
+              ensureParentFolders(to);
+              state.files[to] = state.files[from];
+              if (cmd === 'mv') delete state.files[from];
+              save();
+              renderFiles();
+            } else if (recursive && (state.folders.includes(from) || files.some((file) => file.startsWith(`${from}/`)))) {
+              const copyFiles = files.filter((file) => file.startsWith(`${from}/`));
+              const copyFolders = state.folders.filter((folder) => folder === from || folder.startsWith(`${from}/`));
+              copyFolders.forEach((folder) => {
+                const next = `${to}${folder.slice(from.length)}`;
+                if (!state.folders.includes(next)) state.folders.push(next);
+              });
+              copyFiles.forEach((file) => {
+                state.files[`${to}${file.slice(from.length)}`] = state.files[file];
+              });
+              if (cmd === 'mv') removeFromTerminal(from, true, true);
+              save();
+              renderFiles();
+            } else terminalWrite(`${cmd}: source not found (copy folders with -r)`, 'error');
+          }
+        } else if (['open', 'vi', 'vim', 'nano', 'edit'].includes(cmd)) {
+          const word = args.find((arg) => !arg.startsWith('-'));
+          if (!word) terminalWrite(`Usage: ${cmd} <file>`, 'error');
+          else {
+            const target = resolvePath(word);
+            if (Object.hasOwn(state.files, target)) {
+              selectFile(target);
+              notify(`${target} opened in the editor`);
+            } else if (['vi', 'vim', 'nano', 'edit'].includes(cmd) && target) {
+              ensureParentFolders(target);
+              state.files[target] = '';
+              selectFile(target);
+              notify(`Created ${target} in the editor`);
+            } else if (state.folders.includes(target) || files.some((file) => file.startsWith(`${target}/`))) {
+              currentFolder = target;
+              updatePrompt();
+              setView('files');
+            } else terminalWrite(`${cmd}: ${word}: no such file or folder`, 'error');
+          }
+        } else if (cmd === 'find') {
+          const word = args.find((arg) => !arg.startsWith('-')) || '.';
+          const start = resolvePath(word);
+          const matches = [...files, ...state.folders].filter((path) => !start || path === start || path.startsWith(`${start}/`));
+          terminalWrite(matches.sort().join('\n') || '(no matches)');
+        } else if (cmd === 'grep') {
+          const values = args.filter((arg) => !arg.startsWith('-'));
+          const needle = values[0] || '';
+          const target = resolvePath(values[1] || '');
+          if (!needle || !Object.hasOwn(state.files, target)) terminalWrite('Usage: grep <text> <file>', 'error');
+          else terminalWrite(state.files[target].split('\n').map((line, index) => line.includes(needle) ? `${index + 1}:${line}` : '').filter(Boolean).join('\n') || '(no matches)');
+        } else if (cmd === 'python3' || cmd === 'python') terminalWrite('Python execution is not available in this browser workspace. You can create and edit .py files here.');
+        else terminalWrite(`${cmd}: command not found. Type 'help' for available workspace commands.`, 'error');
+      }
+
+      function terminalCommand(raw) {
+        const command = raw.trim();
+        if (!command) return;
+        terminalWrite(`$ ${command}`, 'command');
+        command.split(/\s*;\s*/).forEach((part) => executeCommand(part));
+      }
+
+      $('#projectForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        createProject($('#projectNameInput').value);
+      });
+      $('#projectSelect').addEventListener('click', () => {
+        const menu = $('#projectMenu');
+        menu.hidden = !menu.hidden;
+        $('#projectSelect').setAttribute('aria-expanded', String(!menu.hidden));
+      });
+      $('#allProjectsButton').addEventListener('click', () => {
+        if (!currentProject) {
+          showGate();
+          return;
+        }
+        showPage('projectsPage');
+        renderProjectLists();
+      });
+      $('#backWorkspaceButton').addEventListener('click', closePage);
+      $('#homeBrand').addEventListener('click', (event) => {
+        event.preventDefault();
+        closePage();
+      });
+      $('#projectsHomeLink').addEventListener('click', (event) => {
+        event.preventDefault();
+        closePage();
+      });
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.project-wrap')) {
+          $('#projectMenu').hidden = true;
+          $('#projectSelect').setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.querySelectorAll('.nav-button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
+      $('#newButton').addEventListener('click', openNewModal);
+      $('#addFileButton').addEventListener('click', () => {
+        currentFolder = '';
+        openNameModal('file');
+      });
+      $('#addFolderButton').addEventListener('click', () => {
+        currentFolder = '';
+        openNameModal('folder');
+      });
+      $('#chooseFile').addEventListener('click', () => openNameModal('file'));
+      $('#chooseFolder').addEventListener('click', () => openNameModal('folder'));
+      $('#nameForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (createNamedItem($('#newItemName').value)) $('#nameModal').classList.remove('open');
+      });
+      document.querySelectorAll('.close-modal').forEach((button) => button.addEventListener('click', () => button.closest('.modal-backdrop').classList.remove('open')));
+      document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) backdrop.classList.remove('open');
+      }));
+      $('#confirmDelete').addEventListener('click', () => {
+        if (pendingDelete) deletePath(pendingDelete);
+        pendingDelete = null;
+        $('#confirmModal').classList.remove('open');
+      });
+      $('#cancelDelete').addEventListener('click', () => {
+        pendingDelete = null;
+        $('#confirmModal').classList.remove('open');
+      });
+      $('#runButton').addEventListener('click', runPreview);
+      editor.addEventListener('input', () => {
+        if (!activeFile) return;
+        state.files[activeFile] = editor.value;
+        $('#saveStatus').textContent = 'unsaved';
+        updateLines();
+        if ($('#autoSave').checked) save();
+      });
+      editor.addEventListener('scroll', () => {
+        $('#lineNumbers').scrollTop = editor.scrollTop;
+      });
+      editor.addEventListener('keydown', (event) => {
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          editor.setRangeText('  ', editor.selectionStart, editor.selectionEnd, 'end');
+          editor.dispatchEvent(new Event('input'));
+        }
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+          event.preventDefault();
+          save();
+          notify('Project saved');
+        }
+      });
+      $('#downloadButton').addEventListener('click', () => {
+        if (!activeFile) {
+          notify('Select a file first');
+          return;
+        }
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(new Blob([editor.value], {
+          type: 'text/plain'
+        }));
+        link.href = url;
+        link.download = activeFile.split('/').pop();
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+      $('#uploadButton').addEventListener('click', () => $('#filePicker').click());
+      $('#filePicker').addEventListener('change', async (event) => {
+        for (const file of [...event.target.files]) {
+          const path = file.webkitRelativePath || file.name;
+          state.files[path] = await file.text();
+          ensureParentFolders(path);
+        }
+        save();
+        renderFiles();
+        const first = event.target.files[0];
+        if (first) selectFile(first.webkitRelativePath || first.name);
+        event.target.value = '';
+      });
+      $('#terminalForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = $('#terminalInput');
+        const value = input.value.trim();
+        if (value) {
+          commandHistory.push(value);
+          historyIndex = commandHistory.length;
+        }
+        terminalCommand(input.value);
+        input.value = '';
+      });
+      $('#terminalInput').addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          historyIndex = Math.max(0, historyIndex - 1);
+          event.currentTarget.value = commandHistory[historyIndex] || '';
+        }
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+          event.currentTarget.value = commandHistory[historyIndex] || '';
+        }
+      });
+      $('#clearTerminal').addEventListener('click', () => $('#terminalOutput').replaceChildren());
+      $('#settingsButton').addEventListener('click', () => $('#settingsModal').classList.add('open'));
+      $('#wordWrap').addEventListener('change', () => editor.classList.toggle('wrap', $('#wordWrap').checked));
+      $('#showLines').addEventListener('change', updateLines);
+      $('#autoSave').addEventListener('change', () => {
+        if ($('#autoSave').checked) save();
+      });
+      $('#helpPageButton').addEventListener('click', () => showPage('helpPage'));
+      $('#terminalGuideButton').addEventListener('click', () => showPage('terminalGuidePage'));
+      $('#terminalHelpButton').addEventListener('click', () => showPage('terminalGuidePage'));
+      document.querySelectorAll('.openTerminalGuide').forEach((button) => button.addEventListener('click', () => showPage('terminalGuidePage')));
+      document.querySelectorAll('.backPageButton').forEach((button) => button.addEventListener('click', () => showPage('projectsPage')));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          document.querySelectorAll('.modal-backdrop.open').forEach((modal) => modal.classList.remove('open'));
+          $('#projectMenu').hidden = true;
+        }
+      });
+      window.addEventListener('beforeunload', save);
+
+      terminalWrite("Type 'help' to see available workspace terminal commands.");
+      const previous = localStorage.getItem(CURRENT_KEY);
+      if (previous && projects[previous]) openProject(previous);
+      else {
+        $('#projectGate').hidden = false;
+        renderProjectLists();
+      }
+    })();
+
+  </script>
+</body>
+
+</html>

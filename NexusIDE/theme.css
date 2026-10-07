@@ -1,0 +1,16 @@
+:root {
+  --color-primary: #00efa2;
+  --color-primary-contrast: #03130f;
+  --color-bg: #020908;
+  --color-surface: #061512;
+  --color-text: #d5f5e9;
+  --color-muted: #75a895;
+  --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --radius: 12px;
+  --color-border: #173d30;
+  --color-editor: #020908;
+  --color-preview-bg: #ffffff;
+  --color-preview-text: #414141;
+  --color-preview-muted: #737373;
+}
