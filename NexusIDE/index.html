@@ -1019,6 +1019,27 @@
         if (activeFile && /\.html?$/i.test(activeFile)) runPreview();
       }
 
+      function deleteProject(name) {
+        const projectCount = Object.keys(projects).length;
+        if (projectCount <= 1) {
+          delete projects[name];
+          currentProject = '';
+          $('#projectGate').hidden = false;
+          renderProjectLists();
+          notify('Project deleted - no projects remaining');
+        } else {
+          delete projects[name];
+          if (currentProject === name) {
+            currentProject = Object.keys(projects)[0];
+            $('#projectName').textContent = currentProject;
+          }
+          save();
+          renderProjectLists();
+          renderFiles();
+          notify(`Project "${name}" deleted`);
+        }
+      }
+
       function renderProjectLists() {
         const saved = $('#savedProjects');
         const menu = $('#projectMenu');
@@ -1026,7 +1047,25 @@
         saved.replaceChildren();
         menu.replaceChildren();
         grid.replaceChildren();
-        Object.keys(projects).sort((a, b) => a.localeCompare(b)).forEach((name) => {
+        const projectNames = Object.keys(projects).sort((a, b) => a.localeCompare(b));
+        const firstProject = projectNames[0];
+        const homeButton = document.createElement('button');
+        homeButton.type = 'button';
+        homeButton.className = 'project-card';
+        const homeIcon = document.createElement('span');
+        homeIcon.textContent = '←';
+        homeIcon.style.marginRight = '6px';
+        const homeText = document.createElement('span');
+        homeText.textContent = 'projects';
+        homeText.style.fontWeight = '700';
+        homeText.style.color = 'var(--color-primary)';
+        homeButton.append(homeIcon, homeText);
+        homeButton.addEventListener('click', () => {
+          showPage('projectsPage');
+          renderProjectLists();
+        });
+        menu.append(homeButton);
+        projectNames.forEach((name) => {
           const savedButton = document.createElement('button');
           savedButton.type = 'button';
           savedButton.textContent = `▱  ${name}`;
@@ -1045,8 +1084,23 @@
           title.textContent = name;
           const detail = document.createElement('span');
           const count = Object.keys(projects[name]?.files || {}).length;
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'delete-file';
+          deleteBtn.textContent = '×';
+          deleteBtn.title = `Delete ${name}`;
+          deleteBtn.style.marginLeft = '8px';
+          deleteBtn.style.opacity = '1';
+          deleteBtn.style.color = 'var(--color-primary)';
+          deleteBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (confirm(`Delete project “${name}” and all its files?`)) {
+              deleteProject(name);
+              renderProjectLists();
+            }
+          });
           detail.textContent = `${count} ${count === 1 ? 'file' : 'files'} · Click to open`;
-          card.append(title, detail);
+          card.append(title, detail, deleteBtn);
           card.addEventListener('click', () => openProject(name));
           grid.append(card);
         });
