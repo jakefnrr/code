@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <h1>Chat App</h1>
+        <a href="../index.html" class="all-projects-btn">← ALL PROJECTS</a>
+      </header>
+
+      <aside class="sidebar">
+        <div class="profile-card">
+          <div class="avatar" id="avatar">U</div>
+          <div>
+            <p class="eyebrow">Your account</p>
+            <h2 id="usernameLabel">Guest</h2>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label class="field-label" for="usernameInput">Username</label>
+          <div class="stack-row">
+            <input id="usernameInput" type="text" maxlength="20" placeholder="Choose a username" />
+            <button id="saveUsernameBtn" class="small-btn">Save</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label class="field-label" for="friendInput">Add friend</label>
+          <div class="stack-row">
+            <input id="friendInput" type="text" maxlength="30" placeholder="Friend username" />
+            <button id="addFriendBtn" class="small-btn">Add</button>
+          </div>
+        </div>
+
+        <div class="panel friends-panel">
+          <div class="section-head">
+            <h3>Friends</h3>
+          </div>
+          <ul id="friendList" class="friend-list"></ul>
+        </div>
+      </aside>
+
+      <main class="chat-panel">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Now chatting</p>
+            <h1 id="activeChatTitle">General</h1>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span id="connectionStatus">Connecting...</span>
+          </div>
+        </header>
+
+        <section id="messageList" class="message-list" aria-live="polite"></section>
+
+        <div class="composer-wrap">
+          <div class="emoji-row" id="emojiRow">
+            <button class="emoji-btn" data-emoji="😀">😀</button>
+            <button class="emoji-btn" data-emoji="🔥">🔥</button>
+            <button class="emoji-btn" data-emoji="😂">😂</button>
+            <button class="emoji-btn" data-emoji="😍">😍</button>
+            <button class="emoji-btn" data-emoji="👍">👍</button>
+            <button class="emoji-btn" data-emoji="🎉">🎉</button>
+            <button class="emoji-btn" data-emoji="💪">💪</button>
+            <button class="emoji-btn" data-emoji="❤️">❤️</button>
+          </div>
+
+          <div class="composer-row">
+            <label class="upload-btn" for="fileInput">+ Media</label>
+            <input id="fileInput" type="file" accept="image/*,video/*" hidden />
+
+            <textarea id="messageInput" rows="1" placeholder="Type a message..."></textarea>
+            <button id="sendBtn" class="primary-btn">Send</button>
+          </div>
+
+          <div id="mediaPreview" class="media-preview hidden"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
