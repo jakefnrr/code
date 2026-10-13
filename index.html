@@ -376,7 +376,7 @@ footer{
         <a href="NexusIDE/" class="corner-btn">Nexus IDE</a>
         <a href="ai.html" class="corner-btn">Jake AI</a>
         <a href="Japanese/" class="corner-btn">Japanese</a>
-        <a href="bluechat/index.html" class="corner-btn" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: var(--accent);">BlueChat</a>
+        <a href="GreenChat/" class="corner-btn" style="background: rgba(30, 255, 120, 0.18); border-color: rgba(67, 255, 143, 0.45); color: #45ff90;">GreenChat</a>
     </div>
     <section class="section">
         <div class="label">ALL PROJECTS</div>
@@ -409,12 +409,12 @@ footer{
    main.py
    ========================================================= */
 const projects = [
-    ["Arcade","Arcade/index.html","🎮"],
-    ["App Maker","appmaker.html","✦"],
-    ["Massage","Massage/index.html","✦"],
-    ["Notes","Notes/index.html","✎"],
-    ["Siam Smart Home","SiamSmartHome/index.html","⌂"],
-    ["Zoo","Zoo/index.html","◈"]
+    ["Arcade","Arcade/index.html","ð®"],
+    ["App Maker","appmaker.html","â¦"],
+    ["Massage","Massage/index.html","â¦"],
+    ["Notes","Notes/index.html","â"],
+    ["Siam Smart Home","SiamSmartHome/index.html","â"],
+    ["Zoo","Zoo/index.html","â"]
 ];
 
 const projectsEl = document.getElementById("projects");
@@ -445,7 +445,7 @@ function enterJakeMode(){
     setTimeout(()=>{
         toast.classList.remove("show");
 
-        grind.textContent="★ My Grind Hub";
+        grind.textContent="â My Grind Hub";
         grind.href="MyGrindHub/";
 
         mode.innerHTML=`
@@ -458,7 +458,7 @@ function enterJakeMode(){
 }
 
 function exitJakeMode(){
-    grind.textContent="⚡ Grind Hub";
+    grind.textContent="â¡ Grind Hub";
     grind.href="GrindHub/";
 
     mode.innerHTML=`
