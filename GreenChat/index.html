@@ -1,16 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="/manifest.json" />
-    <title>GreenChat — Real-time chat</title>
-    <meta name="description" content="GreenChat — real-time chat that works across the world. Search a username, send a friend request, and start talking instantly." />
-    <meta name="theme-color" content="#0a0f0a" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GreenChat</title>
+<meta name="description" content="GreenChat — real-time messaging." />
+<meta name="theme-color" content="#0a0f0a" />
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+<script>
+  // Served statically without a Vite build (e.g. GitHub Pages), the app bundle
+  // won't load — redirect to the live hosted app instead.
+  setTimeout(function () {
+    var r = document.getElementById('root');
+    if (!r || !r.hasChildNodes()) window.location.replace('https://jakegreenchat.base44.app');
+  }, 2500);
+</script>
+</body>
 </html>
