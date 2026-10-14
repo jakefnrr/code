@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "target": "es2022",
+    "useUnknownInCatchVariables": false,
+    "skipLibCheck": true
+  }
+}
