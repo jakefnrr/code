@@ -1,38 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GreenChat</title>
-<meta name="theme-color" content="#0a0f0a">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:Arial,Helvetica,sans-serif;background:#020806;color:#eafff1;display:flex;align-items:center;justify-content:center;padding:24px}
-.glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at 50% 40%,rgba(30,255,120,.12),transparent 40%),radial-gradient(circle at 80% 90%,rgba(0,255,130,.08),transparent 30%)}
-.card{position:relative;z-index:1;max-width:560px;width:100%;background:rgba(3,25,13,.6);border:1px solid rgba(67,255,143,.35);border-radius:18px;padding:40px 32px;text-align:center;backdrop-filter:blur(10px)}
-.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#021b0b;background:#45ff90;padding:5px 12px;border-radius:999px;margin-bottom:18px}
-h1{font-size:34px;margin-bottom:10px;letter-spacing:-.5px}
-.card p.lead{color:#9fffc6;font-size:15px;line-height:1.6;margin-bottom:24px}
-.feats{display:grid;gap:10px;text-align:left;margin-bottom:28px}
-.feat{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#dffff0}
-.feat b{color:#45ff90}
-.dot{color:#45ff90;font-weight:800}
-.note{font-size:12px;color:#7fbf9a;margin-top:18px}
-</style>
-</head>
-<body>
-<div class="glow"></div>
-<div class="card">
-  <span class="badge">Real-time chat</span>
-  <h1>GreenChat</h1>
-  <p class="lead">A modern, real-time messaging platform with a sleek dark aesthetic — search a username, send a friend request, manage groups, and chat instantly across the world.</p>
-  <div class="feats">
-    <div class="feat"><span class="dot">&gt;</span><div><b>Friends</b> — find people by username and send friend requests</div></div>
-    <div class="feat"><span class="dot">&gt;</span><div><b>Groups</b> — create group chats and add members</div></div>
-    <div class="feat"><span class="dot">&gt;</span><div><b>Real-time</b> — messages and notifications push live</div></div>
-    <div class="feat"><span class="dot">&gt;</span><div><b>Private</b> — row-level security keeps your data yours</div></div>
-  </div>
-  <p class="note">GreenChat is a hosted web app built on Base44. Source for this project is in this folder.</p>
-</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>GreenChat — Real-time chat</title>
+    <meta name="description" content="GreenChat — real-time chat that works across the world. Search a username, send a friend request, and start talking instantly." />
+    <meta name="theme-color" content="#0a0f0a" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
