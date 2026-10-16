@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON PACK — Vacation Checklist</title>
+<style>
+:root {
+  --bg: #070914;
+  --panel: #101529;
+  --cyan: #4dfcff;
+  --pink: #ff4fd8;
+  --purple: #9d70ff;
+  --text: #f2f5ff;
+  --muted: #929bb9;
+  --line: #27304c;
+  --green: #6dffb2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 10% 0%, #18234a 0, transparent 38%),
+    radial-gradient(ellipse at 95% 20%, #301340 0, transparent 32%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+.wrap {
+  width: min(1000px, 100%);
+  margin: auto;
+  padding: 30px 18px 48px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.brand {
+  font-size: 12px;
+  letter-spacing: 3px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 16px #4dfcff70;
+}
+
+.pill {
+  border: 1px solid #343d5c;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+h1 {
+  font-size: clamp(34px, 7vw, 64px);
+  line-height: .98;
+  letter-spacing: -2px;
+  margin: 0 0 12px;
+  font-weight: 950;
+}
+
+h1 span {
+  color: var(--cyan);
+  text-shadow: 0 0 25px #4dfcff55;
+}
+
+.sub {
+  color: var(--muted);
+  margin: 0 0 25px;
+  line-height: 1.5;
+}
+
+.progress-card {
+  background: linear-gradient(120deg, #111a30ef, #171126ed);
+  border: 1px solid #35415f;
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 0 30px #4dfcff0c;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.progress-top strong {
+  color: var(--cyan);
+  font-size: 17px;
+}
+
+.track {
+  height: 9px;
+  background: #242b43;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink));
+  box-shadow: 0 0 15px #4dfcff80;
+  border-radius: 99px;
+  transition: width .25s;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+input, button { font: inherit; }
+
+#newItem {
+  flex: 1;
+  min-width: 190px;
+  background: #0c1020;
+  border: 1px solid #35415f;
+  color: var(--text);
+  padding: 13px 15px;
+  border-radius: 12px;
+  outline: none;
+}
+
+#newItem:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px #4dfcff18;
+}
+
+button {
+  cursor: pointer;
+  transition: transform .15s, filter .15s;
+}
+
+button:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.add {
+  background: var(--cyan);
+  color: #041018;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 850;
+  box-shadow: 0 0 20px #4dfcff2b;
+}
+
+.ghost {
+  background: #101529;
+  color: var(--text);
+  border: 1px solid #35415f;
+  border-radius: 12px;
+  padding: 11px 14px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 25px 2px 12px;
+}
+
+.section-title h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.category {
+  background: linear-gradient(145deg, #11172b, #0b0f1d);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.category h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 12px currentColor;
+  display: inline-block;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #ffffff04;
+  min-width: 0;
+}
+
+.item:hover {
+  border-color: #38415e;
+  background: #ffffff08;
+}
+
+.item input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  border: 1.5px solid #687392;
+  border-radius: 5px;
+  background: #0a0e1c;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.item input[type="checkbox"]:checked {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 12px #6dffb255;
+}
+
+.item input[type="checkbox"]:checked::after {
+  content: "✓";
+  font-size: 13px;
+  color: #06140e;
+  font-weight: 1000;
+}
+
+.item label {
+  font-size: 13px;
+  line-height: 1.35;
+  flex: 1;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.item.done label {
+  text-decoration: line-through;
+  color: #727c99;
+}
+
+.remove {
+  background: transparent;
+  border: 0;
+  color: #7882a0;
+  font-size: 18px;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.remove:hover { color: #ff6f9c; }
+
+.empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 12px;
+  text-align: center;
+}
+
+.done-area {
+  margin-top: 32px;
+  border: 1px solid #285b4b;
+  background: linear-gradient(135deg, #0b1d20, #101529);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 0 28px #6dffb20a;
+}
+
+.done-area .section-title {
+  margin: 0 0 12px;
+}
+
+.done-area h2 { color: var(--green); }
+
+.done-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.done-list .item {
+  border-color: #23463d;
+  background: #6dffb208;
+}
+
+.done-list .item label {
+  color: #9cb9b1;
+  text-decoration: line-through;
+}
+
+.footer {
+  text-align: center;
+  color: #69738f;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  margin-top: 28px;
+}
+
+@media (max-width: 650px) {
+  .wrap { padding: 22px 13px 34px; }
+  .grid, .done-list { grid-template-columns: 1fr; }
+  header { margin-bottom: 22px; }
+  .pill { font-size: 10px; }
+  .category { padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">✦ NEON PACK</div>
+    <div class="pill">VACATION MODE: ON</div>
+  </header>
+
+  <h1>PACK SMART.<br><span>TRAVEL LIGHT.</span></h1>
+
+  <p class="sub">
+    Your trip, your checklist. Add anything you need,
+    then check it off once it's safely in your bag.
+  </p>
+
+  <section class="progress-card">
+    <div class="progress-top">
+      <span>PACKING PROGRESS</span>
+      <strong id="progressText">0%</strong>
+      <span class="count" id="progressCount">0 of 0 packed</span>
+    </div>
+    <div class="track">
+      <div class="fill" id="progressFill"></div>
+    </div>
+  </section>
+
+  <form class="toolbar" id="addForm">
+    <input
+      id="newItem"
+      maxlength="100"
+      placeholder="Add something to pack…"
+      autocomplete="off"
+      aria-label="New packing item"
+    >
+    <button class="add" type="submit">＋ Add item</button>
+    <button class="ghost" id="resetBtn" type="button">
+      Reset checks
+    </button>
+  </form>
+
+  <div class="section-title">
+    <h2>▸ Still to pack</h2>
+    <span class="count" id="remainingCount">0 items</span>
+  </div>
+
+  <main class="grid" id="todoGrid"></main>
+
+  <section class="done-area">
+    <div class="section-title">
+      <h2>✓ Packed &amp; ready</h2>
+      <span class="count" id="doneCount">0 items</span>
+    </div>
+
+    <div class="done-list" id="doneList"></div>
+
+    <div class="empty" id="doneEmpty">
+      Your checked-off items will appear here at the bottom.
+    </div>
+  </section>
+
+  <div class="footer">BUILT FOR YOUR NEXT ADVENTURE ✦</div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "neonPackChecklistV1";
+
+let items = [];
+
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (Array.isArray(parsed)) items = parsed;
+  }
+} catch (error) {
+  items = [];
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.warn("Could not save checklist.", error);
+  }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function makeItem(item) {
+  const element = document.createElement("div");
+  element.className = "item" + (item.done ? " done" : "");
+
+  element.innerHTML = `
+    <input
+      type="checkbox"
+      id="check-${escapeHtml(item.id)}"
+      ${item.done ? "checked" : ""}
+      aria-label="Mark item packed"
+    >
+    <label for="check-${escapeHtml(item.id)}">
+      ${escapeHtml(item.text)}
+    </label>
+    <button
+      class="remove"
+      type="button"
+      title="Delete item"
+      aria-label="Delete item"
+    >×</button>
+  `;
+
+  element.querySelector("input").addEventListener("change", event => {
+    item.done = event.target.checked;
+    save();
+    render();
+  });
+
+  element.querySelector(".remove").addEventListener("click", () => {
+    items = items.filter(entry => entry.id !== item.id);
+    save();
+    render();
+  });
+
+  return element;
+}
+
+function render() {
+  const todoGrid = document.getElementById("todoGrid");
+  const doneList = document.getElementById("doneList");
+
+  todoGrid.innerHTML = "";
+  doneList.innerHTML = "";
+
+  const remaining = items.filter(item => !item.done);
+  const completed = items.filter(item => item.done);
+
+  remaining.forEach(item => {
+    const card = document.createElement("section");
+    card.className = "category";
+
+    card.innerHTML = `
+      <h3>
+        <span
+          class="dot"
+          style="background:var(--cyan);color:var(--cyan)"
+        ></span>
+        MY PACKING LIST
+      </h3>
+      <div class="items"></div>
+    `;
+
+    card.querySelector(".items").appendChild(makeItem(item));
+    todoGrid.appendChild(card);
+  });
+
+  if (remaining.length === 0) {
+    todoGrid.innerHTML = `
+      <div class="empty">
+        Nothing left to pack — or add your first item above!
+      </div>
+    `;
+  }
+
+  completed.forEach(item => {
+    doneList.appendChild(makeItem(item));
+  });
+
+  document.getElementById("doneEmpty").style.display =
+    completed.length ? "none" : "block";
+
+  const total = items.length;
+  const packed = completed.length;
+  const percent = total ? Math.round((packed / total) * 100) : 0;
+
+  document.getElementById("progressText").textContent =
+    percent + "%";
+
+  document.getElementById("progressCount").textContent =
+    `${packed} of ${total} packed`;
+
+  document.getElementById("progressFill").style.width =
+    percent + "%";
+
+  document.getElementById("remainingCount").textContent =
+    `${remaining.length} items`;
+
+  document.getElementById("doneCount").textContent =
+    `${packed} items`;
+}
+
+document.getElementById("addForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const input = document.getElementById("newItem");
+  const text = input.value.trim();
+
+  if (!text) {
+    input.focus();
+    return;
+  }
+
+  items.push({
+    id: "item-" + Date.now() + "-" +
+      Math.random().toString(36).slice(2, 8),
+    text,
+    done: false
+  });
+
+  save();
+  render();
+
+  input.value = "";
+  input.focus();
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!items.some(item => item.done)) return;
+
+  if (confirm("Uncheck every item? Your list will stay the same.")) {
+    items.forEach(item => item.done = false);
+    save();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
