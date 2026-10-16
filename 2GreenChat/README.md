@@ -1,294 +1,113 @@
-# GreenChat — Standalone Edition
+# GreenChat
 
-A fully independent, real-time chat application migrated from Base44. Works on any static host (GitHub Pages) with a Cloudflare Worker backend.
+A simple, production-minded messaging app built for the `/2GreenChat/` subdirectory on `https://jakescalzo.me`.
 
-**Live URL:** `https://jakescalzo.me/2GreenChat/index.html`
+## Important note
 
----
+This project is intentionally designed to use a Gmail-based registration and reset flow without outbound email delivery. The reset flow verifies the Gmail address + username pair and lets the user set a new password immediately. This avoids the "load failed" issue caused by email delivery, but it is less secure than an email-token reset flow.
 
-## Architecture
+For production, you should later replace this with a proper single-use reset token email flow using a provider such as Mailgun, SendGrid, or Postmark with verified sender credentials.
 
-```
-Browser (static files)          Cloudflare Worker (backend)
-┌─────────────────────┐         ┌──────────────────────────┐
-│  index.html         │         │  worker.js               │
-│  style.css          │  HTTP   │  ├─ REST API (/api/*)    │
-│  app.js             │ ◄─────► │  ├─ KV (data storage)   │
-│                     │  WS     │  └─ Durable Object        │
-│  Vanilla JS SPA     │ ◄─────► │     (real-time WebSocket) │
-└─────────────────────┘         └──────────────────────────┘
-```
+## Project structure
 
-| Component | Technology | Free Tier |
-|-----------|-----------|-----------|
-| Frontend | Static HTML/CSS/JS (GitHub Pages) | Unlimited |
-| API | Cloudflare Worker | 100K req/day |
-| Database | Cloudflare KV | 100K reads/day, 1K writes/day |
-| Real-time | Durable Object (WebSocket) | 100K req/day |
-| Email | Resend API | 3K emails/month, 100/day |
+- `2GreenChat/index.html` – app shell and auth UI
+- `2GreenChat/style.css` – layout, theme, responsive styling
+- `2GreenChat/app.js` – frontend logic and API calls
+- `2GreenChat/worker.js` – Worker API and KV-backed logic
+- `2GreenChat/wrangler.toml` – Cloudflare Worker + KV configuration
 
----
+## Local setup
 
-## File Structure
-
-```
-2GreenChat/
-├── index.html      ← SPA shell + API URL config
-├── style.css        ← Dark theme (matches original)
-├── app.js           ← Frontend logic (auth, chat, friends, groups, profile)
-├── worker.js        ← Cloudflare Worker backend (API + KV + Durable Object)
-├── wrangler.toml    ← Worker configuration
-└── README.md        ← This file
-```
-
----
-
-## Features (migrated from original Base44 app)
-
-- ✅ Email + password registration with OTP email verification
-- ✅ Login / logout with persistent sessions
-- ✅ Password reset via email (secure, single-use, expiring tokens)
-- ✅ Profile creation & editing (username, display name, bio, avatar color)
-- ✅ Username search (case-insensitive)
-- ✅ Friend requests (send / accept / decline)
-- ✅ Friend list & sent requests
-- ✅ Direct messages (DMs) with real-time WebSocket delivery
-- ✅ Group chats (create, add members, group messaging)
-- ✅ Notifications tab (incoming friend requests with unread badge)
-- ✅ Settings tab (account info, logout)
-- ✅ Responsive (desktop sidebar + mobile bottom tabs)
-- ✅ Dark theme matching original (#0a0f0a bg, #10b981 green)
-- ✅ Message persistence across refreshes
-- ✅ XSS prevention (all user content HTML-escaped)
-- ✅ PBKDF2 password hashing (100K iterations, SHA-256)
-- ✅ Per-message authorization (users can only read their own conversations)
-
----
-
-## Prerequisites
-
-1. **Cloudflare account** (free) — https://dash.cloudflare.com/sign-up
-2. **Node.js** (for running `wrangler` CLI)
-3. **Resend account** (free) — https://resend.com — for email verification & password reset
-
----
-
-## Setup Guide
-
-### Step 1: Install Wrangler
-
-```bash
-npm install -g wrangler
-wrangler login
-```
-
-### Step 2: Create a KV Namespace
+1. Create a Cloudflare Worker project with the `2GreenChat/` folder as the app root.
+2. Install Wrangler if needed.
+3. Update `2GreenChat/wrangler.toml` and replace:
+   - `replace-with-your-kv-namespace-id` with your actual KV namespace ID.
+4. Run locally:
 
 ```bash
 cd 2GreenChat
-npx wrangler kv namespace create KV
+npx wrangler dev --local
 ```
 
-Copy the returned `id` and paste it into `wrangler.toml`:
+Then open the app through the Worker route you configured.
 
-```toml
-[[kv.namespaces]]
-binding = "KV"
-id = "PASTE_YOUR_ID_HERE"
-```
+## Production deployment
 
-### Step 3: Set Up Email (Resend)
-
-1. Create a free account at https://resend.com
-2. Get your API key from the dashboard
-3. (Optional but recommended) Verify your domain `jakescalzo.me` in Resend to send from a custom address. Without this, you can use the default `onboarding@resend.dev` sender for testing.
-
-Set the Worker secrets:
+1. Log in to Cloudflare.
+2. Create or select a KV namespace.
+3. Update `wrangler.toml` with your namespace ID.
+4. Deploy:
 
 ```bash
-npx wrangler secret put RESEND_API_KEY
-# Paste your Resend API key
-
-npx wrangler secret put EMAIL_FROM
-# Enter: GreenChat <noreply@jakescalzo.me>
-# (or use: onboarding@resend.dev for testing without domain verification)
-
-npx wrangler secret put APP_URL
-# Enter: https://jakescalzo.me/2GreenChat/index.html
-```
-
-### Step 4: Deploy the Worker
-
-```bash
+cd 2GreenChat
 npx wrangler deploy
 ```
 
-Note the Worker URL (e.g., `https://greenchat-api.your-subdomain.workers.dev`).
+5. Ensure your frontend is served from the `/2GreenChat/` directory on `https://jakescalzo.me`.
+6. Update your host configuration so `/2GreenChat/index.html` is reachable and assets resolve correctly.
 
-### Step 5: Configure the Frontend
+## Cloudflare binding
 
-Edit `index.html` and set the API URL:
+In `wrangler.toml`:
 
-```html
-<script>
-  window.GC_API_BASE = 'https://greenchat-api.your-subdomain.workers.dev';
-</script>
+```toml
+[[kv_namespaces]]
+binding = "GREENCHAT_KV"
+id = "replace-with-your-kv-namespace-id"
 ```
 
-For local development, use:
+This binding is used by the Worker to store users, sessions, friends, conversations, and settings.
 
-```html
-<script>
-  window.GC_API_BASE = 'http://localhost:8787';
-</script>
-```
+## Registration and login behavior
 
-### Step 6: Run the Worker Locally (for testing)
+- Registration requires:
+  - Gmail address
+  - Username
+  - Password (8+ chars)
+- Username must be unique.
+- Gmail must be unique.
+- Login uses username + password.
 
-```bash
-npx wrangler dev
-```
+## Password reset behavior
 
-This starts the Worker at `http://localhost:8787`. Open `index.html` in your browser (or serve it with `npx serve .`) and test.
+The app no longer sends email. Instead:
 
-### Step 7: Push to GitHub
+1. User selects “Forgot password?”
+2. User enters Gmail address and username
+3. The Worker verifies the pair matches a stored account
+4. The app reveals a password-reset form
+5. User enters and confirms a new password
+6. The Worker updates the password hash and the account persists
 
-The `2GreenChat/` folder is already in your repository. Push it to GitHub Pages:
+This avoids email delivery dependencies and eliminates the original “load failed” issue.
 
-```bash
-git add 2GreenChat/
-git commit -m "Add standalone GreenChat"
-git push
-```
+## Security notes
 
-GitHub Pages will serve it at `https://jakescalzo.me/2GreenChat/index.html`.
+- Passwords are hashed server-side using PBKDF2 with a random salt.
+- Session IDs are stored in HttpOnly cookies.
+- Sensitive data is never returned to the browser beyond what is needed for the session.
+- KV is used for persistent data, but it is eventually consistent. This is fine for a chat demo, but production-scale real-time messaging should use Durable Objects for stronger coordination.
 
----
+## Limits and next steps
 
-## Testing Checklist
+- This is a functional app scaffold and demo clone. It is not a copy of an unknown external website because direct access was not available in this environment.
+- For stronger real-time behavior, add Durable Objects and WebSocket support.
+- For production-grade password resets, add a verified email provider and send a single-use token email.
+- For full multi-device real-time updates, use WebSocket events with Durable Objects to broadcast message updates to connected clients.
 
-After deployment, test these flows:
+## Testing checklist
 
-1. **Register** — Enter email + password, receive OTP email, enter code
-2. **Login** — Use registered email + password
-3. **Profile** — Create profile with username, display name, bio, avatar color
-4. **Search** — Search for another user by username
-5. **Friend request** — Send a request to another user
-6. **Notifications** — Other user sees the request, accepts it
-7. **DM** — Both users can send messages, see them appear in real-time
-8. **Group** — Create a group, add members, send group messages
-9. **Password reset** — Request reset, receive email, click link, set new password
-10. **Logout** — Session ends, redirect to login
-11. **Refresh** — Messages persist after page reload
-12. **Mobile** — Bottom tab bar works on phone-width screens
+- Register new account
+- Duplicate username rejected
+- Duplicate email rejected
+- Login works
+- Log out works
+- Reset password with matching email + username works
+- Friend request flow works
+- Conversations persist after refresh
+- Messages are sent and retrieved
+- Messages stay available after page refresh
 
-### Two-account testing
+## Deployment caution
 
-Open the app in two browsers (or one normal + one incognito):
-1. Register two accounts with different emails
-2. Create profiles for both
-3. From account A, search for B's username and send a friend request
-4. From account B, check notifications, accept the request
-5. From either account, open the chat and send a message
-6. The other account should see it appear instantly
-
----
-
-## Free Tier Limits
-
-| Service | Limit | What happens if exceeded |
-|---------|-------|------------------------|
-| Cloudflare Workers | 100,000 requests/day | Worker stops responding (resets daily) |
-| Cloudflare KV reads | 100,000/day | Reads fail (resets daily) |
-| Cloudflare KV writes | 1,000/day | Writes fail (resets daily) |
-| Cloudflare KV storage | 1 GB | Cannot write new data |
-| Durable Objects | 100,000 requests/day | Real-time stops (messages still persist via API) |
-| Resend | 3,000 emails/month, 100/day | Emails fail to send |
-
-**Note:** KV writes are the most limited resource (1,000/day). Each message send = 1 write. Each friend request = ~5 writes. For personal use, this is plenty. For heavy traffic, consider upgrading.
-
----
-
-## Troubleshooting
-
-### "Email service not configured"
-You haven't set the `RESEND_API_KEY` secret. Run `npx wrangler secret put RESEND_API_KEY`.
-
-### Emails don't arrive
-- Check your spam folder
-- If using `onboarding@resend.dev` (default), some providers may block it — verify your domain in Resend
-- Check Resend dashboard for delivery logs
-
-### WebSocket doesn't connect
-- Ensure the Worker is deployed and the URL in `index.html` is correct
-- Check browser console for connection errors
-- The app falls back to manual refresh if WebSocket fails (messages still persist)
-
-### "Unauthorized" errors
-- Your session may have expired — log out and log back in
-- Ensure the Worker is running
-
-### Messages don't appear in real-time
-- WebSocket may have disconnected — the app auto-reconnects after 3 seconds
-- Refresh the page to load latest messages from KV
-- Check that Durable Objects are enabled on your Cloudflare plan (free tier includes them)
-
-### CORS errors
-- The Worker allows all origins (`*`). If you need to restrict, modify the `CORS` constant in `worker.js`.
-
-### KV namespace errors
-- Ensure the KV namespace ID in `wrangler.toml` is correct
-- Run `npx wrangler kv namespace list` to verify
-
----
-
-## Security Notes
-
-- Passwords are hashed with PBKDF2 (100,000 iterations, SHA-256, 32-byte salt) — never stored in plaintext
-- Session tokens are 256-bit random values stored in KV
-- Password reset tokens are single-use and expire after 1 hour
-- OTP codes expire after 10 minutes
-- All user-generated content is HTML-escaped before rendering (XSS prevention)
-- Users can only read messages where they are a participant
-- Users can only accept/decline friend requests sent to them
-- Only group owners can add members
-- Password reset endpoint always returns success (prevents account enumeration)
-- No secrets are exposed in frontend code — all in Worker secrets
-
----
-
-## Data Model (KV Keys)
-
-| Key Pattern | Value | Purpose |
-|-------------|-------|---------|
-| `user:{email}` | User JSON | Login lookup |
-| `user:id:{id}` | User JSON | Profile lookup |
-| `username:{lower}` | userId | Username uniqueness + search |
-| `profile:{userId}` | Profile JSON | User profile |
-| `session:{token}` | userId | Session validation |
-| `otp:{email}` | OTP JSON | Registration verification |
-| `reset:{token}` | Reset JSON | Password reset |
-| `friendship:{id}` | Friendship JSON | Friend relationship |
-| `fri:{uid}:{id}` | "1" | Friendship index per user |
-| `frq:{uid}:{id}` | "1" | Pending requests TO user |
-| `frs:{uid}:{id}` | "1" | Requests sent BY user |
-| `group:{id}` | Group JSON | Group data |
-| `grp:{uid}:{id}` | "1" | Group index per user |
-| `msg:{chatId}:{revTs}:{id}` | "" (metadata=msg) | Message (paginated by timestamp) |
-
----
-
-## What Was Removed from Base44
-
-All Base44 dependencies have been replaced:
-
-| Base44 Feature | Standalone Replacement |
-|---------------|----------------------|
-| Base44 Auth (email/password + OTP) | Custom PBKDF2 auth + Resend email |
-| Base44 Entities (UserProfile, Friendship, ChatMessage, Group) | Cloudflare KV with indexed keys |
-| Base44 Realtime subscriptions | WebSocket via Durable Object |
-| Base44 SDK (`base44.entities.*`) | `fetch()` calls to Worker API |
-| Base44 hosting | GitHub Pages (frontend) + Cloudflare Worker (backend) |
-| Base44 password reset emails | Resend API with secure tokens |
-
-No code references `*.base44.app` or uses the Base44 SDK. The app works independently.
+Do not deploy this app until the `wrangler.toml` KV binding is replaced with a valid namespace. The app will not function correctly without a real Cloudflare KV binding.

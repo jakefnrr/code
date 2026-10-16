@@ -1,24 +1,11 @@
-name = "greenchat-api"
+name = "greenchat"
 main = "worker.js"
-compatibility_date = "2024-09-01"
+compatibility_date = "2024-10-01"
 
-# KV namespace — stores all data (users, sessions, profiles, friends, groups, messages)
-# Create it first:  npx wrangler kv namespace create KV
-# Then paste the returned id below.
-[[kv.namespaces]]
-binding = "KV"
-id = "YOUR_KV_NAMESPACE_ID"
+[[kv_namespaces]]
+binding = "GREENCHAT_KV"
+id = "replace-with-your-kv-namespace-id"
 
-# Durable Object — manages WebSocket connections for real-time messaging
-[[durable_objects.bindings]]
-name = "CHAT_HUB"
-class_name = "ChatHub"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["ChatHub"]
-
-# Secrets (set with: npx wrangler secret put <NAME>):
-#   RESEND_API_KEY  — Your Resend API key (for sending verification + reset emails)
-#   EMAIL_FROM      — Sender address, e.g. "GreenChat <noreply@jakescalzo.me>" (must be verified in Resend)
-#   APP_URL         — Frontend URL, e.g. "https://jakescalzo.me/2GreenChat/index.html"
+[vars]
+APP_NAME = "GreenChat"
+FRONTEND_ORIGIN = "https://jakescalzo.me"
