@@ -1,183 +1,113 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GreenChat</title>
-    <meta name="description" content="GreenChat messaging app" />
-    <link rel="stylesheet" href="/2GreenChat/style.css" />
-  </head>
-  <body>
-    <div id="app-shell" class="app-shell hidden">
-      <aside class="sidebar">
-        <div class="brand-row">
-          <div class="brand">GreenChat</div>
-          <button id="logout-btn" class="ghost small">Log out</button>
-        </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2GreenChat — GreenChat</title>
+  <link rel="stylesheet" href="/2GreenChat/style.css">
+</head>
+<body>
+  <div id="root">
+    <!-- Authentication / Landing -->
+    <div id="auth" class="card">
+      <div class="brand">GreenChat</div>
 
-        <div class="sidebar-section">
-          <div class="section-label">Navigation</div>
-          <nav class="nav">
-            <button class="nav-item active" data-view="chat">Messages</button>
-            <button class="nav-item" data-view="friends">Friends</button>
-            <button class="nav-item" data-view="settings">Settings</button>
-          </nav>
-        </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Log in</button>
+        <button class="tab" data-tab="register">Register</button>
+        <button class="tab" data-tab="reset">Reset</button>
+      </div>
 
-        <div class="sidebar-section">
-          <div class="section-label">Conversations</div>
-          <div id="conversation-list" class="conversation-list"></div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="section-label">Friends</div>
-          <div class="search-row">
-            <input id="friend-search-input" type="text" placeholder="Search users" />
-            <button id="friend-search-btn">Search</button>
+      <div id="tab-login" class="tab-panel">
+        <form id="login-form" class="form">
+          <label>Username
+            <input id="login-username" type="text" required />
+          </label>
+          <label>Password
+            <input id="login-password" type="password" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Log in</button>
+            <button type="button" id="to-reset" class="link">Forgot password?</button>
           </div>
-          <div id="friend-list" class="friend-list"></div>
-        </div>
+        </form>
+      </div>
+
+      <div id="tab-register" class="tab-panel hidden">
+        <form id="register-form" class="form">
+          <label>Gmail address
+            <input id="register-email" type="email" placeholder="you@gmail.com" required />
+          </label>
+          <label>Username
+            <input id="register-username" type="text" maxlength="32" required />
+          </label>
+          <label>Password
+            <input id="register-password" type="password" minlength="8" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Create account</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="tab-reset" class="tab-panel hidden">
+        <form id="reset-validate-form" class="form">
+          <label>Username
+            <input id="reset-username" type="text" required />
+          </label>
+          <label>Gmail address
+            <input id="reset-email" type="email" placeholder="you@gmail.com" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Continue</button>
+            <button type="button" id="reset-back" class="link">Back</button>
+          </div>
+        </form>
+
+        <form id="reset-set-form" class="form hidden">
+          <label>New password
+            <input id="reset-new-password" type="password" minlength="8" required />
+          </label>
+          <label>Repeat new password
+            <input id="reset-confirm-password" type="password" minlength="8" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Set new password</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="auth-msg" class="msg"></div>
+    </div>
+
+    <!-- App shell (hidden until login) -->
+    <div id="app-shell" class="hidden">
+      <aside class="sidebar">
+        <div class="brand">GreenChat</div>
+        <div id="user-info" class="user-info"></div>
+        <button id="logout-btn" class="secondary">Log out</button>
+        <hr />
+        <div class="section-title">Conversations</div>
+        <div id="conversation-list"></div>
+        <hr />
+        <div class="section-title">Friends</div>
+        <div id="friend-list"></div>
       </aside>
 
-      <main class="main-panel">
-        <header class="chat-header">
-          <div>
-            <div id="chat-title" class="chat-title">Choose a chat</div>
-            <div id="typing-indicator" class="typing-indicator hidden">typing…</div>
-          </div>
-          <div id="current-user" class="current-user"></div>
+      <main class="main">
+        <header class="main-header">
+          <div id="chat-title">Select a conversation</div>
+          <div id="typing-indicator" class="small muted hidden">typing…</div>
         </header>
-
-        <section id="chat-view" class="view active">
-          <div id="messages-container" class="messages-container"></div>
-
-          <form id="message-form" class="composer">
-            <input id="message-input" type="text" maxlength="2000" placeholder="Type a message…" autocomplete="off" />
-            <button type="submit">Send</button>
-          </form>
-        </section>
-
-        <section id="friends-view" class="view hidden">
-          <div class="card-panel">
-            <h3>Friends & requests</h3>
-            <div id="friend-request-list" class="request-list"></div>
-          </div>
-        </section>
-
-        <section id="settings-view" class="view hidden">
-          <div class="card-panel settings-grid">
-            <h3>Profile</h3>
-            <form id="profile-form" class="stack-form">
-              <label>
-                Display name
-                <input id="display-name-input" type="text" maxlength="50" />
-              </label>
-              <label>
-                Username
-                <input id="username-input" type="text" maxlength="32" />
-              </label>
-              <label>
-                Email
-                <input id="email-input" type="email" maxlength="120" />
-              </label>
-              <button type="submit">Save profile</button>
-            </form>
-
-            <h3>Security</h3>
-            <form id="password-form" class="stack-form">
-              <label>
-                New password
-                <input id="new-password-input" type="password" minlength="8" />
-              </label>
-              <label>
-                Confirm password
-                <input id="confirm-password-input" type="password" minlength="8" />
-              </label>
-              <button type="submit">Change password</button>
-            </form>
-
-            <div class="danger-zone">
-              <h3>Delete account</h3>
-              <button id="delete-account-btn" class="danger">Delete account</button>
-            </div>
-          </div>
-        </section>
+        <div id="messages" class="messages"></div>
+        <form id="message-form" class="composer hidden">
+          <input id="message-input" placeholder="Type a message..." autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
       </main>
     </div>
+  </div>
 
-    <div id="auth-shell" class="auth-shell">
-      <div class="auth-card">
-        <div class="brand auth-brand">GreenChat</div>
-        <div class="auth-tabs">
-          <button class="tab-button active" data-auth-tab="login">Log in</button>
-          <button class="tab-button" data-auth-tab="register">Register</button>
-        </div>
-
-        <div id="login-panel" class="auth-panel active">
-          <form id="login-form" class="stack-form">
-            <label>
-              Username
-              <input id="login-username" type="text" required />
-            </label>
-            <label>
-              Password
-              <input id="login-password" type="password" required />
-            </label>
-            <button type="submit">Log in</button>
-            <button type="button" id="reset-password-trigger" class="link-button">Forgot password?</button>
-          </form>
-        </div>
-
-        <div id="register-panel" class="auth-panel hidden">
-          <form id="register-form" class="stack-form">
-            <label>
-              Gmail address
-              <input id="register-email" type="email" placeholder="you@gmail.com" required />
-            </label>
-            <label>
-              Username
-              <input id="register-username" type="text" maxlength="32" required />
-            </label>
-            <label>
-              Password
-              <input id="register-password" type="password" minlength="8" required />
-            </label>
-            <button type="submit">Create account</button>
-          </form>
-        </div>
-
-        <div id="reset-panel" class="auth-panel hidden">
-          <form id="reset-validate-form" class="stack-form">
-            <label>
-              Gmail address
-              <input id="reset-email" type="email" placeholder="you@gmail.com" required />
-            </label>
-            <label>
-              Username
-              <input id="reset-username" type="text" required />
-            </label>
-            <button type="submit">Verify account</button>
-          </form>
-
-          <form id="reset-set-form" class="stack-form hidden">
-            <label>
-              New password
-              <input id="reset-new-password" type="password" minlength="8" required />
-            </label>
-            <label>
-              Repeat new password
-              <input id="reset-confirm-password" type="password" minlength="8" required />
-            </label>
-            <button type="submit">Update password</button>
-          </form>
-          <button id="reset-back-btn" type="button" class="link-button">Back to login</button>
-        </div>
-
-        <div id="auth-message" class="auth-message"></div>
-      </div>
-    </div>
-
-    <script src="/2GreenChat/app.js"></script>
-  </body>
+  <script src="/2GreenChat/app.js"></script>
+</body>
 </html>
-
