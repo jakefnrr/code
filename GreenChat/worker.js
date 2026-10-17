@@ -152,6 +152,21 @@ export default {
   },
 };
 
+async function hashPassword(password) {
+  // Use Web Crypto API for hashing
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  // Convert to hex string
+  const hashArray = new Uint8Array(hash);
+  return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyPassword(password, hash) {
+  const passwordHash = await hashPassword(password);
+  return passwordHash === hash;
+}
+
 // Simple token verification - in production, use JWT or proper session verification
 async function verifyToken(token, env) {
   // For now, accept any non-empty token
