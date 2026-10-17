@@ -1,0 +1,15 @@
+name = "greenchat"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+WORKER_NAME = "@greenchat/worker"
+
+[vars]
+#
+
+[bindings]
+USER_DATA = "USER_DATA"
+FRIEND_DATA = "FRIEND_DATA"
+CHAT_DATA = "CHAT_DATA"

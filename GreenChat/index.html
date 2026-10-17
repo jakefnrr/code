@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenChat</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 7v6l4 2"></path>
+          <circle cx="3" cy="3" r="3"></circle>
+          <path d="M3 16h6"></path>
+        </svg>
+        <span>GreenChat</span>
+      </div>
+      <div class="user-panel" id="userPanel">
+        <span class="username" id="usernameDisplay">Loading...</span>
+        <button class="btn btn-small" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+      <div class="search-box">
+        <input type="text" placeholder="Search users..." id="searchInput" />
+        <button class="btn btn-primary" id="searchBtn">Search</button>
+      </div>
+      <div class="sidebar-section" id="friendsSection">
+        <h3>Friends</h3>
+        <div id="friendsList" class="list-empty">No friends yet</div>
+      </div>
+      <div class="sidebar-section" id=requestsSection>
+        <h3>Friend Requests</h3>
+        <div id="requestsList" class="list-empty">No requests</div>
+      </div>
+    </div>
+
+    <div class="main" id="main">
+      <div class="conversations" id="conversations">
+        <div class="conversation-list" id="conversationList">
+          <div class="empty-state">Select a conversation to start chatting</div>
+        </div>
+        <div class="chat-area" id="chatArea">
+          <div class="chat-header" id="chatHeader">
+            <span class="chat-user" id="chatUser">Select a friend</span>
+            <button class="btn btn-small" id="backBtn" style="display:none">Back</button>
+          </div>
+          <div class="messages" id="messages">
+            <div class="empty-state">No messages yet</div>
+          </div>
+          <div class="message-input-area">
+            <input type="text" placeholder="Type a message..." id="messageInput" />
+            <button class="btn btn-primary" id="sendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
