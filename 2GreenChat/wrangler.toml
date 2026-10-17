@@ -1,0 +1,11 @@
+name = "greenchat"
+main = "worker.js"
+compatibility_date = "2024-10-01"
+
+[[kv_namespaces]]
+binding = "GREENCHAT_KV"
+id = "replace-with-your-kv-namespace-id"
+
+[vars]
+APP_NAME = "GreenChat"
+FRONTEND_ORIGIN = "https://jakescalzo.me"

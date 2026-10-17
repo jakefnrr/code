@@ -178,7 +178,12 @@ async function handleSignup(request, env) {
   }
 
   // Check if user already exists
-  const existingUser = await env.USER_DATA.get(email);
+  let existingUser;
+  try {
+    existingUser = await env.USER_DATA.get(email);
+  } catch (e) {
+    console.error("KV error:", e);
+  }
   if (existingUser) {
     return new Response(JSON.stringify({ error: "Email already registered" }), {
       status: 409,

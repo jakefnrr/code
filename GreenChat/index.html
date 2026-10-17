@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,3 +65,78 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
+=======
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GreenChat — Prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">GreenChat</div>
+      <div class="account" id="account-area">
+        <button id="btn-login">Log in</button>
+        <button id="btn-register">Register</button>
+      </div>
+      <div class="conversations">
+        <h4>Conversations</h4>
+        <ul id="convo-list">
+          <li data-id="default" class="active">General</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="chat">
+      <header class="chat-header">
+        <div id="chat-title">General</div>
+        <div id="user-info"></div>
+      </header>
+
+      <section class="messages" id="messages"></section>
+
+      <form id="message-form" class="message-form">
+        <input id="message-input" placeholder="Type a message..." autocomplete="off">
+        <button type="submit">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="modal-login" class="modal hidden">
+    <div class="modal-content">
+      <h3>Log in</h3>
+      <form id="login-form">
+        <label>Email or username<input name="user" required></label>
+        <label>Password<input name="password" type="password" required></label>
+        <div class="modal-actions">
+          <button type="submit">Log in</button>
+          <button type="button" id="login-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="modal-register" class="modal hidden">
+    <div class="modal-content">
+      <h3>Register</h3>
+      <form id="register-form">
+        <label>Username<input name="username" required></label>
+        <label>Email<input name="email" type="email" required></label>
+        <label>Password<input name="password" type="password" required></label>
+        <div class="modal-actions">
+          <button type="submit">Create account</button>
+          <button type="button" id="register-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+>>>>>>> f507d170abd038737e6af53ad2c48b028ce71450

@@ -1,0 +1,36 @@
+/* 2GreenChat/style.css - simplified UI to restore normal appearance */
+:root{--bg:#f3f7ff;--card:#ffffff;--muted:#6b7280;--primary:#1e6fff;--radius:12px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+body{background:var(--bg);display:flex;align-items:center;justify-content:center;padding:18px}
+.card{width:420px;background:var(--card);border-radius:14px;padding:22px;box-shadow:0 10px 30px rgba(16,24,40,0.06)}
+.brand{font-size:24px;font-weight:800;color:var(--primary);text-align:center;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;padding:8px;border-radius:8px;border:1px solid #eef6ff;background:transparent}
+.tab.active{background:var(--primary);color:#fff}
+.tab-panel{margin-top:8px}
+.hidden{display:none}
+.form{display:grid;gap:10px}
+.form label{font-weight:600;color:#0f172a}
+.form input{padding:10px;border-radius:8px;border:1px solid #e6eefc}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+button{cursor:pointer}
+button[type="submit"], .secondary{background:var(--primary);color:#fff;border:0;padding:10px 12px;border-radius:8px}
+.link{background:transparent;border:0;color:var(--primary);font-weight:700}
+.msg{margin-top:12px;min-height:18px;color:var(--muted);font-size:13px}
+
+/* app shell layout */
+#app-shell{display:flex;width:100%;max-width:1100px;background:transparent}
+.sidebar{width:300px;background:var(--card);border-radius:12px;padding:14px;margin-right:14px}
+.main{flex:1;background:var(--card);border-radius:12px;padding:14px;display:flex;flex-direction:column}
+.main-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px}
+.messages{flex:1;overflow:auto;padding:8px;border-top:1px solid #f1f5f9}
+.message{padding:8px;border-radius:10px;margin-bottom:8px}
+.message.mine{background:linear-gradient(90deg,var(--primary),#4a8bff);color:#fff;margin-left:auto}
+.composer{display:flex;gap:8px;padding-top:8px}
+.composer input{flex:1;padding:10px;border-radius:8px;border:1px solid #e6eefc}
+.small{font-size:12px}
+.muted{color:var(--muted)}
+.section-title{font-size:12px;color:var(--muted);font-weight:700;margin:8px 0}
+.user-info{font-size:13px;color:var(--muted);margin:8px 0}
+.conversation-item, .friend-item{padding:8px;border-radius:8px;border:1px solid #eef6ff;margin-bottom:8px}

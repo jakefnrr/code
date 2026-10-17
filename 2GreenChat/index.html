@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2GreenChat — GreenChat</title>
+  <link rel="stylesheet" href="/2GreenChat/style.css">
+</head>
+<body>
+  <div id="root">
+    <!-- Authentication / Landing -->
+    <div id="auth" class="card">
+      <div class="brand">GreenChat</div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Log in</button>
+        <button class="tab" data-tab="register">Register</button>
+        <button class="tab" data-tab="reset">Reset</button>
+      </div>
+
+      <div id="tab-login" class="tab-panel">
+        <form id="login-form" class="form">
+          <label>Username
+            <input id="login-username" type="text" required />
+          </label>
+          <label>Password
+            <input id="login-password" type="password" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Log in</button>
+            <button type="button" id="to-reset" class="link">Forgot password?</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="tab-register" class="tab-panel hidden">
+        <form id="register-form" class="form">
+          <label>Gmail address
+            <input id="register-email" type="email" placeholder="you@gmail.com" required />
+          </label>
+          <label>Username
+            <input id="register-username" type="text" maxlength="32" required />
+          </label>
+          <label>Password
+            <input id="register-password" type="password" minlength="8" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Create account</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="tab-reset" class="tab-panel hidden">
+        <form id="reset-validate-form" class="form">
+          <label>Username
+            <input id="reset-username" type="text" required />
+          </label>
+          <label>Gmail address
+            <input id="reset-email" type="email" placeholder="you@gmail.com" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Continue</button>
+            <button type="button" id="reset-back" class="link">Back</button>
+          </div>
+        </form>
+
+        <form id="reset-set-form" class="form hidden">
+          <label>New password
+            <input id="reset-new-password" type="password" minlength="8" required />
+          </label>
+          <label>Repeat new password
+            <input id="reset-confirm-password" type="password" minlength="8" required />
+          </label>
+          <div class="actions">
+            <button type="submit">Set new password</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="auth-msg" class="msg"></div>
+    </div>
+
+    <!-- App shell (hidden until login) -->
+    <div id="app-shell" class="hidden">
+      <aside class="sidebar">
+        <div class="brand">GreenChat</div>
+        <div id="user-info" class="user-info"></div>
+        <button id="logout-btn" class="secondary">Log out</button>
+        <hr />
+        <div class="section-title">Conversations</div>
+        <div id="conversation-list"></div>
+        <hr />
+        <div class="section-title">Friends</div>
+        <div id="friend-list"></div>
+      </aside>
+
+      <main class="main">
+        <header class="main-header">
+          <div id="chat-title">Select a conversation</div>
+          <div id="typing-indicator" class="small muted hidden">typing…</div>
+        </header>
+        <div id="messages" class="messages"></div>
+        <form id="message-form" class="composer hidden">
+          <input id="message-input" placeholder="Type a message..." autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script src="/2GreenChat/app.js"></script>
+</body>
+</html>
