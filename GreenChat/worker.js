@@ -1,5 +1,12 @@
 export default {
   async fetch(request, env, ctx) {
+    // Handle case where env is not available (e.g., in certain dev contexts)
+    const bindingEnv = env || {
+      USER_DATA: { get: () => Promise.resolve(null), put: () => Promise.resolve() },
+      FRIEND_DATA: { get: () => Promise.resolve(null), put: () => Promise.resolve() },
+      CHAT_DATA: { get: () => Promise.resolve(null), put: () => Promise.resolve() },
+    };
+    
     const url = new URL(request.url);
     const pathname = url.pathname;
 
