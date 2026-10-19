@@ -47,8 +47,6 @@ TRANSLATE_URL = "https://translate.google.com/?sl=en&tl=ja&op=translate"
 CHATGPT_URL = "https://chatgpt.com/"
 GITHUB_URL = "https://github.com/"
 YOUTUBE_URL = "https://www.youtube.com/"
-PINGHUG_URL = "https://pinghug.com"
-
 CODE_URL = "https://jakefnrr.github.io/code"
 
 # QtWebEngine's built-in Pointer Lock is broken (it never engages in this
@@ -681,9 +679,9 @@ class Browser(QMainWindow):
         youtube_button.clicked.connect(self.open_youtube)
         toolbar.addWidget(youtube_button)
 
-        pinghug_button = compact(QPushButton("P"))
-        pinghug_button.setToolTip("Open Ping Hug")
-        pinghug_button.clicked.connect(self.open_pinghug)
+        pinghug_button = compact(QPushButton("J"))
+        pinghug_button.setToolTip("Open Jakegreen Chat")
+        pinghug_button.clicked.connect(self.open_jakegreenchat)
         toolbar.addWidget(pinghug_button)
 
         fullscreen_button = compact(QPushButton("⛶"))
@@ -693,7 +691,7 @@ class Browser(QMainWindow):
 
         games_button = compact(QPushButton("🎮"))
         games_button.setToolTip("Open Games")
-        games_button.clicked.connect(self.open_games)
+        games_button.clicked.connect(self.open_jakescsalzo)
         toolbar.addWidget(games_button)
 
         self.address = QLineEdit()
@@ -1028,9 +1026,13 @@ class Browser(QMainWindow):
         if browser:
             browser.setUrl(QUrl(YOUTUBE_URL))
 
-    def open_pinghug(self):
+    def open_jakescsalzo(self):
 
-        self.new_tab(PINGHUG_URL)
+        self.new_tab("https://jakescsalzo.me")
+
+    def open_jakegreenchat(self):
+
+        self.new_tab("https://jakegreenchat.base44.app")
 
     def open_games(self):
 
