@@ -70,7 +70,8 @@ button:hover{transform:translateY(-2px);box-shadow:0 5px 22px rgba(0,229,255,.25
 <div class="container">
 <header>
 <div class="logo">NIGHT<span>SHIFT</span></div>
-<div class="status">● RACING SYSTEM ONLINE</div>
+<div style="display:none"></div>
+<button class="all-projects-btn" style="margin-left:auto;background:var(--cyan);color:var(--bg);border:none;padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;" onclick="window.location.href='../index.html'">ALL PROJECTS</button>
 </header>
 
 <h1>Ready. Set. <span style="color:var(--cyan)">Type.</span></h1>
@@ -150,17 +151,16 @@ let bestWpm=Number(localStorage.getItem("nightshiftBestWpm"))||0;
 const stories=[
 {
 topic:"A DAY AT THE BEACH",
-people:["Sam","Max","Lily","Ben","Emma","Jack"],
 places:["beach","shore","sand","sea"],
-items:["red ball","small bag","blue hat","big kite","beach ball"],
-open:["One sunny day","Early one morning","On a warm day"],
+items:["red ball","small bag","blue hat","kite"],
+open:["One sunny day","A nice day","On a warm day"],
 events:[
-"{p} went to the {place} with a {item}.",
+"Someone went to the {place} with a {item}.",
 "The sky was clear and the sun was warm.",
 "They put their bag on the sand and ran to the sea.",
 "A small wave came up and wet their feet.",
 "They ran back and laughed as the water went away.",
-"Then they sat down and ate some fresh fruit.",
+"Then they sat down and ate some fruit.",
 "After lunch, they got their {item} and played in the sand.",
 "They made a big sand fort near the water.",
 "A few friends came by and helped make it even bigger.",
@@ -170,12 +170,11 @@ events:[
 },
 {
 topic:"A ROAD TRIP",
-people:["Dad","Sam","Max","Lily","Ben","Jack"],
-places:["small town","big lake","old bridge","green hill","quiet farm"],
+places:["small town","big lake","bridge","green hill","farm"],
 items:["blue car","small map","red bag","warm coat","food box"],
-open:["One bright morning","On a clear day","Early on Saturday"],
+open:["One bright morning","On a clear day"],
 events:[
-"{p} got in the {item} and set off on a trip.",
+"Someone got in the {item} and set off on a trip.",
 "They had a map and a plan for the day.",
 "The road went past fields, trees and small homes.",
 "They saw a {place} just up ahead.",
@@ -189,16 +188,15 @@ events:[
 },
 {
 topic:"A NEW COMPUTER",
-people:["Sam","Alex","Max","Ben","Lily"],
 places:["desk","room","shop","home"],
-items:["new computer","small screen","blue mouse","new keyboard","black case"],
+items:["new computer","small screen","mouse","keyboard","case"],
 open:["On a quiet day","One morning","After school"],
 events:[
-"{p} had a plan to set up a {item}.",
+"Someone had a plan to set up a {item}.",
 "First, they made some room on the {place}.",
 "They took each part out of the box with care.",
 "Next, they set up the screen and plugged it in.",
-"They put the keys in place and moved the mouse.",
+"They put the keys in place and used the mouse.",
 "At first, the screen was dark and nothing came up.",
 "They checked the wires and tried one more time.",
 "At last, the screen came on and the desk lit up.",
@@ -208,12 +206,11 @@ events:[
 },
 {
 topic:"A FOOTBALL GAME",
-people:["Sam","Max","Ben","Jack","Alex"],
 places:["field","goal","park","team"],
-items:["new ball","blue shirt","team bag","water bottle"],
-open:["One cool afternoon","On a sunny day","After school"],
+items:["ball","shirt","bag","water bottle"],
+open:["One cool afternoon","On a sunny day"],
 events:[
-"{p} went to the {place} with a {item}.",
+"Someone went to the {place} with a {item}.",
 "The team was ready to play a big game.",
 "Each player found a spot on the field.",
 "The ref blew the whistle and the game began.",
@@ -227,12 +224,11 @@ events:[
 },
 {
 topic:"A CAMPING TRIP",
-people:["Sam","Max","Lily","Ben","Emma"],
 places:["woods","lake","hill","camp site"],
-items:["small tent","warm coat","food bag","flash light"],
-open:["One cool night","On a warm weekend","Early one Friday"],
+items:["tent","coat","food bag","flash light"],
+open:["One cool night","On a warm weekend"],
 events:[
-"{p} went to the {place} with a {item}.",
+"Someone went to the {place} with a {item}.",
 "They found a flat spot near a tall tree.",
 "First, they set up the tent and put their bags inside.",
 "Then they went to find some dry wood.",
@@ -246,12 +242,11 @@ events:[
 },
 {
 topic:"A DAY AT SCHOOL",
-people:["Sam","Max","Lily","Ben","Emma"],
 places:["class","hall","yard","desk"],
-items:["new book","blue pen","school bag","lunch box"],
-open:["On Monday morning","One day at school","After the bell rang"],
+items:["book","pen","school bag","lunch box"],
+open:"On a school day",
 events:[
-"{p} walked into the {place} with a {item}.",
+"Someone walked into the {place} with a {item}.",
 "The room was full of kids getting set for the day.",
 "They sat down and got their books out.",
 "The first task was short and quite fun.",
@@ -265,12 +260,11 @@ events:[
 },
 {
 topic:"A CAT AT HOME",
-people:["Milo","Max","Lily","Sam","Ben"],
 places:["sofa","bed","yard","room","mat"],
-items:["red ball","soft bed","small toy","food bowl"],
-open:["One calm day","On a warm day","Early one morning"],
+items:["ball","soft bed","toy","food bowl"],
+open:"One calm day",
 events:[
-"{p} the cat woke up on the {place}.",
+"the cat woke up on the {place}.",
 "It had a good stretch and went to find some food.",
 "After that, it saw a {item} on the floor.",
 "It ran over and gave the toy a small tap.",
@@ -300,7 +294,6 @@ return text.replace(/\{(\w+)\}/g,(_,key)=>data[key]||"");
 
 function makeStory(story,count){
 const data={
-p:pick(story.people),
 place:pick(story.places),
 item:pick(story.items)
 };
