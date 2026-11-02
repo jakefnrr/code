@@ -377,6 +377,8 @@ class BrowserPage(QWebEnginePage):
         if feature in (
             QWebEnginePage.Feature.MouseLock,
             QWebEnginePage.Feature.ClipboardReadWrite,
+            QWebEnginePage.Feature.Microphone,
+            QWebEnginePage.Feature.Camera,
         ):
             self.setFeaturePermission(
                 url,
@@ -669,10 +671,10 @@ class Browser(QMainWindow):
         chatgpt_button.clicked.connect(self.open_chatgpt)
         toolbar.addWidget(chatgpt_button)
 
-        github_button = compact(QPushButton("G"))
-        github_button.setToolTip("Open GitHub")
-        github_button.clicked.connect(self.open_github)
-        toolbar.addWidget(github_button)
+        discord_button = compact(QPushButton("D"))
+        discord_button.setToolTip("Open Discord")
+        discord_button.clicked.connect(self.open_discord)
+        toolbar.addWidget(discord_button)
 
         youtube_button = compact(QPushButton("Y"))
         youtube_button.setToolTip("Open YouTube")
@@ -1025,6 +1027,11 @@ class Browser(QMainWindow):
 
         if browser:
             browser.setUrl(QUrl(YOUTUBE_URL))
+
+    def open_discord(self):
+        browser = self.current_browser()
+        if browser:
+            browser.setUrl(QUrl(DISCORD_URL))
 
     def open_jakescsalzo(self):
 

@@ -1,0 +1,466 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nightshift | Typing Race</title>
+<style>
+*{box-sizing:border-box}
+:root{--cyan:#00e5ff;--bg:#080a12;--panel:#101522;--muted:#788398}
+body{margin:0;min-height:100vh;background:var(--bg);color:white;font-family:Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);background-size:40px 40px}
+.container{width:min(1050px,94%);margin:auto;padding:35px 0 60px;position:relative}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:38px;gap:15px}
+.logo{font-size:23px;font-weight:900;letter-spacing:2px}.logo span{color:var(--cyan)}
+.status{color:var(--cyan);font-size:11px;letter-spacing:2px;border:1px solid #164c5b;padding:9px 13px;border-radius:20px}
+h1{font-size:clamp(32px,6vw,54px);margin:0;letter-spacing:-2px}
+.subtitle{color:var(--muted);margin:10px 0 30px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat,.race-panel,.passage-panel{background:var(--panel);border:1px solid #202a3b;border-radius:14px;padding:18px}
+.stat-label,.passage-heading{color:var(--muted);font-size:10px;letter-spacing:2px}
+.stat-value{font-size:29px;font-weight:800;margin-top:8px}
+.stat-value small{color:var(--muted);font-size:12px}
+.race-panel{margin-bottom:18px}
+.track-title{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;letter-spacing:2px;margin-bottom:18px}
+.track{height:110px;background:#090d16;border:1px solid #253044;border-radius:12px;position:relative;overflow:hidden}
+.track:before{content:"";position:absolute;top:54px;left:0;right:0;border-top:3px dashed #344052}
+.road-glow{position:absolute;left:0;top:52px;height:5px;width:0;background:var(--cyan);box-shadow:0 0 15px var(--cyan);transition:width .15s}
+.finish{position:absolute;right:24px;top:15px;bottom:15px;width:9px;background:repeating-linear-gradient(to bottom,white 0 8px,#222 8px 16px)}
+.car{position:absolute;left:0;top:22px;width:76px;height:64px;transition:transform .15s linear;z-index:2}
+.car svg{width:100%;height:100%;overflow:visible}
+.car.boosting{filter:drop-shadow(0 0 12px #00e5ff);animation:boost .32s infinite alternate}
+@keyframes boost{to{scale:1.13}}
+.exhaust{opacity:0}.car.boosting .exhaust{opacity:1;animation:flame .16s infinite alternate}
+@keyframes flame{to{opacity:1}}
+.boost-message{height:20px;color:var(--cyan);text-align:right;font-size:11px;letter-spacing:2px;margin-top:10px;opacity:0}
+.boost-message.show{opacity:1}
+.passage-panel{padding:25px}
+.passage-heading{margin-bottom:18px}
+.topic-label{font-size:11px;color:var(--cyan);letter-spacing:1px;margin-bottom:12px}
+.passage{font-family:Consolas,monospace;font-size:clamp(17px,2.4vw,22px);line-height:1.9;min-height:130px;overflow-wrap:anywhere}
+.passage span{color:#8994a8}
+.passage span.correct{color:#39e6a0}
+.passage span.incorrect{color:#ff5c78;background:rgba(255,92,120,.12)}
+.passage span.current{border-left:2px solid var(--cyan);margin-left:-2px;background:rgba(0,229,255,.12)}
+.input-area{width:100%;min-height:110px;resize:vertical;margin-top:22px;background:#080d17;border:1px solid #29364b;border-radius:11px;padding:17px;color:white;font-family:Consolas,monospace;font-size:16px;line-height:1.6;outline:none}
+.input-area:focus{border-color:var(--cyan);box-shadow:0 0 15px rgba(0,229,255,.08)}
+.input-area:disabled{opacity:.5}
+.bottom-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:17px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:12px}
+button{border:0;padding:13px 22px;border-radius:9px;background:var(--cyan);color:#061018;font-weight:900;cursor:pointer;font-size:12px;letter-spacing:1px}
+button:hover{transform:translateY(-2px);box-shadow:0 5px 22px rgba(0,229,255,.25)}
+.result{display:none;text-align:center;padding:28px;margin-top:18px;background:var(--panel);border:1px solid #24505a;border-radius:15px}
+.result h2{color:var(--cyan)}
+.result-stats{display:flex;justify-content:center;gap:35px;margin:20px 0}
+.result-stats strong{display:block;font-size:30px}
+.result-stats span{color:var(--muted);font-size:11px}
+.best-section{margin-top:35px;padding:22px;border:1px solid #253044;background:#0d121e;border-radius:15px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.best-info{display:flex;align-items:center;gap:15px}
+.best-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);font-size:23px}
+.best-label{color:var(--muted);font-size:10px;letter-spacing:2px}
+.best-number{color:var(--cyan);font-size:29px;font-weight:900;margin-top:4px}
+.best-number small{color:var(--muted);font-size:12px}
+.reset-best{background:#1c2636;color:#b9c6d9;border:1px solid #34445b;padding:12px 16px}
+.reset-notice{width:100%;color:#39e6a0;font-size:12px;display:none}
+@media(max-width:600px){.stats{gap:7px}.stat{padding:12px 9px}.stat-value{font-size:23px}.race-panel,.passage-panel{padding:16px}.best-section{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<div class="logo">NIGHT<span>SHIFT</span></div>
+<div class="status">● RACING SYSTEM ONLINE</div>
+</header>
+
+<h1>Ready. Set. <span style="color:var(--cyan)">Type.</span></h1>
+<div class="subtitle">Race against the clock. Find your speed.</div>
+
+<div class="stats">
+<div class="stat"><div class="stat-label">WPM</div><div class="stat-value" id="wpm">0</div></div>
+<div class="stat"><div class="stat-label">TIME</div><div class="stat-value" id="time">0<small>s</small></div></div>
+<div class="stat"><div class="stat-label">PROGRESS</div><div class="stat-value" id="progress">0<small>%</small></div></div>
+</div>
+
+<div class="race-panel">
+<div class="track-title"><span>YOUR RACE</span><span id="raceStatus">WAITING FOR DRIVER</span></div>
+<div class="track">
+<div class="road-glow" id="roadGlow"></div><div class="finish"></div>
+<div class="car" id="car">
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+<g class="exhaust"><path d="M8 42 L-12 31 L-7 43 L-12 55Z" fill="#00e5ff"/><path d="M12 42 L-5 36 L0 43 L-5 50Z" fill="white"/></g>
+<ellipse cx="58" cy="62" rx="46" ry="7" fill="#000" opacity=".5"/>
+<path d="M20 48 L27 31 Q32 22 48 21 L78 21 Q88 22 98 36 L107 43 L109 55 L17 55Z" fill="#00bcd4" stroke="#a4f8ff" stroke-width="2"/>
+<path d="M37 30 Q42 25 51 25 L75 25 Q83 26 90 37 L35 37Z" fill="#152a42" stroke="#70edff" stroke-width="2"/>
+<path d="M62 25 L62 37" stroke="#00e5ff" stroke-width="2"/>
+<path d="M18 44 L34 44 L29 51 L17 51Z" fill="white"/>
+<path d="M94 43 L107 45 L108 51 L96 51Z" fill="#ff375f"/>
+<rect x="29" y="51" width="17" height="13" rx="4" fill="#090d16"/>
+<rect x="83" y="51" width="17" height="13" rx="4" fill="#090d16"/>
+<circle cx="37.5" cy="57.5" r="4" fill="#536278"/><circle cx="91.5" cy="57.5" r="4" fill="#536278"/>
+<path d="M58 15 L70 15 L74 21 L54 21Z" fill="#00e5ff"/>
+</svg>
+</div></div>
+<div class="boost-message" id="boostMessage">⚡ TURBO BOOST!</div>
+</div>
+
+<div class="passage-panel">
+<div class="passage-heading">TYPE THE FOLLOWING PASSAGE</div>
+<div class="topic-label" id="topicLabel">STORY: A DAY OUT</div>
+<div class="passage" id="passage"></div>
+<textarea class="input-area" id="typingInput" placeholder="Click here and start typing..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+<div class="bottom-row">
+<div class="hint" id="hint">Start typing to begin · Press ENTER for turbo boost</div>
+<button id="restartButton">NEW RACE ↻</button>
+</div>
+</div>
+
+<div class="result" id="result">
+<h2>RACE COMPLETE!</h2>
+<div class="result-stats">
+<div><strong id="finalWpm">0</strong><span>WPM</span></div>
+<div><strong id="finalTime">0s</strong><span>TIME</span></div>
+</div>
+<div class="hint">Press ENTER to race again</div><br>
+<button onclick="newRace()">RACE AGAIN ↻</button>
+</div>
+
+<div class="best-section">
+<div class="best-info">
+<div class="best-icon">🏆</div>
+<div><div class="best-label">PERSONAL BEST WPM</div><div class="best-number"><span id="bestWpm">0</span> <small>WPM</small></div></div>
+</div>
+<button class="reset-best" id="resetBestButton">RESET BEST WPM ↻</button>
+<div class="reset-notice" id="resetNotice">Best WPM reset! Beginner difficulty restored.</div>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const input=$("typingInput"),car=$("car");
+let target="",startTime=null,finished=false,boostReady=true,boostTimeout=null;
+let bestWpm=Number(localStorage.getItem("nightshiftBestWpm"))||0;
+
+/*
+  Each story has ONE topic and a matching sequence of events.
+  The generator varies names, places, objects and details
+  without randomly switching to unrelated subjects.
+*/
+
+const stories=[
+{
+topic:"A DAY AT THE BEACH",
+people:["Sam","Max","Lily","Ben","Emma","Jack"],
+places:["beach","shore","sand","sea"],
+items:["red ball","small bag","blue hat","big kite","beach ball"],
+open:["One sunny day","Early one morning","On a warm day"],
+events:[
+"{p} went to the {place} with a {item}.",
+"The sky was clear and the sun was warm.",
+"They put their bag on the sand and ran to the sea.",
+"A small wave came up and wet their feet.",
+"They ran back and laughed as the water went away.",
+"Then they sat down and ate some fresh fruit.",
+"After lunch, they got their {item} and played in the sand.",
+"They made a big sand fort near the water.",
+"A few friends came by and helped make it even bigger.",
+"When the sun began to set, they packed up their things.",
+"They had a great day and went home with big smiles."
+]
+},
+{
+topic:"A ROAD TRIP",
+people:["Dad","Sam","Max","Lily","Ben","Jack"],
+places:["small town","big lake","old bridge","green hill","quiet farm"],
+items:["blue car","small map","red bag","warm coat","food box"],
+open:["One bright morning","On a clear day","Early on Saturday"],
+events:[
+"{p} got in the {item} and set off on a trip.",
+"They had a map and a plan for the day.",
+"The road went past fields, trees and small homes.",
+"They saw a {place} just up ahead.",
+"They stopped for a short break and had some food.",
+"After a while, they got back in the car.",
+"The road went up a hill and down past a lake.",
+"They played songs and talked as they drove.",
+"At last, they found a nice spot to sit and rest.",
+"The trip was long, but they all had a good time."
+]
+},
+{
+topic:"A NEW COMPUTER",
+people:["Sam","Alex","Max","Ben","Lily"],
+places:["desk","room","shop","home"],
+items:["new computer","small screen","blue mouse","new keyboard","black case"],
+open:["On a quiet day","One morning","After school"],
+events:[
+"{p} had a plan to set up a {item}.",
+"First, they made some room on the {place}.",
+"They took each part out of the box with care.",
+"Next, they set up the screen and plugged it in.",
+"They put the keys in place and moved the mouse.",
+"At first, the screen was dark and nothing came up.",
+"They checked the wires and tried one more time.",
+"At last, the screen came on and the desk lit up.",
+"They opened a game and made sure it all worked.",
+"By the end of the day, the new setup was ready."
+]
+},
+{
+topic:"A FOOTBALL GAME",
+people:["Sam","Max","Ben","Jack","Alex"],
+places:["field","goal","park","team"],
+items:["new ball","blue shirt","team bag","water bottle"],
+open:["One cool afternoon","On a sunny day","After school"],
+events:[
+"{p} went to the {place} with a {item}.",
+"The team was ready to play a big game.",
+"Each player found a spot on the field.",
+"The ref blew the whistle and the game began.",
+"The ball went from one side to the other.",
+"Both teams ran hard and tried to score.",
+"At last, one player got past the last man.",
+"He kicked the ball and sent it into the net.",
+"The team ran over to cheer for their mate.",
+"At the end, both teams shook hands and went home."
+]
+},
+{
+topic:"A CAMPING TRIP",
+people:["Sam","Max","Lily","Ben","Emma"],
+places:["woods","lake","hill","camp site"],
+items:["small tent","warm coat","food bag","flash light"],
+open:["One cool night","On a warm weekend","Early one Friday"],
+events:[
+"{p} went to the {place} with a {item}.",
+"They found a flat spot near a tall tree.",
+"First, they set up the tent and put their bags inside.",
+"Then they went to find some dry wood.",
+"They made a small fire and sat close to the heat.",
+"The sky grew dark and the stars came out.",
+"They ate warm food and told fun tales.",
+"A soft wind blew through the trees.",
+"In the morning, they woke up to the sound of birds.",
+"They packed their bags and set off for home."
+]
+},
+{
+topic:"A DAY AT SCHOOL",
+people:["Sam","Max","Lily","Ben","Emma"],
+places:["class","hall","yard","desk"],
+items:["new book","blue pen","school bag","lunch box"],
+open:["On Monday morning","One day at school","After the bell rang"],
+events:[
+"{p} walked into the {place} with a {item}.",
+"The room was full of kids getting set for the day.",
+"They sat down and got their books out.",
+"The first task was short and quite fun.",
+"After that, the class read a few pages of a book.",
+"At lunch, they sat with friends and had a good meal.",
+"Then they went out to play in the yard.",
+"The next class was just as fun as the first.",
+"At last, the bell rang and it was time to go home.",
+"They packed their bags and left with a smile."
+]
+},
+{
+topic:"A CAT AT HOME",
+people:["Milo","Max","Lily","Sam","Ben"],
+places:["sofa","bed","yard","room","mat"],
+items:["red ball","soft bed","small toy","food bowl"],
+open:["One calm day","On a warm day","Early one morning"],
+events:[
+"{p} the cat woke up on the {place}.",
+"It had a good stretch and went to find some food.",
+"After that, it saw a {item} on the floor.",
+"It ran over and gave the toy a small tap.",
+"The toy rolled under the chair and out of sight.",
+"The cat sat down and looked at the chair.",
+"Then it ran to the yard to watch the birds.",
+"A soft wind blew and the cat lay in the sun.",
+"At last, it went back inside for a long nap."
+]
+}
+];
+
+const extraDetails=[
+"Everyone was glad to be there.",
+"It was a good way to spend the day.",
+"Nothing could spoil the fun.",
+"They took their time and enjoyed each part.",
+"It was a day they would talk about for a long time.",
+"They were happy with how things had gone.",
+"The day was full of small and happy moments."
+];
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function fill(text,data){
+return text.replace(/\{(\w+)\}/g,(_,key)=>data[key]||"");
+}
+
+function makeStory(story,count){
+const data={
+p:pick(story.people),
+place:pick(story.places),
+item:pick(story.items)
+};
+const opening=pick(story.open);
+const events=story.events.map(e=>fill(e,data));
+const selected=events.slice(0,count);
+return opening+". "+selected.join(" ");
+}
+
+/* The same topic is kept for the entire passage.
+   Higher WPM unlocks longer, more detailed passages. */
+function makePassage(){
+let level;
+if(bestWpm<25) level=1;
+else if(bestWpm<45) level=3;
+else if(bestWpm<70) level=5;
+else if(bestWpm<100) level=7;
+else level=9;
+
+const story=pick(stories);
+const count=Math.min(story.events.length,level+Math.floor(Math.random()*2));
+let passage=makeStory(story,count);
+
+/* Add matching extra detail sentences for very fast typers. */
+if(bestWpm>=70){
+passage+=" "+pick(extraDetails);
+}
+if(bestWpm>=100){
+passage+=" "+pick(extraDetails);
+}
+$("topicLabel").textContent="STORY: "+story.topic;
+return passage;
+}
+
+function displayBest(){ $("bestWpm").textContent=bestWpm }
+
+function renderPassage(typed=""){
+$("passage").innerHTML="";
+for(let i=0;i<target.length;i++){
+const span=document.createElement("span");
+span.textContent=target[i];
+if(i<typed.length) span.className=typed[i]===target[i]?"correct":"incorrect";
+else if(i===typed.length&&!finished) span.className="current";
+$("passage").appendChild(span);
+}
+}
+
+function elapsed(){return startTime?Math.max(.1,(Date.now()-startTime)/1000):0}
+
+function updateStats(){
+if(!startTime)return {wpm:0,seconds:0};
+const typed=input.value,seconds=elapsed();
+let correct=0;
+for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;
+const wpm=Math.round((correct/5)/(seconds/60));
+const progress=Math.min(100,Math.round(typed.length/target.length*100));
+$("wpm").textContent=wpm;
+$("time").innerHTML=Math.floor(seconds)+"<small>s</small>";
+$("progress").innerHTML=progress+"<small>%</small>";
+$("roadGlow").style.width=progress+"%";
+const width=document.querySelector(".track").clientWidth;
+const position=Math.max(0,(width-car.offsetWidth-42)*progress/100);
+car.style.transform=`translateX(${position}px)`;
+return {wpm,seconds};
+}
+
+function boost(){
+if(finished||!startTime||!boostReady)return;
+boostReady=false;
+car.classList.add("boosting");
+$("boostMessage").classList.add("show");
+clearTimeout(boostTimeout);
+boostTimeout=setTimeout(()=>{
+car.classList.remove("boosting");
+$("boostMessage").classList.remove("show");
+boostReady=true;
+},650);
+}
+
+function finishRace(){
+if(finished)return;
+finished=true;
+const stats=updateStats();
+input.disabled=true;
+car.classList.remove("boosting");
+$("raceStatus").textContent="FINISHED!";
+$("finalWpm").textContent=stats.wpm;
+$("finalTime").textContent=Math.floor(stats.seconds)+"s";
+$("result").style.display="block";
+$("hint").textContent="Press ENTER to start your next race";
+if(stats.wpm>bestWpm){
+bestWpm=stats.wpm;
+localStorage.setItem("nightshiftBestWpm",bestWpm);
+displayBest();
+}
+}
+
+function newRace(){
+target=makePassage();
+startTime=null;
+finished=false;
+boostReady=true;
+clearTimeout(boostTimeout);
+input.disabled=false;
+input.value="";
+input.placeholder="Click here and start typing...";
+input.focus();
+$("result").style.display="none";
+$("wpm").textContent="0";
+$("time").innerHTML="0<small>s</small>";
+$("progress").innerHTML="0<small>%</small>";
+$("raceStatus").textContent="WAITING FOR DRIVER";
+$("hint").textContent="Start typing to begin · Press ENTER for turbo boost";
+$("roadGlow").style.width="0%";
+car.style.transform="translateX(0px)";
+car.classList.remove("boosting");
+$("boostMessage").classList.remove("show");
+$("resetNotice").style.display="none";
+renderPassage();
+}
+
+function resetBest(){
+bestWpm=0;
+localStorage.setItem("nightshiftBestWpm","0");
+displayBest();
+newRace();
+$("resetNotice").style.display="block";
+}
+
+input.addEventListener("input",()=>{
+if(finished)return;
+if(input.value.length>target.length)input.value=input.value.slice(0,target.length);
+if(input.value.length>0&&!startTime){
+startTime=Date.now();
+$("raceStatus").textContent="RACE IN PROGRESS";
+}
+renderPassage(input.value);
+if(input.value.length===target.length)finishRace();
+else updateStats();
+});
+
+input.addEventListener("keydown",e=>{
+if(e.key==="Enter"){
+e.preventDefault();
+if(finished)newRace();
+else boost();
+}
+});
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Enter"&&finished&&document.activeElement!==input){
+e.preventDefault();newRace();
+}
+});
+
+$("restartButton").addEventListener("click",newRace);
+$("resetBestButton").addEventListener("click",resetBest);
+setInterval(()=>{if(startTime&&!finished)updateStats()},100);
+displayBest();
+newRace();
+</script>
+</body>
+</html>
