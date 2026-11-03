@@ -1,466 +1,1708 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nightshift | Typing Race</title>
-<style>
-*{box-sizing:border-box}
-:root{--cyan:#00e5ff;--bg:#080a12;--panel:#101522;--muted:#788398}
-body{margin:0;min-height:100vh;background:var(--bg);color:white;font-family:Arial,sans-serif}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);background-size:40px 40px}
-.container{width:min(1050px,94%);margin:auto;padding:35px 0 60px;position:relative}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:38px;gap:15px}
-.logo{font-size:23px;font-weight:900;letter-spacing:2px}.logo span{color:var(--cyan)}
-.status{color:var(--cyan);font-size:11px;letter-spacing:2px;border:1px solid #164c5b;padding:9px 13px;border-radius:20px}
-h1{font-size:clamp(32px,6vw,54px);margin:0;letter-spacing:-2px}
-.subtitle{color:var(--muted);margin:10px 0 30px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.stat,.race-panel,.passage-panel{background:var(--panel);border:1px solid #202a3b;border-radius:14px;padding:18px}
-.stat-label,.passage-heading{color:var(--muted);font-size:10px;letter-spacing:2px}
-.stat-value{font-size:29px;font-weight:800;margin-top:8px}
-.stat-value small{color:var(--muted);font-size:12px}
-.race-panel{margin-bottom:18px}
-.track-title{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;letter-spacing:2px;margin-bottom:18px}
-.track{height:110px;background:#090d16;border:1px solid #253044;border-radius:12px;position:relative;overflow:hidden}
-.track:before{content:"";position:absolute;top:54px;left:0;right:0;border-top:3px dashed #344052}
-.road-glow{position:absolute;left:0;top:52px;height:5px;width:0;background:var(--cyan);box-shadow:0 0 15px var(--cyan);transition:width .15s}
-.finish{position:absolute;right:24px;top:15px;bottom:15px;width:9px;background:repeating-linear-gradient(to bottom,white 0 8px,#222 8px 16px)}
-.car{position:absolute;left:0;top:22px;width:76px;height:64px;transition:transform .15s linear;z-index:2}
-.car svg{width:100%;height:100%;overflow:visible}
-.car.boosting{filter:drop-shadow(0 0 12px #00e5ff);animation:boost .32s infinite alternate}
-@keyframes boost{to{scale:1.13}}
-.exhaust{opacity:0}.car.boosting .exhaust{opacity:1;animation:flame .16s infinite alternate}
-@keyframes flame{to{opacity:1}}
-.boost-message{height:20px;color:var(--cyan);text-align:right;font-size:11px;letter-spacing:2px;margin-top:10px;opacity:0}
-.boost-message.show{opacity:1}
-.passage-panel{padding:25px}
-.passage-heading{margin-bottom:18px}
-.topic-label{font-size:11px;color:var(--cyan);letter-spacing:1px;margin-bottom:12px}
-.passage{font-family:Consolas,monospace;font-size:clamp(17px,2.4vw,22px);line-height:1.9;min-height:130px;overflow-wrap:anywhere}
-.passage span{color:#8994a8}
-.passage span.correct{color:#39e6a0}
-.passage span.incorrect{color:#ff5c78;background:rgba(255,92,120,.12)}
-.passage span.current{border-left:2px solid var(--cyan);margin-left:-2px;background:rgba(0,229,255,.12)}
-.input-area{width:100%;min-height:110px;resize:vertical;margin-top:22px;background:#080d17;border:1px solid #29364b;border-radius:11px;padding:17px;color:white;font-family:Consolas,monospace;font-size:16px;line-height:1.6;outline:none}
-.input-area:focus{border-color:var(--cyan);box-shadow:0 0 15px rgba(0,229,255,.08)}
-.input-area:disabled{opacity:.5}
-.bottom-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:17px;flex-wrap:wrap}
-.hint{color:var(--muted);font-size:12px}
-button{border:0;padding:13px 22px;border-radius:9px;background:var(--cyan);color:#061018;font-weight:900;cursor:pointer;font-size:12px;letter-spacing:1px}
-button:hover{transform:translateY(-2px);box-shadow:0 5px 22px rgba(0,229,255,.25)}
-.result{display:none;text-align:center;padding:28px;margin-top:18px;background:var(--panel);border:1px solid #24505a;border-radius:15px}
-.result h2{color:var(--cyan)}
-.result-stats{display:flex;justify-content:center;gap:35px;margin:20px 0}
-.result-stats strong{display:block;font-size:30px}
-.result-stats span{color:var(--muted);font-size:11px}
-.best-section{margin-top:35px;padding:22px;border:1px solid #253044;background:#0d121e;border-radius:15px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.best-info{display:flex;align-items:center;gap:15px}
-.best-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);font-size:23px}
-.best-label{color:var(--muted);font-size:10px;letter-spacing:2px}
-.best-number{color:var(--cyan);font-size:29px;font-weight:900;margin-top:4px}
-.best-number small{color:var(--muted);font-size:12px}
-.reset-best{background:#1c2636;color:#b9c6d9;border:1px solid #34445b;padding:12px 16px}
-.reset-notice{width:100%;color:#39e6a0;font-size:12px;display:none}
-@media(max-width:600px){.stats{gap:7px}.stat{padding:12px 9px}.stat-value{font-size:23px}.race-panel,.passage-panel{padding:16px}.best-section{padding:16px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Quoridor</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00e5ff;
+      --magenta: #ff2bd6;
+      --cyan-dim: rgba(0, 229, 255, .18);
+      --magenta-dim: rgba(255, 43, 214, .18);
+      --bg: #070912;
+      --panel: rgba(13, 17, 32, .85);
+      --line: rgba(0, 229, 255, .14);
+      --txt: #dffbff;
+      --sub: #7b93b5;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--txt);
+
+      font-family: 'Rajdhani', sans-serif;
+      overflow: hidden
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+        background:
+          radial-gradient(60% 50% at 20% 10%, rgba(0, 229, 255, .08), transparent 60%),
+          radial-gradient(60% 50% at 85% 90%, rgba(255, 43, 214, .08), transparent 60%);
+        pointer-events: none
+      }
+
+      h1,
+      h2,
+      .btn,
+      .tab {
+        font-family: 'Orbitron', sans-serif
+      }
+
+      #menu,
+      #game {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        transition: opacity .35s, transform .35s
+      }
+
+      .hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(.96)
+      }
+
+      .title {
+        font-size: clamp(38px, 9vw, 84px);
+        font-weight: 900;
+        letter-spacing: .12em;
+        margin: 0;
+        background: linear-gradient(90deg, var(--cyan), #7af 30%, var(--magenta));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 22px rgba(0, 229, 255, .35)) drop-shadow(0 0 30px rgba(255, 43, 214, .25))
+      }
+
+      .tag {
+        color: var(--sub);
+        font-size: clamp(14px, 2.5vw, 19px);
+        margin: 14px 0 34px;
+        max-width: 520px;
+        text-align: center;
+        line-height: 1.5
+      }
+
+      .modes {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: min(92vw, 380px)
+      }
+
+      .btn {
+        position: relative;
+        border: 0;
+        border-radius: 14px;
+        padding: 16px 22px;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        cursor: pointer;
+        color: #02131a;
+        background: linear-gradient(135deg, var(--cyan), #5cf0ff);
+        box-shadow: 0 0 18px rgba(0, 229, 255, .4), inset 0 0 0 1px rgba(255, 255, 255, .25);
+        transition: transform .15s, box-shadow .2s, filter .2s
+      }
+
+      .btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 0 30px rgba(0, 229, 255, .65)
+      }
+
+      .btn:active {
+        transform: scale(.97)
+      }
+
+      .btn.mag {
+        color: #25021e;
+        background: linear-gradient(135deg, var(--magenta), #ff7ae8);
+        box-shadow: 0 0 18px rgba(255, 43, 214, .4), inset 0 0 0 1px rgba(255, 255, 255, .25)
+      }
+
+      .btn.mag:hover {
+        box-shadow: 0 0 30px rgba(255, 43, 214, .65)
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--txt);
+        box-shadow: inset 0 0 0 2px rgba(123, 147, 181, .4)
+      }
+
+      .btn.ghost:hover {
+        box-shadow: inset 0 0 0 2px var(--cyan);
+        color: #fff;
+        filter: none
+      }
+
+      .btn.sm {
+        padding: 9px 14px;
+        font-size: 13px;
+        border-radius: 10px
+      }
+
+      .btn:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+        filter: grayscale(.4)
+      }
+
+      #onlinePanel {
+        width: min(92vw, 400px);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 0 40px rgba(0, 229, 255, .12), 0 20px 60px rgba(0, 0, 0, .6);
+        backdrop-filter: blur(8px)
+      }
+
+      #onlinePanel h2 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        color: var(--cyan)
+      }
+
+      #onlinePanel p {
+        margin: 0 0 14px;
+        color: var(--sub);
+        line-height: 1.45;
+        font-size: 15px
+      }
+
+      #roomInput {
+        width: 100%;
+        padding: 13px;
+        border-radius: 10px;
+        border: 1px solid rgba(123, 147, 181, .4);
+        background: #0a0f1e;
+        color: #fff;
+        font-family: 'Orbitron';
+        font-size: 19px;
+        text-align: center;
+        letter-spacing: .25em;
+        text-transform: uppercase;
+        outline: none
+      }
+
+      #roomInput:focus {
+        border-color: var(--cyan);
+        box-shadow: 0 0 12px rgba(0, 229, 255, .3)
+      }
+
+      #netStatus {
+        min-height: 22px;
+        font-size: 14px;
+        color: var(--cyan);
+        margin-top: 12px;
+        line-height: 1.4
+      }
+
+      #codeBox {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px
+      }
+
+      #codeBox.show {
+        display: flex
+      }
+
+      #codeVal {
+        flex: 1;
+        font-family: 'Orbitron';
+        font-size: 20px;
+        letter-spacing: .2em;
+        color: #fff;
+        background: #0a0f1e;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap
+      }
+
+      .row .btn {
+        flex: 1
+      }
+
+      #nameRow {
+        margin-bottom: 14px
+      }
+
+      #nameInput {
+        width: 100%;
+        padding: 11px;
+        border-radius: 10px;
+        border: 1px solid rgba(123, 147, 181, .4);
+        background: #0a0f1e;
+        color: #fff;
+        font-family: 'Rajdhani';
+        font-size: 16px;
+        outline: none
+      }
+
+      #botDiff {
+        display: none;
+        gap: 10px;
+        width: min(92vw, 380px);
+        margin-top: 18px;
+        flex-wrap: wrap;
+        justify-content: center
+      }
+
+      #botDiff .btn {
+        flex: 1;
+        min-width: 80px;
+        padding: 13px 6px;
+        font-size: 13px
+      }
+
+      /* ===== GAME LAYOUT ===== */
+      #game {
+        justify-content: flex-start;
+        padding: 8px;
+        gap: 6px
+      }
+
+      #topbar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: min(98vw, 1100px)
+      }
+
+      #modeTag {
+        font-family: 'Orbitron';
+        font-size: 11px;
+        letter-spacing: .18em;
+        color: var(--sub);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 14px;
+        white-space: nowrap
+      }
+
+      #turnBanner {
+        font-family: 'Orbitron';
+        font-size: 13px;
+        letter-spacing: .12em;
+        padding: 7px 16px;
+        border-radius: 999px;
+        white-space: nowrap;
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
+        text-shadow: 0 0 10px rgba(0, 229, 255, .7);
+        box-shadow: 0 0 14px rgba(0, 229, 255, .25);
+        transition: all .3s
+      }
+
+      #turnBanner.m {
+        border-color: var(--magenta);
+        color: var(--magenta);
+        text-shadow: 0 0 10px rgba(255, 43, 214, .7);
+        box-shadow: 0 0 14px rgba(255, 43, 214, .25)
+      }
+
+      #turnBanner.over {
+        border-color: #ffd54a;
+        color: #ffd54a;
+        text-shadow: 0 0 10px rgba(255, 213, 74, .7);
+        box-shadow: 0 0 14px rgba(255, 213, 74, .25)
+      }
+
+      #mainArea {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        flex: 1;
+        min-height: 0
+      }
+
+      #sidePanel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 190px;
+        flex-shrink: 0
+      }
+
+      .pcard {
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        transition: box-shadow .3s, border-color .3s
+      }
+
+      .pcard.active {
+        box-shadow: 0 0 18px rgba(0, 229, 255, .45);
+        border-color: var(--cyan)
+      }
+
+      .pcard.m.active {
+        box-shadow: 0 0 18px rgba(255, 43, 214, .45);
+        border-color: var(--magenta)
+      }
+
+      .pname {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: .05em
+      }
+
+      .pdot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        flex-shrink: 0
+      }
+
+      .pdot.c {
+        background: var(--cyan);
+        box-shadow: 0 0 10px var(--cyan)
+      }
+
+      .pdot.m {
+        background: var(--magenta);
+        box-shadow: 0 0 10px var(--magenta)
+      }
+
+      .pwalls {
+        font-size: 13px;
+        color: var(--sub);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px
+      }
+
+      .wdots {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap
+      }
+
+      .wdot {
+        width: 7px;
+        height: 12px;
+        border-radius: 2px;
+        background: #2a3350
+      }
+
+      .wallShop {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 12px
+      }
+
+      .wallShop h3 {
+        margin: 0 0 8px;
+        font-family: 'Orbitron';
+        font-size: 11px;
+        letter-spacing: .15em;
+        color: var(--sub)
+      }
+
+      .wallCards {
+        display: flex;
+        gap: 10px
+      }
+
+      .wallCard {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 12px 4px;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        background: #0a0f1e;
+        transition: all .15s
+      }
+
+      .wallCard .mini {
+        width: 26px;
+        height: 7px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #8fa4c8, #5a6c92)
+      }
+
+      .wallCard.v .mini {
+        width: 7px;
+        height: 26px
+      }
+
+      .wallCard:hover {
+        border-color: rgba(0, 229, 255, .5)
+      }
+
+      .wallCard.sel {
+        border-color: var(--cyan);
+        box-shadow: 0 0 14px rgba(0, 229, 255, .5);
+        background: rgba(0, 229, 255, .08)
+      }
+
+      .wallCard.sel.m {
+        border-color: var(--magenta);
+        box-shadow: 0 0 14px rgba(255, 43, 214, .5);
+        background: rgba(255, 43, 214, .08)
+      }
+
+      .wallCard.empty {
+        opacity: .28;
+        cursor: not-allowed
+      }
+
+      .wallCount {
+        position: absolute;
+        font-size: 11px;
+        color: var(--sub);
+        margin-top: 2px
+      }
+
+      .wallCardWrap {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--sub)
+      }
+
+      #rotateBtn {
+        width: 100%;
+        margin-top: 2px
+      }
+
+      #tools {
+        display: flex;
+        flex-direction: column;
+        gap: 8px
+      }
+
+      #tools .btn {
+        width: 100%
+      }
+
+      #boardWrap {
+        position: relative;
+        flex: 0 1 auto;
+        height: 100%;
+        max-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0
+      }
+
+      #board {
+        position: relative;
+        display: grid;
+        aspect-ratio: 9/12;
+        width: min(92vw, 100%, calc((100dvh - 130px) * 0.75));
+        max-width: min(92vw, 640px);
+        max-height: 100%;
+        margin: auto;
+        background: linear-gradient(160deg, #0c1224, #0a0f1e 60%, #101228);
+        border: 2px solid rgba(0, 229, 255, .25);
+        border-radius: 16px;
+        box-shadow: 0 0 40px rgba(0, 229, 255, .15), 0 0 80px rgba(255, 43, 214, .08), inset 0 0 60px rgba(0, 0, 0, .5);
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(12, 1fr)
+      }
+
+      .cell {
+        position: relative;
+        grid-area: var(--gr)/var(--gc);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background .15s, box-shadow .15s
+      }
+
+      .cell::after {
+        content: '';
+        position: absolute;
+        inset: 8%;
+        border-radius: 5px;
+        background: rgba(123, 147, 181, .05);
+        border: 1px solid rgba(123, 147, 181, .1);
+        transition: all .18s
+      }
+
+      .cell.goalC::after {
+        border-color: rgba(0, 229, 255, .35);
+        background: rgba(0, 229, 255, .07)
+      }
+
+      .cell.goalM::after {
+        border-color: rgba(255, 43, 214, .3);
+        background: rgba(255, 43, 214, .06)
+      }
+
+      .cell.canMove::after {
+        background: rgba(0, 229, 255, .16);
+        border-color: rgba(0, 229, 255, .6);
+        box-shadow: 0 0 12px rgba(0, 229, 255, .4);
+        cursor: pointer
+      }
+
+      .cell.canMove:hover::after {
+        background: rgba(0, 229, 255, .3)
+      }
+
+      .cell.here::after {
+        border-color: rgba(0, 229, 255, .5)
+      }
+
+      .pawn {
+        position: relative;
+        z-index: 3;
+        width: min(70%, 26px);
+        height: min(70%, 26px);
+        border-radius: 50%;
+        transition: left .22s cubic-bezier(.34, 1.4, .5, 1), transform .15s;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-family: 'Orbitron';
+        font-size: 11px;
+        color: #04141b
+      }
+
+      .pawn.p1 {
+        background: radial-gradient(circle at 32% 30%, #b6fbff, var(--cyan) 60%, #0090a8);
+        box-shadow: 0 0 16px var(--cyan), 0 3px 8px rgba(0, 0, 0, .5)
+      }
+
+      .pawn.p2 {
+        background: radial-gradient(circle at 32% 30%, #ffc4f4, var(--magenta) 60%, #a8008c);
+        box-shadow: 0 0 16px var(--magenta), 0 3px 8px rgba(0, 0, 0, .5)
+      }
+
+      .pawn.me {
+        animation: pulse 1.6s infinite
+      }
+
+      @keyframes pulse {
+
+        0%,
+        100% {
+          transform: scale(1)
+        }
+
+        50% {
+          transform: scale(1.12)
+        }
+      }
+
+      .wallLayer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2
+      }
+
+      .wall {
+        position: absolute;
+        background: linear-gradient(90deg, #93a8cf, #c8d6ef 40%, #93a8cf);
+        border-radius: 3px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .6), 0 0 10px rgba(160, 190, 255, .25);
+        animation: wallIn .25s cubic-bezier(.34, 1.4, .5, 1)
+      }
+
+      .wall.own1 {
+        background: linear-gradient(90deg, var(--cyan), #7df4ff 50%, var(--cyan));
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .5), 0 0 12px rgba(0, 229, 255, .55)
+      }
+
+      .wall.own2 {
+        background: linear-gradient(90deg, var(--magenta), #ff8ae9 50%, var(--magenta));
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .5), 0 0 12px rgba(255, 43, 214, .55)
+      }
+
+      .wall.v {
+        background: linear-gradient(180deg, #93a8cf, #c8d6ef 40%, #93a8cf)
+      }
+
+      .wall.v.own1 {
+        background: linear-gradient(180deg, var(--cyan), #7df4ff 50%, var(--cyan))
+      }
+
+      .wall.v.own2 {
+        background: linear-gradient(180deg, var(--magenta), #ff8ae9 50%, var(--magenta))
+      }
+
+      @keyframes wallIn {
+        0% {
+          transform: scale(.4);
+          opacity: 0
+        }
+
+        70% {
+          transform: scale(1.06)
+        }
+
+        100% {
+          transform: scale(1);
+          opacity: 1
+        }
+      }
+
+      /* hover preview walls: separate overlay elements */
+      #wallHint {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 4
+      }
+
+      #wallHint .pv {
+        position: absolute;
+        border-radius: 3px;
+        transition: all .08s
+      }
+
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        transform: translateX(-50%) translateY(80px);
+        background: rgba(20, 10, 20, .92);
+        color: #ffd0f2;
+        border: 1px solid var(--magenta);
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        letter-spacing: .05em;
+        z-index: 60;
+        transition: transform .3s;
+        box-shadow: 0 0 20px rgba(255, 43, 214, .4);
+        white-space: nowrap;
+        max-width: 92vw
+      }
+
+      #toast.show {
+        transform: translateX(-50%) translateY(0)
+      }
+
+      /* modal overlay (rules / victory / rematch confirm) */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 5, 12, .78);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .25s;
+        padding: 16px
+      }
+
+      .modal.open {
+        opacity: 1;
+        pointer-events: auto
+      }
+
+      .panel {
+        width: min(92vw, 460px);
+        max-height: 86vh;
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 26px;
+        box-shadow: 0 0 50px rgba(0, 229, 255, .15), 0 20px 60px rgba(0, 0, 0, .6);
+        backdrop-filter: blur(10px);
+        transform: scale(.94);
+        transition: transform .25s
+      }
+
+      .modal.open .panel {
+        transform: scale(1)
+      }
+
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 24px;
+        letter-spacing: .08em
+      }
+
+      #winTitle {
+        background: linear-gradient(90deg, var(--cyan), var(--magenta));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-size: 32px;
+        text-align: center
+      }
+
+      .winLine {
+        text-align: center;
+        color: var(--txt);
+        font-size: 19px;
+        margin-bottom: 22px
+      }
+
+      .rules li {
+        margin: 0 0 10px;
+        line-height: 1.5;
+        color: #c8d6ea;
+        font-size: 15px
+      }
+
+      .rules b {
+        color: var(--cyan)
+      }
+
+      #confetti {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 49
+      }
+
+      @media(max-width:760px) {
+        #mainArea {
+          flex-direction: column-reverse;
+          gap: 8px
+        }
+
+        #sidePanel {
+          flex-direction: row;
+          width: 100%;
+          max-width: min(96vw, 560px);
+          align-items: stretch
+        }
+
+        .pcard {
+          flex: 1;
+          padding: 8px 10px
+        }
+
+        .pname {
+          font-size: 13px
+        }
+
+        .pwalls {
+          font-size: 11px
+        }
+
+        .wdot {
+          width: 6px;
+          height: 10px
+        }
+
+        #sideCol {
+          flex-direction: row;
+          width: 100%;
+          max-width: min(96vw, 560px)
+        }
+
+        .wallShop {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 8px 10px
+        }
+
+        .wallShop h3 {
+          display: none
+        }
+
+        .wallCards {
+          gap: 8px
+        }
+
+        .wallCard {
+          padding: 9px 2px
+        }
+
+        .wallCard .mini {
+          width: 20px;
+          height: 6px
+        }
+
+        .wallCard.v .mini {
+          width: 6px;
+          height: 20px
+        }
+
+        .wallCardWrap {
+          font-size: 10px
+        }
+
+        #tools {
+          flex-direction: row;
+          flex-wrap: wrap
+        }
+
+        #tools .btn {
+          flex: 1;
+          width: auto;
+          min-width: 86px;
+          padding: 9px 8px;
+          font-size: 11px
+        }
+
+        #boardWrap {
+          width: 100%
+        }
+
+        #board {
+          width: min(96vw, calc((100dvh - 235px) * 0.75))
+        }
+
+        #turnBanner {
+          font-size: 11px;
+          padding: 6px 12px
+        }
+
+        #modeTag {
+          display: none
+        }
+
+        #topbar {
+          gap: 6px
+        }
+      }
+  </style>
 </head>
+
 <body>
-<div class="container">
-<header>
-<div class="logo">NIGHT<span>SHIFT</span></div>
-<div class="status">● RACING SYSTEM ONLINE</div>
-</header>
 
-<h1>Ready. Set. <span style="color:var(--cyan)">Type.</span></h1>
-<div class="subtitle">Race against the clock. Find your speed.</div>
+  <!-- ============ MAIN MENU ============ -->
+  <div id="menu">
+    <h1 class="title">QUORIDOR</h1>
+    <p class="tag">Race your pawn to the far side of the board — and slam walls in your rival's path. First to the
+      opposite edge wins.</p>
+    <div class="modes">
+      <button class="btn" id="btnOnline">ONLINE</button>
+      <button class="btn mag" id="btnOffline">OFFLINE — 2 PLAYERS</button>
+      <button class="btn ghost" id="btnBot">PLAY AGAINST BOT</button>
+    </div>
+    <div id="botDiff">
+      <button class="btn ghost sm" data-d="easy">EASY</button>
+      <button class="btn ghost sm" data-d="medium">MEDIUM</button>
+      <button class="btn ghost sm" data-d="hard">HARD</button>
+      <button class="btn ghost sm" data-d="expert">EXPERT</button>
+    </div>
+  </div>
 
-<div class="stats">
-<div class="stat"><div class="stat-label">WPM</div><div class="stat-value" id="wpm">0</div></div>
-<div class="stat"><div class="stat-label">TIME</div><div class="stat-value" id="time">0<small>s</small></div></div>
-<div class="stat"><div class="stat-label">PROGRESS</div><div class="stat-value" id="progress">0<small>%</small></div></div>
-</div>
+  <!-- ============ ONLINE PANEL ============ -->
+  <div class="modal" id="onlineModal">
+    <div id="onlinePanel" class="panel">
+      <h2>ONLINE PLAY</h2>
+      <div id="nameRow"><input id="nameInput" maxlength="14" placeholder="Your name" autocomplete="off"></div>
+      <p>Host a room and share the code, or enter a friend's code to join. Connection is direct peer-to-peer.</p>
+      <input id="roomInput" maxlength="6" placeholder="ROOM CODE" autocomplete="off">
+      <div id="codeBox">
+        <div id="codeVal"></div><button class="btn sm" id="copyBtn">COPY</button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="closeOnline">CLOSE</button>
+        <button class="btn ghost" id="joinBtn">JOIN</button>
+        <button class="btn" id="hostBtn">HOST GAME</button>
+      </div>
+      <div id="netStatus"></div>
+    </div>
+  </div>
 
-<div class="race-panel">
-<div class="track-title"><span>YOUR RACE</span><span id="raceStatus">WAITING FOR DRIVER</span></div>
-<div class="track">
-<div class="road-glow" id="roadGlow"></div><div class="finish"></div>
-<div class="car" id="car">
-<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-<g class="exhaust"><path d="M8 42 L-12 31 L-7 43 L-12 55Z" fill="#00e5ff"/><path d="M12 42 L-5 36 L0 43 L-5 50Z" fill="white"/></g>
-<ellipse cx="58" cy="62" rx="46" ry="7" fill="#000" opacity=".5"/>
-<path d="M20 48 L27 31 Q32 22 48 21 L78 21 Q88 22 98 36 L107 43 L109 55 L17 55Z" fill="#00bcd4" stroke="#a4f8ff" stroke-width="2"/>
-<path d="M37 30 Q42 25 51 25 L75 25 Q83 26 90 37 L35 37Z" fill="#152a42" stroke="#70edff" stroke-width="2"/>
-<path d="M62 25 L62 37" stroke="#00e5ff" stroke-width="2"/>
-<path d="M18 44 L34 44 L29 51 L17 51Z" fill="white"/>
-<path d="M94 43 L107 45 L108 51 L96 51Z" fill="#ff375f"/>
-<rect x="29" y="51" width="17" height="13" rx="4" fill="#090d16"/>
-<rect x="83" y="51" width="17" height="13" rx="4" fill="#090d16"/>
-<circle cx="37.5" cy="57.5" r="4" fill="#536278"/><circle cx="91.5" cy="57.5" r="4" fill="#536278"/>
-<path d="M58 15 L70 15 L74 21 L54 21Z" fill="#00e5ff"/>
-</svg>
-</div></div>
-<div class="boost-message" id="boostMessage">⚡ TURBO BOOST!</div>
-</div>
+  <!-- ============ GAME SCREEN ============ -->
+  <div id="game" class="hidden">
+    <div id="topbar">
+      <span id="modeTag">OFFLINE</span>
+      <span id="turnBanner">CYAN'S TURN</span>
+    </div>
+    <div id="mainArea">
+      <div id="sidePanel">
+        <div class="pcard active" id="card1">
+          <div class="pname"><span class="pdot c"></span><span id="pn1">CYAN</span></div>
+          <div class="pwalls">WALLS <span class="wdots" id="wd1"></span></div>
+        </div>
+        <div class="pcard m" id="card2">
+          <div class="pname"><span class="pdot m"></span><span id="pn2">MAGENTA</span></div>
+          <div class="pwalls">WALLS <span class="wdots" id="wd2"></span></div>
+        </div>
+        <div id="sideCol" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="wallShop">
+            <h3>WALL SHOP</h3>
+            <div class="wallCards">
+              <div class="wallCardWrap">
+                <div class="wallCard" id="wcH" title="Drag onto board, or tap then tap board"><span class="mini"></span>
+                </div><span id="wcHc">10</span>
+              </div>
+              <div class="wallCardWrap">
+                <div class="wallCard v" id="wcV" title="Drag onto board, or tap then tap board"><span
+                    class="mini"></span></div><span id="wcVc">10</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn ghost sm" id="rotateBtn">⟳ ROTATE WALL</button>
+        </div>
+        <div id="tools">
+          <button class="btn ghost sm" id="restartBtn">↺ RESTART</button>
+          <button class="btn ghost sm" id="rulesBtn">? RULES</button>
+          <button class="btn ghost sm" id="menuBtn">← MENU</button>
+        </div>
+      </div>
+      <div id="boardWrap">
+        <div id="board">
+          <div class="wallLayer" id="wallLayer"></div>
+          <div id="wallHint"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="passage-panel">
-<div class="passage-heading">TYPE THE FOLLOWING PASSAGE</div>
-<div class="topic-label" id="topicLabel">STORY: A DAY OUT</div>
-<div class="passage" id="passage"></div>
-<textarea class="input-area" id="typingInput" placeholder="Click here and start typing..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-<div class="bottom-row">
-<div class="hint" id="hint">Start typing to begin · Press ENTER for turbo boost</div>
-<button id="restartButton">NEW RACE ↻</button>
-</div>
-</div>
+  <!-- ============ MODALS ============ -->
+  <div class="modal" id="winModal">
+    <div class="panel">
+      <h2 id="winTitle">CYAN WINS!</h2>
+      <div class="winLine" id="winLine"></div>
+      <div class="row">
+        <button class="btn mag" id="menuFromWin">MENU</button>
+        <button class="btn" id="rematchBtn">REMATCH</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="rulesModal">
+    <div class="panel">
+      <h2 style="color:var(--cyan)">HOW TO PLAY</h2>
+      <ul class="rules">
+        <li><b>Goal:</b> be the first to reach the <b>opposite edge</b> of the board. Cyan starts at the bottom, Magenta
+          at the top.</li>
+        <li><b>Turns:</b> each turn you either <b>move</b> your pawn one square (including diagonally when jumping an
+          opponent) or <b>place a wall</b>.</li>
+        <li><b>Moving:</b> legal squares glow cyan. You may not jump a pawn unless there's space to land beside or
+          behind it.</li>
+        <li><b>Walls:</b> each player has <b>10 walls</b>. Drag a wall from the Wall Shop onto the board, or tap it and
+          then tap the board. Tap <b>ROTATE</b> (or press R) to switch horizontal/vertical.</li>
+        <li><b>Wall rules:</b> walls can't overlap or cross another wall, can't block the board edge, and can never seal
+          off a player's <b>entire</b> route to their goal.</li>
+        <li><b>Winning:</b> reach the far edge — the game ends instantly.</li>
+      </ul>
+      <div class="row"><button class="btn" id="closeRules" style="flex:1">GOT IT</button></div>
+    </div>
+  </div>
+  <div id="toast"></div>
 
-<div class="result" id="result">
-<h2>RACE COMPLETE!</h2>
-<div class="result-stats">
-<div><strong id="finalWpm">0</strong><span>WPM</span></div>
-<div><strong id="finalTime">0s</strong><span>TIME</span></div>
-</div>
-<div class="hint">Press ENTER to race again</div><br>
-<button onclick="newRace()">RACE AGAIN ↻</button>
-</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
+  <script>
+    'use strict';
+    /* =====================================================================
+       QUORIDOR — 9 wide × 12 tall. Networking reuses the PeerJS approach
+       from Arcade/checkers.html (direct WebRTC data channels, room-id
+       prefix, full-state sync messages). No backend required.
+    ===================================================================== */
+const W = 9, H = 12, MAX_WALLS = 10;
+const P1 = 1, P2 = 2; // P1 cyan (starts row H-1, goal row 0), P2 magenta (starts row 0, goal row H-1)
+const ONLINE_PREFIX = 'quoridor-neon-';
 
-<div class="best-section">
-<div class="best-info">
-<div class="best-icon">🏆</div>
-<div><div class="best-label">PERSONAL BEST WPM</div><div class="best-number"><span id="bestWpm">0</span> <small>WPM</small></div></div>
-</div>
-<button class="reset-best" id="resetBestButton">RESET BEST WPM ↻</button>
-<div class="reset-notice" id="resetNotice">Best WPM reset! Beginner difficulty restored.</div>
-</div>
-</div>
+const $ = id => document.getElementById(id);
+const boardEl = $('board'), wallLayer = $('wallLayer'), wallHint = $('wallHint');
+const turnBanner = $('turnBanner'), modeTag = $('modeTag');
+const toastEl = $('toast');
 
-<script>
-const $=id=>document.getElementById(id);
-const input=$("typingInput"),car=$("car");
-let target="",startTime=null,finished=false,boostReady=true,boostTimeout=null;
-let bestWpm=Number(localStorage.getItem("nightshiftBestWpm"))||0;
+/* ---------------- state ---------------- */
+let walls = [];            // {r,c,o} o:'h'|'v'  r,c = top-left junction the wall starts at
+let pawns = {};            // {1:[r,c], 2:[r,c]}
+let wallCounts = {1: MAX_WALLS, 2: MAX_WALLS};
+let turn = P1, gameOver = false;
+let mode = null;           // 'offline'|'bot'|'online'
+let botDiff = 'medium';
+let playerNames = {1: 'CYAN', 2: 'MAGENTA'};
+let legalMoves = [];
+let selectedWall = null;   // 'h'|'v' — wall armed for tap-to-place
+let wallOwnerColor = {};   // which player placed each wall (for coloring)
 
-/*
-  Each story has ONE topic and a matching sequence of events.
-  The generator varies names, places, objects and details
-  without randomly switching to unrelated subjects.
-*/
+/* online */
+let peer = null, conn = null, mySide = 0, isHost = false, suppressSend = false, rematchVotes = {1: false, 2: false};
+let onlineReady = false;
 
-const stories=[
-{
-topic:"A DAY AT THE BEACH",
-people:["Sam","Max","Lily","Ben","Emma","Jack"],
-places:["beach","shore","sand","sea"],
-items:["red ball","small bag","blue hat","big kite","beach ball"],
-open:["One sunny day","Early one morning","On a warm day"],
-events:[
-"{p} went to the {place} with a {item}.",
-"The sky was clear and the sun was warm.",
-"They put their bag on the sand and ran to the sea.",
-"A small wave came up and wet their feet.",
-"They ran back and laughed as the water went away.",
-"Then they sat down and ate some fresh fruit.",
-"After lunch, they got their {item} and played in the sand.",
-"They made a big sand fort near the water.",
-"A few friends came by and helped make it even bigger.",
-"When the sun began to set, they packed up their things.",
-"They had a great day and went home with big smiles."
-]
-},
-{
-topic:"A ROAD TRIP",
-people:["Dad","Sam","Max","Lily","Ben","Jack"],
-places:["small town","big lake","old bridge","green hill","quiet farm"],
-items:["blue car","small map","red bag","warm coat","food box"],
-open:["One bright morning","On a clear day","Early on Saturday"],
-events:[
-"{p} got in the {item} and set off on a trip.",
-"They had a map and a plan for the day.",
-"The road went past fields, trees and small homes.",
-"They saw a {place} just up ahead.",
-"They stopped for a short break and had some food.",
-"After a while, they got back in the car.",
-"The road went up a hill and down past a lake.",
-"They played songs and talked as they drove.",
-"At last, they found a nice spot to sit and rest.",
-"The trip was long, but they all had a good time."
-]
-},
-{
-topic:"A NEW COMPUTER",
-people:["Sam","Alex","Max","Ben","Lily"],
-places:["desk","room","shop","home"],
-items:["new computer","small screen","blue mouse","new keyboard","black case"],
-open:["On a quiet day","One morning","After school"],
-events:[
-"{p} had a plan to set up a {item}.",
-"First, they made some room on the {place}.",
-"They took each part out of the box with care.",
-"Next, they set up the screen and plugged it in.",
-"They put the keys in place and moved the mouse.",
-"At first, the screen was dark and nothing came up.",
-"They checked the wires and tried one more time.",
-"At last, the screen came on and the desk lit up.",
-"They opened a game and made sure it all worked.",
-"By the end of the day, the new setup was ready."
-]
-},
-{
-topic:"A FOOTBALL GAME",
-people:["Sam","Max","Ben","Jack","Alex"],
-places:["field","goal","park","team"],
-items:["new ball","blue shirt","team bag","water bottle"],
-open:["One cool afternoon","On a sunny day","After school"],
-events:[
-"{p} went to the {place} with a {item}.",
-"The team was ready to play a big game.",
-"Each player found a spot on the field.",
-"The ref blew the whistle and the game began.",
-"The ball went from one side to the other.",
-"Both teams ran hard and tried to score.",
-"At last, one player got past the last man.",
-"He kicked the ball and sent it into the net.",
-"The team ran over to cheer for their mate.",
-"At the end, both teams shook hands and went home."
-]
-},
-{
-topic:"A CAMPING TRIP",
-people:["Sam","Max","Lily","Ben","Emma"],
-places:["woods","lake","hill","camp site"],
-items:["small tent","warm coat","food bag","flash light"],
-open:["One cool night","On a warm weekend","Early one Friday"],
-events:[
-"{p} went to the {place} with a {item}.",
-"They found a flat spot near a tall tree.",
-"First, they set up the tent and put their bags inside.",
-"Then they went to find some dry wood.",
-"They made a small fire and sat close to the heat.",
-"The sky grew dark and the stars came out.",
-"They ate warm food and told fun tales.",
-"A soft wind blew through the trees.",
-"In the morning, they woke up to the sound of birds.",
-"They packed their bags and set off for home."
-]
-},
-{
-topic:"A DAY AT SCHOOL",
-people:["Sam","Max","Lily","Ben","Emma"],
-places:["class","hall","yard","desk"],
-items:["new book","blue pen","school bag","lunch box"],
-open:["On Monday morning","One day at school","After the bell rang"],
-events:[
-"{p} walked into the {place} with a {item}.",
-"The room was full of kids getting set for the day.",
-"They sat down and got their books out.",
-"The first task was short and quite fun.",
-"After that, the class read a few pages of a book.",
-"At lunch, they sat with friends and had a good meal.",
-"Then they went out to play in the yard.",
-"The next class was just as fun as the first.",
-"At last, the bell rang and it was time to go home.",
-"They packed their bags and left with a smile."
-]
-},
-{
-topic:"A CAT AT HOME",
-people:["Milo","Max","Lily","Sam","Ben"],
-places:["sofa","bed","yard","room","mat"],
-items:["red ball","soft bed","small toy","food bowl"],
-open:["One calm day","On a warm day","Early one morning"],
-events:[
-"{p} the cat woke up on the {place}.",
-"It had a good stretch and went to find some food.",
-"After that, it saw a {item} on the floor.",
-"It ran over and gave the toy a small tap.",
-"The toy rolled under the chair and out of sight.",
-"The cat sat down and looked at the chair.",
-"Then it ran to the yard to watch the birds.",
-"A soft wind blew and the cat lay in the sun.",
-"At last, it went back inside for a long nap."
-]
+/* ---------------- audio (same approach as checkers.html) ---------------- */
+let audioCtx;
+function actx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
 }
-];
+function tone(f, d, type = 'triangle', v = .07, delay = 0, end) {
+  try {
+    const c = actx(), o = c.createOscillator(), g = c.createGain(), s = c.currentTime + delay;
+    o.type = type; o.frequency.setValueAtTime(f, s);
+    if (end) o.frequency.exponentialRampToValueAtTime(end, s + d);
+    g.gain.setValueAtTime(.0001, s);
+    g.gain.exponentialRampToValueAtTime(v, s + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, s + d);
+    o.connect(g); g.connect(c.destination); o.start(s); o.stop(s + d);
+  } catch (e) {}
+}
+const sMove = () => tone(340, .09, 'triangle', .06, 0, 460);
+const sWall = () => { tone(150, .12, 'square', .05, 0, 90); tone(500, .08, 'triangle', .04, .05); };
+const sWin = () => [392, 523, 659, 784].forEach((f, i) => tone(f, .16, 'triangle', .08, i * .1));
+const sBad = () => tone(170, .14, 'sawtooth', .05, 0, 110);
 
-const extraDetails=[
-"Everyone was glad to be there.",
-"It was a good way to spend the day.",
-"Nothing could spoil the fun.",
-"They took their time and enjoyed each part.",
-"It was a day they would talk about for a long time.",
-"They were happy with how things had gone.",
-"The day was full of small and happy moments."
-];
+/* ---------------- helpers ---------------- */
+const inb = (r, c) => r >= 0 && r < H && c >= 0 && c < W;
+const other = p => p === P1 ? P2 : P1;
 
-function pick(a){return a[Math.floor(Math.random()*a.length)]}
-function fill(text,data){
-return text.replace(/\{(\w+)\}/g,(_,key)=>data[key]||"");
+function wallExists(r, c, o) { return walls.some(w => w.r === r && w.c === c && w.o === o); }
+
+/* Blocked check between two adjacent cells */
+function blocked(r1, c1, r2, c2) {
+  if (r1 === r2) { // horizontal step: wall must be vertical, spanning column min(c1,c2)
+    const cc = Math.min(c1, c2);
+    return wallExists(r1, cc, 'v') || wallExists(r1 - 1, cc, 'v');
+  } else {         // vertical step: wall horizontal, spanning row min(r1,r2)
+    const rr = Math.min(r1, r2);
+    return wallExists(rr, c1, 'h') || wallExists(rr, c1 - 1, 'h');
+  }
 }
 
-function makeStory(story,count){
-const data={
-p:pick(story.people),
-place:pick(story.places),
-item:pick(story.items)
+function neighbors(r, c, b = pawns) {
+  const res = [];
+  [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+    const nr = r + dr, nc = c + dc;
+    if (!inb(nr, nc) || blocked(r, c, nr, nc)) return;
+    if (b[nr][nc] === 0) res.push({ r: nr, c: nc, kind: 'step' });
+  });
+  return res;
+}
+
+function legalMovesFor(p, bb = pawnBoard()) {
+  const [mr, mc] = pawns[p];
+  const opp = other(p);
+  const res = neighbors(mr, mc, bb);
+  // jumping
+  [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+    const nr = mr + dr, nc = mc + dc;
+    if (!inb(nr, nc) || blocked(mr, mc, nr, nc)) return;
+    if (bb[nr][nc] !== opp) return;
+    // straight jump
+    const jr = nr + dr, jc = nc + dc;
+    if (inb(jr, jc) && !blocked(nr, nc, jr, jc) && bb[jr][jc] === 0) {
+      res.push({ r: jr, c: jc, kind: 'jump' });
+      return;
+    }
+    // diagonal jumps (perpendicular)
+    [[-dc, -dr], [dc, dr]].forEach(([dr2, dc2]) => {
+      const lr = nr + dr2, lc = nc + dc2;
+      if (inb(lr, lc) && !blocked(nr, nc, lr, lc) && bb[lr][lc] === 0) res.push({ r: lr, c: lc, kind: 'diag' });
+    });
+  });
+  return res;
+}
+
+/* pawn board helper: 0 empty, 1/2 pawn */
+function pawnBoard() {
+  const b = Array.from({length: H}, () => Array(W).fill(0));
+  b[pawns[1][0]][pawns[1][1]] = 1;
+  b[pawns[2][0]][pawns[2][1]] = 2;
+  return b;
+}
+
+/* BFS shortest path length from pawn to goal row */
+function distToGoal(p, wls = walls, pb = pawnBoard()) {
+  const goal = p === P1 ? 0 : H - 1;
+  const start = pawns[p];
+  const sr = start[0], sc = start[1];
+  const seen = new Set([sr + ',' + sc]);
+  let q = [{r: sr, c: sc, d: 0}];
+  while (q.length) {
+    const cur = q.shift();
+    if (cur.r === goal) return cur.d;
+    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+      const nr = cur.r + dr, nc = cur.c + dc;
+      if (!inb(nr, nc) || blockedWith(wls, cur.r, cur.c, nr, nc)) return;
+      const k = nr + ',' + nc;
+      if (!seen.has(k)) { seen.add(k); q.push({r: nr, c: nc, d: cur.d + 1}); }
+    });
+  }
+  return Infinity;
+}
+function blockedWith(wls, r1, c1, r2, c2) {
+  if (r1 === r2) { const cc = Math.min(c1, c2); return hasW(wls, r1, cc, 'v') || hasW(wls, r1 - 1, cc, 'v'); }
+  const rr = Math.min(r1, r2); return hasW(wls, rr, c1, 'h') || hasW(wls, rr, c1 - 1, 'h');
+}
+function hasW(wls, r, c, o) { return wls.some(w => w.r === r && w.c === c && w.o === o); }
+
+/* pathability: does player p still have a route to goal with wall list wls */
+function hasPath(p, wls) {
+  const goal = p === P1 ? 0 : H - 1;
+  const start = pawns[p];
+  const sr = start[0], sc = start[1];
+  const opp = pawns[other(p)];
+  const seen = new Set([sr + ',' + sc]);
+  let q = [[sr, sc]];
+  while (q.length) {
+    const [r, c] = q.shift();
+    if (r === goal) return true;
+    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
+      const nr = r + dr, nc = c + dc, k = nr + ',' + nc;
+      if (inb(nr, nc) && !seen.has(k) && !blockedWith(wls, r, c, nr, nc) && !(nr === opp[0] && nc === opp[1])) {
+        seen.add(k); q.push([nr, nc]);
+      }
+    });
+  }
+  return false;
+}
+
+/* ---------------- wall placement validation ---------------- */
+function wallFits(r, c, o) {
+  // bounds: wall of len 2 starting at junction; must stay on board
+  if (o === 'h') { if (r < 0 || r >= H || c < 0 || c >= W - 1) return false; }
+  else { if (c < 0 || c >= W || r < 0 || r >= H - 1) return false; }
+  // overlap: identical junction and orientation
+  if (wallExists(r, c, o)) return false;
+  return true;
+}
+function wallLegal(r, c, o, p = turn) {
+  if (wallCounts[p] <= 0) return false;
+  if (!wallFits(r, c, o)) return false;
+  const wls = walls.concat([{r, c, o}]);
+  if (!hasPath(P1, wls) || !hasPath(P2, wls)) return false;
+  return true;
+}
+
+/* ---------------- rendering ---------------- */
+let cellEls = {};
+function buildBoard() {
+  boardEl.querySelectorAll('.cell').forEach(e => e.remove());
+  cellEls = {};
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+    const d = document.createElement('div');
+    d.className = 'cell' + (r === 0 ? ' goalM' : '') + (r === H - 1 ? ' goalC' : '');
+    d.style.setProperty('--gr', r + 1);
+    d.style.setProperty('--gc', c + 1);
+    d.dataset.r = r; d.dataset.c = c;
+    d.addEventListener('click', () => onCell(r, c));
+    d.addEventListener('pointerenter', e => { if (armedWall() && e.pointerType === 'mouse') previewWall(r, c); });
+    boardEl.appendChild(d);
+    cellEls[r + ',' + c] = d;
+  }
+}
+function armedWall() {
+  if (gameOver) return null;
+  if (mode === 'online' && turn !== mySide) return null;
+  if (wallCounts[turn] <= 0) return null;
+  return selectedWall;
+}
+function renderWalls() {
+  wallLayer.innerHTML = '';
+  walls.forEach(w => {
+    const e = document.createElement('div');
+    e.className = 'wall ' + (w.o === 'v' ? 'v ' : '') + (wallOwnerColor[w.r + ',' + w.c + ',' + w.o] === 2 ? 'own2' : 'own1');
+    const cw = boardEl.clientWidth / W, ch = boardEl.clientHeight / H;
+    const thick = Math.max(4, cw * 0.16);
+    if (w.o === 'h') {
+      e.style.left = (w.c * cw) + 'px';
+      e.style.top = ((w.r + 1) * ch - thick / 2) + 'px';
+      e.style.width = (cw * 2) + 'px';
+      e.style.height = thick + 'px';
+    } else {
+      e.style.left = ((w.c + 1) * cw - thick / 2) + 'px';
+      e.style.top = (w.r * ch) + 'px';
+      e.style.width = thick + 'px';
+      e.style.height = (ch * 2) + 'px';
+    }
+    wallLayer.appendChild(e);
+  });
+}
+function renderPawns() {
+  boardEl.querySelectorAll('.pawn').forEach(e => e.remove());
+  [1, 2].forEach(p => {
+    const [r, c] = pawns[p];
+    const e = document.createElement('div');
+    e.className = 'pawn p' + p + ((turn === p && !gameOver && (mode !== 'online' || mySide === p)) ? ' me' : '');
+    e.textContent = p === 1 ? '1' : '2';
+    e.style.gridArea = (r + 1) + '/' + (c + 1);
+    boardEl.appendChild(e);
+  });
+}
+function renderCells() {
+  const my = mode === 'online' ? mySide : turn;
+  for (const k in cellEls) {
+    const [r, c] = k.split(',').map(Number);
+    const el = cellEls[k];
+    const lm = legalMoves.find(m => m.r === r && m.c === c);
+    el.classList.toggle('canMove', !!lm && turn === my && !gameOver);
+  }
+}
+function renderPanels() {
+  $('pn1').textContent = playerNames[1];
+  $('pn2').textContent = playerNames[2];
+  $('card1').classList.toggle('active', turn === P1 && !gameOver);
+  $('card2').classList.toggle('active', turn === P2 && !gameOver);
+  [['wd1', 1], ['wd2', 2]].forEach(([id, p]) => {
+    const el = $(id); el.innerHTML = '';
+    for (let i = 0; i < MAX_WALLS; i++) {
+      const d = document.createElement('span');
+      d.className = 'wdot';
+      if (i < wallCounts[p]) d.style.background = p === 1 ? 'var(--cyan)' : 'var(--magenta)';
+      if (i < wallCounts[p]) d.style.boxShadow = '0 0 6px ' + (p === 1 ? 'var(--cyan)' : 'var(--magenta)');
+      el.appendChild(d);
+    }
+    $('wcHc').textContent = wallCounts[turn] + ' LEFT';
+    $('wcVc').textContent = wallCounts[turn] + ' LEFT';
+  });
+  $('wcH').classList.toggle('empty', wallCounts[turn] <= 0);
+  $('wcV').classList.toggle('empty', wallCounts[turn] <= 0);
+  $('wcH').classList.toggle('sel', selectedWall === 'h');
+  $('wcV').classList.toggle('sel', selectedWall === 'v');
+  const canAct = !gameOver && (mode !== 'online' || turn === mySide);
+  $('wcH').style.pointerEvents = canAct ? 'auto' : 'none';
+  $('wcV').style.pointerEvents = canAct ? 'auto' : 'none';
+}
+function renderTurn() {
+  if (gameOver) {
+    turnBanner.classList.add('over');
+    turnBanner.classList.remove('m');
+    turnBanner.textContent = 'GAME OVER';
+    return;
+  }
+  turnBanner.classList.remove('over');
+  turnBanner.classList.toggle('m', turn === P2);
+  if (mode === 'bot' && turn === P2) turnBanner.textContent = 'BOT THINKING…';
+  else if (mode === 'online') turnBanner.textContent = turn === mySide ? 'YOUR TURN' : 'OPPONENT\u2019S TURN';
+  else turnBanner.textContent = turn === P1 ? playerNames[1] + '\u2019S TURN' : playerNames[2] + '\u2019S TURN';
+}
+function render() { renderWalls(); renderPawns(); renderCells(); renderPanels(); renderTurn(); clearPreview(); }
+
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toastEl.classList.remove('show'), 1800);
+}
+
+/* ---------------- wall preview on hover ---------------- */
+let pvCells = null;
+function previewWall(r, c) {
+  clearPreview();
+  const o = selectedWall; if (!o) return;
+  // forgiving snapping: try intended cell, then neighbors
+  const cands = [[r, c], [r, c - 1], [r - 1, c], [r, c + 1], [r + 1, c]].filter(([rr, cc]) => inb(rr, cc));
+  let spot = null;
+  for (const [rr, cc] of cands) if (wallFits(rr, cc, o)) { spot = [rr, cc]; break; }
+  if (!spot) return;
+  pvCells = spot;
+  const ok = wallLegal(spot[0], spot[1], o);
+  const cw = boardEl.clientWidth / W, ch = boardEl.clientHeight / H;
+  const thick = Math.max(4, cw * 0.16);
+  const e = document.createElement('div');
+  e.className = 'pv';
+  const col = ok ? (turn === P1 ? 'rgba(0,229,255,.55)' : 'rgba(255,43,214,.55)') : 'rgba(255,60,60,.5)';
+  e.style.background = col;
+  e.style.boxShadow = '0 0 12px ' + col;
+  if (o === 'h') {
+    e.style.left = (spot[1] * cw) + 'px';
+    e.style.top = ((spot[0] + 1) * ch - thick / 2) + 'px';
+    e.style.width = (cw * 2) + 'px';
+    e.style.height = thick + 'px';
+  } else {
+    e.style.left = ((spot[1] + 1) * cw - thick / 2) + 'px';
+    e.style.top = (spot[0] * ch) + 'px';
+    e.style.width = thick + 'px';
+    e.style.height = (ch * 2) + 'px';
+  }
+  wallHint.appendChild(e);
+}
+function clearPreview() { wallHint.innerHTML = ''; pvCells = null; }
+
+/* ---------------- actions ---------------- */
+function doMove(p, to) {
+  pawns[p] = [to.r, to.c];
+  sMove();
+  endTurn();
+}
+function doWall(p, r, c, o) {
+  walls.push({r, c, o});
+  wallOwnerColor[r + ',' + c + ',' + o] = p;
+  wallCounts[p]--;
+  selectedWall = null;
+  sWall();
+  endTurn();
+}
+function endTurn() {
+  // win check
+  if (pawns[P1][0] === 0) { finish(P1); return; }
+  if (pawns[P2][0] === H - 1) { finish(P2); return; }
+  turn = other(turn);
+  legalMoves = legalMovesFor(turn);
+  render();
+  syncOnline();
+  maybeBotMove();
+}
+function onCell(r, c) {
+  if (gameOver) return;
+  if (mode === 'online' && turn !== mySide) return;
+  if (mode === 'bot' && turn === P2) return;
+  // wall armed → try place
+  if (selectedWall && wallCounts[turn] > 0) {
+    // forgiving: snap to nearest valid junction around click
+    const cands = [[r, c], [r, c - 1], [r - 1, c], [r, c + 1], [r + 1, c]];
+    for (const [rr, cc] of cands) {
+      if (inb(rr, cc) && wallLegal(rr, cc, selectedWall)) { doWall(turn, rr, cc, selectedWall); return; }
+    }
+    // no valid spot here
+    if (pvCells && wallLegal(pvCells[0], pvCells[1], selectedWall)) { doWall(turn, pvCells[0], pvCells[1], selectedWall); return; }
+    sBad();
+    toast('Can\u2019t place a wall there');
+    selectedWall = null;
+    render();
+    return;
+  }
+  // movement
+  const m = legalMoves.find(mv => mv.r === r && mv.c === c);
+  if (m) { doMove(turn, m); return; }
+  // select own pawn shows moves automatically; nothing else to do
+}
+
+/* ---------------- bot ---------------- */
+function botAction() {
+  const p = P2, opp = P1;
+  const moves = legalMovesFor(p);
+  const myD = distToGoal(p), opD = distToGoal(opp);
+  const diff = botDiff;
+
+  // Evaluate candidate moves
+  const scored = moves.map(m => {
+    const save = pawns[p];
+    pawns[p] = [m.r, m.c];
+    const d = distToGoal(p);
+    pawns[p] = save;
+    let s = 100 - d * 10;
+    if (diff === 'easy') s += Math.random() * 30;
+    return {m, s};
+  });
+  scored.sort((a, b) => b.s - a.s);
+  let bestMove = scored[0];
+
+  // Consider wall placement (medium+ )
+  let bestWall = null, bestWallScore = -Infinity;
+  if (wallCounts[p] > 0 && diff !== 'easy') {
+    const cand = [];
+    const [or, oc] = pawns[opp];
+    for (let r = Math.max(0, or - 2); r <= Math.min(H - 1, or + 2); r++)
+      for (let c = Math.max(0, oc - 2); c <= Math.min(W - 1, oc + 2); c++)
+        for (const o of ['h', 'v']) if (wallLegal(r, c, o, p)) cand.push({r, c, o});
+    for (const w of cand) {
+      const wls = walls.concat([w]);
+      const ndOpp = distToGoal(opp, wls);
+      const ndMe = distToGoal(p, wls);
+      if (!isFinite(ndOpp) || !isFinite(ndMe)) continue;
+      let s = (ndOpp - opD) * 12 - (ndMe - myD) * 14;
+      if (diff === 'medium') s += Math.random() * 14;
+      if (diff === 'hard') s -= 2; // slightly prefers moving
+      if (diff === 'expert') s += (opD - myD >= 0 ? 4 : -4);
+      if (s > bestWallScore) { bestWallScore = s; bestWall = w; }
+    }
+  }
+
+  // Decision
+  const mvScore = 100 - distToGoalAfter(p, bestMove.m) * 10;
+  if (bestWall && bestWallScore > mvScore + (diff === 'expert' ? -2 : diff === 'hard' ? 2 : 6)) {
+    // expert: also make sure wall doesn't help opponent indirectly
+    doWall(p, bestWall.r, bestWall.c, bestWall.o);
+  } else if (bestMove.m) {
+    doMove(p, bestMove.m);
+  } else if (bestWall) {
+    doWall(p, bestWall.r, bestWall.c, bestWall.o);
+  } else {
+    // no moves? shouldn't happen; pass turn
+    turn = other(turn); legalMoves = legalMovesFor(turn); render(); maybeBotMove();
+  }
+}
+function distToGoalAfter(p, m) {
+  const save = pawns[p];
+  pawns[p] = [m.r, m.c];
+  const d = distToGoal(p);
+  pawns[p] = save;
+  return d;
+}
+function maybeBotMove() {
+  if (mode !== 'bot' || gameOver || turn !== P2) return;
+  setTimeout(botAction, 450 + Math.random() * 350);
+}
+
+/* ---------------- game setup / screens ---------------- */
+function newGame() {
+  walls = []; wallOwnerColor = {};
+  wallCounts = {1: MAX_WALLS, 2: MAX_WALLS};
+  pawns = {1: [H - 1, Math.floor(W / 2)], 2: [0, Math.floor(W / 2)]};
+  turn = P1; gameOver = false;
+  selectedWall = null; legalMoves = legalMovesFor(P1);
+  rematchVotes = {1: false, 2: false};
+  $('winModal').classList.remove('open');
+  render();
+  syncOnline();
+  maybeBotMove();
+}
+function finish(w) {
+  gameOver = true;
+  sWin();
+  const wn = mode === 'bot' ? (w === P1 ? (playerNames[1] || 'YOU') : 'BOT') : playerNames[w];
+  $('winTitle').textContent = wn + ' WINS!';
+  $('winLine').textContent = (w === P1 ? 'Cyan' : 'Magenta') + ' reached the opposite edge.';
+  $('winModal').classList.add('open');
+  render();
+  syncOnline();
+}
+function showScreen(which) {
+  $('menu').classList.toggle('hidden', which !== 'menu');
+  $('game').classList.toggle('hidden', which !== 'game');
+}
+function startMode(m, diff) {
+  mode = m;
+  if (m === 'bot') {
+    botDiff = diff || 'medium';
+    playerNames = {1: 'YOU', 2: 'BOT (' + botDiff.toUpperCase() + ')'};
+    modeTag.textContent = 'VS BOT — ' + botDiff.toUpperCase();
+  } else if (m === 'offline') {
+    playerNames = {1: 'CYAN', 2: 'MAGENTA'};
+    modeTag.textContent = 'OFFLINE — 2 PLAYERS';
+  } else {
+    modeTag.textContent = 'ONLINE';
+  }
+  showScreen('game');
+  newGame();
+}
+
+/* ---------------- menu wiring ---------------- */
+$('btnOffline').onclick = () => { closeNet(); startMode('offline'); };
+$('btnBot').onclick = () => { $('botDiff').style.display = 'flex'; };
+$('botDiff').querySelectorAll('button').forEach(b => b.onclick = () => startMode('bot', b.dataset.d));
+$('btnOnline').onclick = openOnline;
+$('closeOnline').onclick = () => $('onlineModal').classList.remove('open');
+$('rulesBtn').onclick = () => $('rulesModal').classList.add('open');
+$('closeRules').onclick = () => $('rulesModal').classList.remove('open');
+$('restartBtn').onclick = () => { if (mode === 'online') { toast('Use REMATCH after the game ends'); return; } newGame(); };
+$('menuBtn').onclick = () => { closeNet(); showScreen('menu'); };
+$('menuFromWin').onclick = () => { closeNet(); $('winModal').classList.remove('open'); showScreen('menu'); };
+$('rematchBtn').onclick = () => {
+  if (mode === 'online') { rematchVotes[mySide] = true; sendOnline(); checkRematch(); }
+  else newGame();
 };
-const opening=pick(story.open);
-const events=story.events.map(e=>fill(e,data));
-const selected=events.slice(0,count);
-return opening+". "+selected.join(" ");
+function checkRematch() {
+  if (mode === 'online' && rematchVotes[1] && rematchVotes[2]) newGame();
 }
-
-/* The same topic is kept for the entire passage.
-   Higher WPM unlocks longer, more detailed passages. */
-function makePassage(){
-let level;
-if(bestWpm<25) level=1;
-else if(bestWpm<45) level=3;
-else if(bestWpm<70) level=5;
-else if(bestWpm<100) level=7;
-else level=9;
-
-const story=pick(stories);
-const count=Math.min(story.events.length,level+Math.floor(Math.random()*2));
-let passage=makeStory(story,count);
-
-/* Add matching extra detail sentences for very fast typers. */
-if(bestWpm>=70){
-passage+=" "+pick(extraDetails);
+$('rotateBtn').onclick = rotateWall;
+function rotateWall() {
+  selectedWall = selectedWall === 'h' ? 'v' : 'h';
+  renderPanels();
 }
-if(bestWpm>=100){
-passage+=" "+pick(extraDetails);
-}
-$("topicLabel").textContent="STORY: "+story.topic;
-return passage;
-}
-
-function displayBest(){ $("bestWpm").textContent=bestWpm }
-
-function renderPassage(typed=""){
-$("passage").innerHTML="";
-for(let i=0;i<target.length;i++){
-const span=document.createElement("span");
-span.textContent=target[i];
-if(i<typed.length) span.className=typed[i]===target[i]?"correct":"incorrect";
-else if(i===typed.length&&!finished) span.className="current";
-$("passage").appendChild(span);
-}
-}
-
-function elapsed(){return startTime?Math.max(.1,(Date.now()-startTime)/1000):0}
-
-function updateStats(){
-if(!startTime)return {wpm:0,seconds:0};
-const typed=input.value,seconds=elapsed();
-let correct=0;
-for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;
-const wpm=Math.round((correct/5)/(seconds/60));
-const progress=Math.min(100,Math.round(typed.length/target.length*100));
-$("wpm").textContent=wpm;
-$("time").innerHTML=Math.floor(seconds)+"<small>s</small>";
-$("progress").innerHTML=progress+"<small>%</small>";
-$("roadGlow").style.width=progress+"%";
-const width=document.querySelector(".track").clientWidth;
-const position=Math.max(0,(width-car.offsetWidth-42)*progress/100);
-car.style.transform=`translateX(${position}px)`;
-return {wpm,seconds};
-}
-
-function boost(){
-if(finished||!startTime||!boostReady)return;
-boostReady=false;
-car.classList.add("boosting");
-$("boostMessage").classList.add("show");
-clearTimeout(boostTimeout);
-boostTimeout=setTimeout(()=>{
-car.classList.remove("boosting");
-$("boostMessage").classList.remove("show");
-boostReady=true;
-},650);
-}
-
-function finishRace(){
-if(finished)return;
-finished=true;
-const stats=updateStats();
-input.disabled=true;
-car.classList.remove("boosting");
-$("raceStatus").textContent="FINISHED!";
-$("finalWpm").textContent=stats.wpm;
-$("finalTime").textContent=Math.floor(stats.seconds)+"s";
-$("result").style.display="block";
-$("hint").textContent="Press ENTER to start your next race";
-if(stats.wpm>bestWpm){
-bestWpm=stats.wpm;
-localStorage.setItem("nightshiftBestWpm",bestWpm);
-displayBest();
-}
-}
-
-function newRace(){
-target=makePassage();
-startTime=null;
-finished=false;
-boostReady=true;
-clearTimeout(boostTimeout);
-input.disabled=false;
-input.value="";
-input.placeholder="Click here and start typing...";
-input.focus();
-$("result").style.display="none";
-$("wpm").textContent="0";
-$("time").innerHTML="0<small>s</small>";
-$("progress").innerHTML="0<small>%</small>";
-$("raceStatus").textContent="WAITING FOR DRIVER";
-$("hint").textContent="Start typing to begin · Press ENTER for turbo boost";
-$("roadGlow").style.width="0%";
-car.style.transform="translateX(0px)";
-car.classList.remove("boosting");
-$("boostMessage").classList.remove("show");
-$("resetNotice").style.display="none";
-renderPassage();
-}
-
-function resetBest(){
-bestWpm=0;
-localStorage.setItem("nightshiftBestWpm","0");
-displayBest();
-newRace();
-$("resetNotice").style.display="block";
-}
-
-input.addEventListener("input",()=>{
-if(finished)return;
-if(input.value.length>target.length)input.value=input.value.slice(0,target.length);
-if(input.value.length>0&&!startTime){
-startTime=Date.now();
-$("raceStatus").textContent="RACE IN PROGRESS";
-}
-renderPassage(input.value);
-if(input.value.length===target.length)finishRace();
-else updateStats();
+document.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R') rotateWall();
+  if (e.key === 'Escape') { selectedWall = null; renderPanels(); clearPreview(); }
 });
 
-input.addEventListener("keydown",e=>{
-if(e.key==="Enter"){
-e.preventDefault();
-if(finished)newRace();
-else boost();
-}
+/* wall shop: tap-to-arm + drag */
+['wcH', 'wcV'].forEach((id, i) => {
+  const el = $(id), o = i === 0 ? 'h' : 'v';
+  el.addEventListener('click', () => {
+    if (gameOver || (mode === 'online' && turn !== mySide) || wallCounts[turn] <= 0) return;
+    selectedWall = selectedWall === o ? null : o;
+    renderPanels();
+  });
+  // drag start (mouse + touch via pointer events)
+  el.addEventListener('pointerdown', e => {
+    if (gameOver || (mode === 'online' && turn !== mySide) || wallCounts[turn] <= 0) return;
+    selectedWall = o;
+    renderPanels();
+    el.setPointerCapture(e.pointerId);
+    const move = ev => {
+      const b = boardEl.getBoundingClientRect();
+      // find nearest cell under finger/cursor (forgiving: big radius)
+      const x = ev.clientX - b.left, y = ev.clientY - b.top;
+      if (x < 0 || y < 0 || x > b.width || y > b.height) { clearPreview(); return; }
+      const c = Math.min(W - 1, Math.max(0, Math.floor(x / (b.width / W))));
+      const r = Math.min(H - 1, Math.max(0, Math.floor(y / (b.height / H))));
+      previewWall(r, c);
+    };
+    const up = ev => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      const b = boardEl.getBoundingClientRect();
+      const x = ev.clientX - b.left, y = ev.clientY - b.top;
+      const inside = x >= 0 && y >= 0 && x <= b.width && y <= b.height;
+      if (inside && pvCells) {
+        const [rr, cc] = pvCells;
+        if (wallLegal(rr, cc, selectedWall)) doWall(turn, rr, cc, selectedWall);
+        else { sBad(); toast('Invalid wall position'); selectedWall = null; render(); }
+      } else if (!inside) {
+        // kept armed; tap board next
+      }
+      clearPreview();
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  });
 });
 
-document.addEventListener("keydown",e=>{
-if(e.key==="Enter"&&finished&&document.activeElement!==input){
-e.preventDefault();newRace();
+/* ---------------- online (PeerJS — same approach as Arcade/checkers.html) ---------------- */
+function netId(code) { return ONLINE_PREFIX + code.trim().toLowerCase(); }
+function makeCode() {
+  const abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s = ''; for (let i = 0; i < 5; i++) s += abc[Math.floor(Math.random() * abc.length)];
+  return s;
 }
-});
+function openOnline() {
+  $('nameInput').value = localStorage.getItem('quoridor_name') || '';
+  $('netStatus').textContent = '';
+  $('codeBox').classList.remove('show');
+  $('onlineModal').classList.add('open');
+}
+function closeNet() {
+  try { if (conn) conn.close(); if (peer) peer.destroy(); } catch (e) {}
+  conn = null; peer = null; mySide = 0; suppressSend = false;
+}
+function hostGame() {
+  if (typeof Peer === 'undefined') { $('netStatus').textContent = 'Online library failed to load — check your internet connection.'; return; }
+  localStorage.setItem('quoridor_name', $('nameInput').value.trim());
+  closeNet();
+  isHost = true; mySide = P1;
+  const code = makeCode();
+  $('codeVal').textContent = code;
+  $('codeBox').classList.add('show');
+  $('netStatus').textContent = 'Creating room…';
+  peer = new Peer(netId(code));
+  peer.on('open', () => { $('netStatus').textContent = 'Room ready! Share the code. Waiting for opponent…'; });
+  peer.on('connection', c => {
+    if (conn) { c.close(); return; }
+    conn = c; bindConn();
+    $('netStatus').textContent = 'Opponent connected!';
+    playerNames[1] = ($('nameInput').value.trim() || 'HOST').toUpperCase();
+    setTimeout(() => { startMode('online'); sendOnline(); }, 400);
+  });
+  peer.on('error', err => {
+    $('netStatus').textContent = 'Error: ' + (err.type || 'connection failed') + '. Try again.';
+  });
+}
+function joinGame() {
+  if (typeof Peer === 'undefined') { $('netStatus').textContent = 'Online library failed to load — check your internet connection.'; return; }
+  localStorage.setItem('quoridor_name', $('nameInput').value.trim());
+  const code = $('roomInput').value.trim();
+  if (!code) { $('netStatus').textContent = 'Enter a room code first.'; return; }
+  closeNet();
+  isHost = false; mySide = P2;
+  $('netStatus').textContent = 'Joining…';
+  peer = new Peer();
+  peer.on('open', () => {
+    conn = peer.connect(netId(code), {reliable: true});
+    bindConn();
+    setTimeout(() => { if (!conn || !conn.open) $('netStatus').textContent = 'Could not connect. Check the code and try again.'; }, 6000);
+  });
+  peer.on('error', err => {
+    $('netStatus').textContent = err.type === 'peer-unavailable' ? 'Room not found. Check the code.' : 'Error: ' + (err.type || 'failed');
+  });
+}
+$('hostBtn').onclick = hostGame;
+$('joinBtn').onclick = joinGame;
+$('copyBtn').onclick = () => {
+  const t = $('codeVal').textContent;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+    () => toast('Code copied!'),
+    () => { const i = document.createElement('input'); i.value = t; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); toast('Code copied!'); }
+  );
+};
+function bindConn() {
+  conn.on('open', () => {
+    if (!isHost) {
+      $('netStatus').textContent = 'Connected! Starting game…';
+      startMode('online');
+      sendOnline(); // introduce our name
+    }
+  });
+  conn.on('data', onNetData);
+  conn.on('close', () => {
+    conn = null;
+    if (mode === 'online') { toast('Opponent disconnected'); turnBanner.textContent = 'OPPONENT LEFT'; }
+  });
+  conn.on('error', () => {});
+}
+function sendOnline() {
+  if (!conn || !conn.open || suppressSend) return;
+  conn.send({
+    t: 'state',
+    walls: walls.map(w => ({...w})),
+    own: {...wallOwnerColor},
+    pawns: {...pawns},
+    wc: {...wallCounts},
+    turn, gameOver,
+    names: {...playerNames},
+    votes: {...rematchVotes}
+  });
+}
+function syncOnline() { if (mode === 'online') sendOnline(); }
+function onNetData(d) {
+  if (!d || d.t !== 'state') return;
+  suppressSend = true;
+  walls = d.walls; wallOwnerColor = d.own || {}; pawns = d.pawns;
+  wallCounts = d.wc; turn = d.turn; gameOver = d.gameOver;
+  rematchVotes = d.votes || {1: false, 2: false};
+  if (d.names) {
+    playerNames[mySide === 1 ? 1 : 2] = mySide === 1 ? (d.names[1] || playerNames[1]) : (d.names[2] || playerNames[2]);
+    playerNames[mySide === 1 ? 2 : 1] = mySide === 1 ? (d.names[2] || playerNames[2]) : (d.names[1] || playerNames[1]);
+  }
+  if (gameOver && !$('winModal').classList.contains('open')) {
+    const w = pawns[P1][0] === 0 ? P1 : P2;
+    $('winTitle').textContent = playerNames[w] + ' WINS!';
+    $('winLine').textContent = (w === P1 ? 'Cyan' : 'Magenta') + ' reached the opposite edge.';
+    $('winModal').classList.add('open');
+    sWin();
+  }
+  legalMoves = gameOver ? [] : legalMovesFor(turn);
+  render();
+  suppressSend = false;
+}
 
-$("restartButton").addEventListener("click",newRace);
-$("resetBestButton").addEventListener("click",resetBest);
-setInterval(()=>{if(startTime&&!finished)updateStats()},100);
-displayBest();
-newRace();
-</script>
+/* resize keeps walls aligned */
+window.addEventListener('resize', () => renderWalls());
+
+/* boot */
+buildBoard();
+newGame();
+showScreen('menu');
+  </script>
 </body>
+
 </html>
