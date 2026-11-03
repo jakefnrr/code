@@ -70,6 +70,7 @@ input[type=text]:focus{outline:none;border-color:var(--c1)}
   display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(12,1fr);
   background:linear-gradient(160deg,#0a1122,#060a14);border:1px solid rgba(37,230,255,.28);
   box-shadow:0 0 calc(46px*var(--glow)) rgba(37,230,255,.12),0 30px 60px rgba(0,0,0,.6)}
+#board.mir{transform:rotate(180deg)}
 .tile{border-right:1px solid rgba(120,180,255,.07);border-bottom:1px solid rgba(120,180,255,.07);position:relative}
 .tile:nth-child(9n){border-right:0}
 .tile:nth-child(n+100){border-bottom:0}
@@ -154,6 +155,17 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 .sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#5c6f92;transition:.18s}
 .sw.on{background:rgba(37,230,255,.28);border-color:var(--c1)}
 .sw.on i{left:25px;background:var(--c1);box-shadow:0 0 calc(14px*var(--glow)) var(--c1)}
+.btn.want{border-color:rgba(37,230,255,.9);color:#eafcff;
+  background:linear-gradient(180deg,rgba(37,230,255,.32),rgba(37,230,255,.08));
+  animation:wantglow 1.15s ease-in-out infinite}
+@keyframes wantglow{0%,100%{box-shadow:0 0 0 rgba(37,230,255,0);transform:translateY(0)}
+  50%{box-shadow:0 0 calc(32px*var(--glow)) rgba(37,230,255,.95);transform:translateY(-2px)}}
+.rqnote{display:none;margin:0;padding:9px 12px;border-radius:11px;font-size:12px;letter-spacing:.05em;text-align:center;
+  color:#dffbff;background:rgba(37,230,255,.1);border:1px solid rgba(37,230,255,.55);
+  box-shadow:0 0 calc(18px*var(--glow)) rgba(37,230,255,.25)}
+.rqnote.on{display:block}
+#rqNote{width:min(94vw,50vh)}
+#winAsk{margin:0 0 14px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#131e34;border:1px solid var(--edge);
   color:#dbe9ff;padding:11px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.22s;z-index:80;pointer-events:none;
   max-width:88vw;text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.55)}
@@ -162,13 +174,13 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 
 @media (max-width:880px){
   .stage{grid-template-areas:"board" "p1 p2";grid-template-columns:1fr 1fr}
-  #board,.turnbar,.tool{width:min(94vw,58vh)}
+  #board,.turnbar,.tool,#rqNote{width:min(94vw,58vh)}
   .panel{padding:10px;border-radius:14px}
   .stick{width:12px;height:26px}.rack{gap:4px}
 }
 @media (max-width:430px){
   .tool .btn{flex:1 1 44%;font-size:10px;padding:9px 4px}
-  #board,.turnbar,.tool{width:min(94vw,48vh)}
+  #board,.turnbar,.tool,#rqNote{width:min(94vw,48vh)}
 }
 </style>
 </head>
@@ -241,6 +253,7 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
           <div class="pawn p2" id="pw2"></div>
         </div>
       </div>
+      <div class="rqnote" id="rqNote"></div>
       <div class="tool">
         <button class="btn" id="btnRotate">Rotate <b id="orient">H</b></button>
         <button class="btn" id="btnDropWall">Place wall</button>
@@ -313,6 +326,7 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 <div id="win"><div class="winbox" id="winBox">
   <div class="spark"></div><p class="lbl">Winner</p><h2 id="winName">Player 1</h2>
   <p class="p" id="winWhy" style="margin:0 0 18px"></p>
+  <p class="rqnote" id="winAsk"></p>
   <div class="row"><button class="btn prim" id="btnRematch">Rematch</button><button class="btn ghost" id="btnWinMenu">Main menu</button></div>
 </div></div>
 <div id="toast"></div>
@@ -332,7 +346,7 @@ let sndSeq=0;
 
 function newState(){
   return {pos:{1:{r:ROWS-1,c:4},2:{r:0,c:4}},wh:new Set(),wv:new Set(),own:{},
-    wl:{1:START_WALLS,2:START_WALLS},turn:1,over:false,winner:0,started:false,seq:0,snd:null,diff:'medium'};
+    wl:{1:START_WALLS,2:START_WALLS},turn:1,over:false,winner:0,started:false,seq:0,snd:null,diff:'medium',rq:{1:false,2:false}};
 }
 function blocked(st,a,b){
   if(a.r===b.r&&Math.abs(a.c-b.c)===1){
@@ -409,7 +423,7 @@ function wallValid(st,p,i,j,orient){
 }
 function clone(st){
   return {pos:{1:{...st.pos[1]},2:{...st.pos[2]}},wh:new Set(st.wh),wv:new Set(st.wv),own:{...st.own},
-    wl:{...st.wl},turn:st.turn,over:st.over,winner:st.winner,started:st.started,seq:st.seq,snd:st.snd,diff:st.diff};
+    wl:{...st.wl},turn:st.turn,over:st.over,winner:st.winner,started:st.started,seq:st.seq,snd:st.snd,diff:st.diff,rq:{...st.rq}};
 }
 function stuckLoss(st){
   if(st.over||movesFor(st,st.turn).length)return;
@@ -447,7 +461,7 @@ const DIFF={
   easy:{wall:false,noise:2.4,blunder:.45,wallCost:0},
   medium:{wall:true,noise:.4,minGain:2,cap:8,wallCost:.35},
   hard:{wall:true,noise:.12,minGain:2,cap:14,wallCost:.35,safe:true},
-  expert:{wall:true,noise:.02,minGain:2,cap:20,wallCost:.35,safe:true,desperate:true}
+  expert:{wall:true,noise:.02,minGain:2,cap:20,wallCost:.35,safe:true}
 };
 const cd=d=>isFinite(d)?Math.min(d,400):1e5;
 function evalState(st,p,o){
@@ -501,8 +515,7 @@ function botAction(st,p){
   if(o.blunder&&Math.random()<o.blunder){const m=mv[(Math.random()*mv.length)|0];return{type:'move',r:m.r,c:m.c}}
   const acts=mv.map(m=>({type:'move',r:m.r,c:m.c}));
   const step=firstStep(st,p);
-  const wo=(o.desperate&&cd(bfsDist(st,p,false))>=cd(bfsDist(st,op,false)))?Object.assign({},o,{minGain:1}):o;
-  if(o.wall&&st.wl[p]>0)acts.push(...wallCands(st,p,wo));
+  if(o.wall&&st.wl[p]>0)acts.push(...wallCands(st,p,o));
   let best=null,bv=-Infinity;
   for(const a of acts){
     const s=clone(st);
@@ -612,6 +625,8 @@ function canAct(){
   return true;
 }
 function render(){
+  boardEl.classList.toggle('mir',!!UI.isMirrored);
+  paintRematch();
   buildBoard();
   const g=geom();
   if(g.w===0)return;
@@ -638,8 +653,9 @@ function render(){
   const botName='Bot · '+G.diff.toUpperCase();
   $('nm1').textContent=CFG.n1;
   $('nm2').textContent=UI.mode==='bot'?botName:CFG.n2;
-  $('rl1').textContent='Cyan · bottom · '+(G.over?'over':G.turn===1?'to act':'waiting');
-  $('rl2').textContent='Magenta · top · '+(G.over?'over':G.turn===2?'to act':'waiting');
+  const side1=UI.isMirrored?'top':'bottom',side2=UI.isMirrored?'bottom':'top';
+  $('rl1').textContent='Cyan · '+side1+' · '+(G.over?'over':G.turn===1?'to act':'waiting');
+  $('rl2').textContent='Magenta · '+side2+' · '+(G.over?'over':G.turn===2?'to act':'waiting');
   $('pan1').classList.toggle('act',G.turn===1&&G.started&&!G.over);
   $('pan2').classList.toggle('act',G.turn===2&&G.started&&!G.over);
   $('pan1').classList.toggle('dim',G.turn!==1);
@@ -663,11 +679,36 @@ function paintTurn(){
   const el=$('turn');
   el.className='turnbar '+(G.turn===1?'c1':'c2');
   if(!G.started){el.className='turnbar';el.textContent=UI.mode==='online'?'Waiting for the host to start…':'Press Restart to begin.';return}
-  if(G.over){el.className='turnbar';el.textContent='Game over — '+(G.winner===1?CFG.n1:(UI.mode==='bot'?'bot':CFG.n2))+' reached the far side.';return}
+  if(G.over){
+    el.className='turnbar';
+    const wn=G.winner===1?CFG.n1:(UI.mode==='bot'?'bot':CFG.n2);
+    el.textContent='Game over — '+wn+(G.pos[G.winner].r===goalRow(G.winner)?' reached the far side.':' wins — the other player had no legal reply.');
+    return;
+  }
   if(UI.mode==='bot'){el.textContent=G.turn===1?(UI.armed?'Pick a seam, then tap Place wall':'Your move — step or place a wall'):'Bot is thinking…';return}
   const mine=G.turn===mySide();
   const nm=G.turn===1?CFG.n1:(UI.mode==='online'?'Opponent':CFG.n2);
   el.textContent=mine?(UI.armed?'Pick a seam, then tap Place wall':'Your move — step or place a wall'):nm+' is thinking…';
+}
+function nmOf(p){return p===1?CFG.n1:(UI.mode==='bot'?'Bot':CFG.n2)}
+function paintRematch(){
+  const rq=G.rq||{1:false,2:false},on=UI.mode==='online',me=mySide(),op=other(me);
+  const want=on&&!!rq[op]&&!rq[me],wait=on&&!!rq[me]&&!rq[op],both=on&&!!rq[op]&&!!rq[me];
+  const msg=both?'Both agreed — restarting…'
+    :(want?nmOf(op)+' wants a rematch — press Rematch to accept.'
+    :(wait?'Waiting for '+nmOf(op)+' to accept the rematch…':''));
+  for(const id of['rqNote','winAsk']){const el=$(id);if(el){el.textContent=msg;el.classList.toggle('on',!!msg)}}
+  for(const id of['btnRematch','btnRestart']){const el=$(id);if(el)el.classList.toggle('want',want)}
+}
+function askRematch(side){
+  if(!G.started||!G.rq||G.rq[side])return;
+  G.rq[side]=true;
+  if(G.rq[1]&&G.rq[2]){startMatch();return}
+  snd('wall');
+  if(NET.host)broadcast();
+  paintRematch();
+  toast(side===mySide()?'Rematch requested — waiting for the other player to accept.'
+    :nmOf(side)+' wants a rematch — press Rematch to accept.');
 }
 function buildRack(p){
   const el=$('rack'+p);el.innerHTML='';
@@ -697,7 +738,9 @@ function startDrag(e,p){
   window.addEventListener('pointerup',onDragEnd,{once:true});
 }
 function snapTo(x,y){
-  const g=geom(),px=x-g.l,py=y-g.t;
+  const g=geom();
+  let px=x-g.l,py=y-g.t;
+  if(UI.isMirrored){px=g.w-px;py=g.h-py}
   const i=Math.min(COLS-1,Math.max(1,Math.round(px/g.cw)));
   const j=Math.min(ROWS-1,Math.max(1,Math.round(py/g.ch)));
   return {i,j,inside:px>=-g.cw*.5&&px<=g.w+g.cw*.5&&py>=-g.ch*.5&&py<=g.h+g.ch*.5};
@@ -785,7 +828,8 @@ function queueBot(){
 
 /* ================= lifecycle ================= */
 function startMatch(){
-  G=newState();G.diff=chosenDiff;G.started=true;
+  const keepSeq=G.seq||0;
+  G=newState();G.seq=keepSeq+1;G.diff=chosenDiff;G.started=true;
   UI.thinking=false;UI.lastSeq=-1;NET.awaiting=false;
   UI.armed=false;UI.touchPend=null;UI.lastSnap=null;hideGhost();
   UI.isMirrored = UI.mode === 'online' && NET.mySide === 2;
@@ -793,7 +837,7 @@ function startMatch(){
   show('game');
   $('gameNote').textContent=UI.mode==='bot'
     ?'You are cyan at the bottom. Bot plays magenta.'
-    :(UI.mode==='online'?(NET.host?'You are host and play cyan (bottom).':'You are '+(NET.mySide===1?'cyan':'magenta')+' — the host controls the clock.'):'');
+    :(UI.mode==='online'?(NET.host?'You are host and play cyan (bottom).':'You are '+(NET.mySide===1?'cyan (bottom)':'magenta (bottom — board flipped)')+' — the host controls the clock.'):'');
   render();
   if(UI.mode==='online'&&NET.host)broadcast();
 }
@@ -809,8 +853,10 @@ function finishGame(){
   if(UI.mode==='online'&&NET.host)broadcast();
 }
 function rematch(){
-  if(UI.mode==='online'&&!NET.host){sendIntent({type:'rematch'});$('win').classList.remove('on');
-    $('turn').textContent='Waiting for the host to restart…';return}
+  if(UI.mode==='online'){
+    if(!NET.host){if(sendIntent({type:'rematch'})){G.rq[mySide()]=true;paintRematch()}return}
+    askRematch(1);return;
+  }
   startMatch();
 }
 
@@ -887,6 +933,7 @@ function onLinkOpen(){
   }else{
     $('btnStart').disabled=true;
     netNote('Connected. Waiting for the host to start the game.');
+    UI.lastSeq=-1;
     send({t:'hello',name:CFG.n2});
   }
 }
@@ -896,6 +943,7 @@ function onLinkDown(){
   netPill('bad','Disconnected');
   if(UI.screen==='game')toast('Opponent disconnected.');
   if(NET.host){$('btnStart').disabled=true;netNote('The other player left. Their code still works — they can rejoin and you can Start again.');return}
+  netNote('Lost the link to the host — reconnecting…');
   retryDial();
 }
 function retryDial(){
@@ -922,7 +970,7 @@ function sendIntent(a){
 function snapshot(){
   return {t:'state',seq:G.seq,started:G.started,over:G.over,winner:G.winner,turn:G.turn,diff:G.diff,
     p1:{...G.pos[1]},p2:{...G.pos[2]},wh:[...G.wh],wv:[...G.wv],own:{...G.own},wl:{...G.wl},
-    snd:G.snd,names:{1:CFG.n1,2:CFG.n2}};
+    snd:G.snd,rq:{1:!!(G.rq&&G.rq[1]),2:!!(G.rq&&G.rq[2])},names:{1:CFG.n1,2:CFG.n2}};
 }
 function broadcast(){if(NET.host)send(snapshot())}
 function applySnapshot(d){
@@ -932,9 +980,14 @@ function applySnapshot(d){
   G.pos={1:{r:d.p1.r,c:d.p1.c},2:{r:d.p2.r,c:d.p2.c}};
   G.wh=new Set(d.wh);G.wv=new Set(d.wv);G.own=d.own||{};G.wl={1:d.wl[1],2:d.wl[2]};
   G.turn=d.turn;G.over=!!d.over;G.winner=d.winner;G.started=!!d.started;G.diff=d.diff||G.diff;
-  if(d.names){CFG.n2=d.names[2]||CFG.n2}
+  if(d.names){CFG.n1=d.names[1]||CFG.n1;CFG.n2=d.names[2]||CFG.n2}
+  const prevWant=!!(G.rq&&G.rq[other(mySide())]);
+  G.rq={1:!!(d.rq&&d.rq[1]),2:!!(d.rq&&d.rq[2])};
+  if(!prevWant&&G.rq[other(mySide())])toast(nmOf(other(mySide()))+' wants a rematch — press Rematch to accept.');
+  if(!G.over)$('win').classList.remove('on');
   NET.awaiting=false;clearTimeout(NET.awaitT);
-  if(UI.screen!=='game'){UI.mode='online';show('game');$('gameNote').textContent='You are '+(NET.mySide===1?'cyan (bottom).':'magenta (top).')}
+  UI.isMirrored=NET.mySide===2;
+  if(UI.screen!=='game'){UI.mode='online';show('game');$('gameNote').textContent='You are '+(NET.mySide===1?'cyan (bottom).':'magenta (bottom — board flipped).')}
   render();
   if(d.snd&&d.snd.by!==NET.mySide&&!wasOver)snd(d.snd.kind);
   if(G.over&&!wasOver)finishGame();
@@ -950,7 +1003,7 @@ function onData(d){
 function hostIntent(d){
   if(d.type==='rematch'){
     if(!NET.host)return;
-    startMatch();return;
+    askRematch(2);return;
   }
   if(!G.started||G.over){broadcastFix();return}
   if(G.turn!==2){toast('Refused an out-of-turn action.',true);broadcastFix();return}
@@ -989,7 +1042,7 @@ boardEl.addEventListener('click',e=>{
 });
 $('btnRotate').onclick=()=>{
   UI.orient=UI.orient==='h'?'v':'h';
-  $('orient').textContent=UI.orient==='h'?'|':'-';
+  $('orient').textContent=UI.orient==='h'?'H':'V';
   toast('Wall orientation: '+(UI.orient==='h'?'horizontal':'vertical'));
   if(UI.screen==='game'){paintSeams();if(UI.armed)showGhostAt(UI.lastX,UI.lastY,true);else render()}
 };
@@ -1000,13 +1053,15 @@ $('btnDropWall').onclick=()=>{
   UI.touchPend=null;placeWall(s.i,s.j);
 };
 $('btnRestart').onclick=()=>{
-  if(UI.mode==='online'&&!NET.host){sendIntent({type:'rematch'});return}
-  if(UI.mode==='online'&&NET.host&&!G.started){toast('Press Start in the lobby first.',true);show('online');return}
+  if(UI.mode==='online'){
+    if(!G.started){toast('Press Start in the lobby first.',true);show('online');return}
+    rematch();return;
+  }
   startMatch();
 };
 $('btnMenu').onclick=()=>show('menu');
 $('btnRules2').onclick=()=>show('rules');
-$('btnRematch').onclick=()=>{$('win').classList.remove('on');rematch()};
+$('btnRematch').onclick=()=>{if(UI.mode!=='online')$('win').classList.remove('on');rematch()};
 $('btnWinMenu').onclick=()=>{$('win').classList.remove('on');show('menu')};
 $('btnHost').onclick=hostGame;
 $('btnJoin').onclick=()=>{$('joinBox').style.display='block';$('inCode').focus()};
