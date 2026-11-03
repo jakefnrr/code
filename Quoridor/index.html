@@ -446,8 +446,8 @@ function tryAction(st,p,a){
 const DIFF={
   easy:{wall:false,noise:2.4,blunder:.45,wallCost:0},
   medium:{wall:true,noise:.4,minGain:2,cap:8,wallCost:.35},
-  hard:{wall:true,noise:.15,minGain:2,cap:14,wallCost:.35,threat:2},
-  expert:{wall:true,noise:.03,minGain:2,cap:20,wallCost:.35,threat:2.5,oppWalls:true,mobility:true,desperate:true}
+  hard:{wall:true,noise:.12,minGain:2,cap:14,wallCost:.35,safe:true},
+  expert:{wall:true,noise:.02,minGain:2,cap:20,wallCost:.35,safe:true,desperate:true}
 };
 const cd=d=>isFinite(d)?Math.min(d,400):1e5;
 function evalState(st,p,o){
@@ -457,7 +457,6 @@ function evalState(st,p,o){
   let v=win?60+(opD-myD)*.35:-60+(opD-myD)*.1;
   v-=(START_WALLS-st.wl[p])*o.wallCost*4;
   v+=(START_WALLS-st.wl[other(p)])*o.wallCost*2.4;
-  if(o.mobility)v+=movesFor(st,other(p)).length*.25-movesFor(st,p).length*.1;
   return v;
 }
 function wallCands(st,p,o){
@@ -495,21 +494,6 @@ function firstStep(st,p){
   }
   return null;
 }
-function replyMargin(st,p,a,o){
-  const s=clone(st);
-  if(!tryAction(s,p,a).ok)return null;
-  if(s.over)return 9;
-  const op=other(p),reps=movesFor(s,op).map(m=>({type:'move',r:m.r,c:m.c}));
-  if(o.oppWalls&&s.wl[op]>0)reps.push(...wallCands(s,op,Object.assign({},o,{cap:3})));
-  let worst=9;
-  for(const rp of reps){
-    const s2=clone(s);
-    if(!tryAction(s2,op,rp).ok)continue;
-    const m=cd(bfsDist(s2,p,false))-cd(bfsDist(s2,op,false));
-    if(m<worst)worst=m;
-  }
-  return worst;
-}
 function botAction(st,p){
   const o=DIFF[st.diff]||DIFF.medium,op=other(p),mv=movesFor(st,p);
   if(!mv.length)return null;
@@ -523,11 +507,8 @@ function botAction(st,p){
   for(const a of acts){
     const s=clone(st);
     if(!tryAction(s,p,a).ok)continue;
+    if(o.safe&&!s.over&&movesFor(s,op).some(m=>m.r===goalRow(op)))continue;
     let v=evalState(s,p,o);
-    if(o.threat){
-      const rm=replyMargin(st,p,a,o);
-      if(rm!==null)v+=o.threat*Math.max(-2,Math.min(2,rm));
-    }
     v+=Math.random()*o.noise;
     if(a.type==='move'&&step&&a.r===step.r&&a.c===step.c)v+=.6;
     if(v>bv){bv=v;best=a}
