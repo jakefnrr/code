@@ -411,6 +411,10 @@ function clone(st){
   return {pos:{1:{...st.pos[1]},2:{...st.pos[2]}},wh:new Set(st.wh),wv:new Set(st.wv),own:{...st.own},
     wl:{...st.wl},turn:st.turn,over:st.over,winner:st.winner,started:st.started,seq:st.seq,snd:st.snd,diff:st.diff};
 }
+function stuckLoss(st){
+  if(st.over||movesFor(st,st.turn).length)return;
+  st.over=true;st.winner=other(st.turn);st.snd={kind:'win',by:st.winner,id:++sndSeq};
+}
 function tryAction(st,p,a){
   if(st.over)return{ok:false,why:'The game is already over.'};
   if(!st.started)return{ok:false,why:'The game has not started.'};
@@ -422,7 +426,7 @@ function tryAction(st,p,a){
     st.pos[p]={r:a.r,c:a.c};st.seq++;
     st.snd={kind:m.jump?'jump':'move',by:p,id:++sndSeq};
     if(a.r===goalRow(p)){st.over=true;st.winner=p;st.snd.kind='win'}
-    else st.turn=other(p);
+    else{st.turn=other(p);stuckLoss(st)}
     return{ok:true};
   }
   if(a.type==='wall'){
@@ -432,7 +436,7 @@ function tryAction(st,p,a){
     st.own[sk(a.i,a.j)]=p;
     st.wl[p]--;st.seq++;
     st.snd={kind:'wall',by:p,id:++sndSeq};
-    st.turn=other(p);
+    st.turn=other(p);stuckLoss(st);
     return{ok:true};
   }
   return{ok:false,why:'Unknown action.'};
@@ -440,34 +444,39 @@ function tryAction(st,p,a){
 
 /* ================= bot ================= */
 const DIFF={
-  easy:{wall:false,look:0,noise:2.4,blunder:.45,wallCost:0},
-  medium:{wall:true,look:0,noise:.4,minGain:2,cap:8,wallCost:.35},
-  hard:{wall:true,look:1,noise:.2,minGain:2,cap:14,wallCost:.12},
-  expert:{wall:true,look:1,noise:.05,minGain:2,cap:22,wallCost:.05,mobility:true,oppWalls:true}
+  easy:{wall:false,noise:2.4,blunder:.45,wallCost:0},
+  medium:{wall:true,noise:.4,minGain:2,cap:8,wallCost:.35},
+  hard:{wall:true,noise:.15,minGain:2,cap:14,wallCost:.35,threat:2},
+  expert:{wall:true,noise:.03,minGain:2,cap:20,wallCost:.35,threat:2.5,oppWalls:true,mobility:true,desperate:true}
 };
 const cd=d=>isFinite(d)?Math.min(d,400):1e5;
 function evalState(st,p,o){
   if(st.over)return st.winner===p?9e5:-9e5;
   const myD=cd(bfsDist(st,p,false)),opD=cd(bfsDist(st,other(p),false));
-  const lead=opD-myD;
-  let v=lead*3+(lead>0?9:lead<0?-9:0);
+  const win=st.turn===p?myD<=opD:myD<opD;
+  let v=win?60+(opD-myD)*.35:-60+(opD-myD)*.1;
   v-=(START_WALLS-st.wl[p])*o.wallCost*4;
   v+=(START_WALLS-st.wl[other(p)])*o.wallCost*2.4;
-  if(o.mobility)v+=movesFor(st,other(p)).length*1.2-movesFor(st,p).length*.5;
-  if(myD<=1)v+=80;
-  if(opD<=1)v-=80;
+  if(o.mobility)v+=movesFor(st,other(p)).length*.25-movesFor(st,p).length*.1;
   return v;
 }
 function wallCands(st,p,o){
   const op=other(p),base=cd(bfsDist(st,op,false)),mine=cd(bfsDist(st,p,false)),out=[];
-  for(let i=1;i<=COLS-1;i++)for(let j=1;j<=ROWS-1;j++)for(const ori of ['h','v']){
-    if(!wallValid(st,p,i,j,ori).ok)continue;
-    const s=clone(st);
-    (ori==='h'?s.wh:s.wv).add(sk(i,j));
-    const gain=cd(bfsDist(s,op,false))-base-(cd(bfsDist(s,p,false))-mine);
-    if(gain>=o.minGain)out.push({type:'wall',i,j,orient:ori,g:gain});
+  const a=st.pos[1],b=st.pos[2];
+  for(let i=1;i<=COLS-1;i++){
+    if(Math.min(Math.abs(i-a.c),Math.abs(i-b.c))>4)continue;
+    for(let j=1;j<=ROWS-1;j++){
+      if(Math.min(Math.abs(j-a.r),Math.abs(j-b.r))>4)continue;
+      for(const ori of ['h','v']){
+        if(!wallValid(st,p,i,j,ori).ok)continue;
+        const s=clone(st);
+        (ori==='h'?s.wh:s.wv).add(sk(i,j));
+        const gain=cd(bfsDist(s,op,false))-base-(cd(bfsDist(s,p,false))-mine);
+        if(gain>=o.minGain)out.push({type:'wall',i,j,orient:ori,g:gain});
+      }
+    }
   }
-  out.sort((a,b)=>b.g-a.g);
+  out.sort((x,y)=>y.g-x.g);
   return out.slice(0,o.cap);
 }
 function firstStep(st,p){
@@ -486,6 +495,21 @@ function firstStep(st,p){
   }
   return null;
 }
+function replyMargin(st,p,a,o){
+  const s=clone(st);
+  if(!tryAction(s,p,a).ok)return null;
+  if(s.over)return 9;
+  const op=other(p),reps=movesFor(s,op).map(m=>({type:'move',r:m.r,c:m.c}));
+  if(o.oppWalls&&s.wl[op]>0)reps.push(...wallCands(s,op,Object.assign({},o,{cap:3})));
+  let worst=9;
+  for(const rp of reps){
+    const s2=clone(s);
+    if(!tryAction(s2,op,rp).ok)continue;
+    const m=cd(bfsDist(s2,p,false))-cd(bfsDist(s2,op,false));
+    if(m<worst)worst=m;
+  }
+  return worst;
+}
 function botAction(st,p){
   const o=DIFF[st.diff]||DIFF.medium,op=other(p),mv=movesFor(st,p);
   if(!mv.length)return null;
@@ -493,19 +517,17 @@ function botAction(st,p){
   if(o.blunder&&Math.random()<o.blunder){const m=mv[(Math.random()*mv.length)|0];return{type:'move',r:m.r,c:m.c}}
   const acts=mv.map(m=>({type:'move',r:m.r,c:m.c}));
   const step=firstStep(st,p);
-  if(o.wall&&st.wl[p]>0)acts.push(...wallCands(st,p,o));
+  const wo=(o.desperate&&cd(bfsDist(st,p,false))>=cd(bfsDist(st,op,false)))?Object.assign({},o,{minGain:1}):o;
+  if(o.wall&&st.wl[p]>0)acts.push(...wallCands(st,p,wo));
   let best=null,bv=-Infinity;
   for(const a of acts){
     const s=clone(st);
     if(!tryAction(s,p,a).ok)continue;
-    let v;
-    if(o.look>0&&!s.over){
-      const reps=movesFor(s,op).map(m=>({type:'move',r:m.r,c:m.c}));
-      if(o.oppWalls&&s.wl[op]>0)reps.push(...wallCands(s,op,Object.assign({},o,{cap:3,minGain:o.minGain+.5})));
-      let worst=Infinity;
-      for(const rp of reps){const s2=clone(s);if(!tryAction(s2,op,rp).ok)continue;worst=Math.min(worst,evalState(s2,p,o))}
-      v=worst===Infinity?evalState(s,p,o):worst;
-    }else v=evalState(s,p,o);
+    let v=evalState(s,p,o);
+    if(o.threat){
+      const rm=replyMargin(st,p,a,o);
+      if(rm!==null)v+=o.threat*Math.max(-2,Math.min(2,rm));
+    }
     v+=Math.random()*o.noise;
     if(a.type==='move'&&step&&a.r===step.r&&a.c===step.c)v+=.6;
     if(v>bv){bv=v;best=a}
@@ -513,6 +535,7 @@ function botAction(st,p){
   if(!best){const m=mv[0];return{type:'move',r:m.r,c:m.c}}
   return best;
 }
+
 
 /* ================= app state ================= */
 const $=id=>document.getElementById(id);
@@ -522,6 +545,7 @@ let CFG=loadCfg(),chosenDiff='medium';
 const UI={screen:'menu',mode:'menu',armed:false,orient:'h',legal:[],drag:false,lastSnap:null,
   lastX:0,lastY:0,pointerType:'mouse',touchPend:null,blockClick:0,thinking:false,lastSeq:-1};
 const NET={peer:null,conn:null,host:false,mySide:1,code:'',awaiting:false,retryT:null,retries:0,wantJoin:false};
+UI.isMirrored = false;
 
 function loadCfg(){
   let s={};try{s=JSON.parse(localStorage.getItem('q2_settings')||'{}')}catch(e){}
@@ -783,6 +807,7 @@ function startMatch(){
   G=newState();G.diff=chosenDiff;G.started=true;
   UI.thinking=false;UI.lastSeq=-1;NET.awaiting=false;
   UI.armed=false;UI.touchPend=null;UI.lastSnap=null;hideGhost();
+  UI.isMirrored = UI.mode === 'online' && NET.mySide === 2;
   $('win').classList.remove('on');
   show('game');
   $('gameNote').textContent=UI.mode==='bot'
@@ -983,7 +1008,7 @@ boardEl.addEventListener('click',e=>{
 });
 $('btnRotate').onclick=()=>{
   UI.orient=UI.orient==='h'?'v':'h';
-  $('orient').textContent=UI.orient==='h'?'H':'V';
+  $('orient').textContent=UI.orient==='h'?'|':'-';
   toast('Wall orientation: '+(UI.orient==='h'?'horizontal':'vertical'));
   if(UI.screen==='game'){paintSeams();if(UI.armed)showGhostAt(UI.lastX,UI.lastY,true);else render()}
 };
