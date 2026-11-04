@@ -123,6 +123,12 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 /* ---------- modals ---------- */
 .overlay{position:fixed;inset:0;background:rgba(4,7,14,.78);display:none;align-items:center;justify-content:center;padding:16px;z-index:50;backdrop-filter:blur(3px)}
 .overlay.open{display:flex}
+.notif{position:fixed;top:10px;left:50%;transform:translate(-50%,-160%);z-index:120;width:min(92vw,380px);background:rgba(15,23,42,.97);border:1px solid #34d399;border-radius:16px;padding:13px 16px;box-shadow:0 18px 50px rgba(0,0,0,.65);transition:transform .38s cubic-bezier(.2,.9,.3,1.15)}
+.notif.show{transform:translate(-50%,0)}
+.notif .ntitle{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin-bottom:7px}
+.notif .nidot{width:20px;height:20px;border-radius:6px;background:#123226;color:#34d399;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+.notif p{margin:0 0 11px;color:#e2e8f0;font-weight:600;font-size:14.5px}
+.notif .nbtns{display:flex;gap:8px;justify-content:flex-end}
 .modal{width:min(94vw,400px);background:#1e293b;border:1px solid #475569;border-radius:16px;padding:24px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.6);animation:pop .18s ease-out}
 @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 .modal h2{margin:0 0 8px;font-size:26px}
@@ -350,14 +356,12 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
   </div>
 </div>
 
-<div class="overlay" id="drawOverlay">
-  <div class="modal">
-    <h2>½ Draw offer</h2>
-    <p class="res" id="drawWho">Your opponent offers a draw.</p>
-    <div class="btnrow">
-      <button class="btn" id="drawAcceptBtn">Accept</button>
-      <button class="btn secondary" id="drawDeclineBtn">Decline</button>
-    </div>
+<div class="notif" id="drawNotif">
+  <div class="ntitle"><span class="nidot">♞</span> Chess Arena · Draw offer</div>
+  <p id="drawWho">Your opponent offers a draw.</p>
+  <div class="nbtns">
+    <button class="btn secondary small" id="drawDeclineBtn">No</button>
+    <button class="btn small" id="drawAcceptBtn">Yes</button>
   </div>
 </div>
 
@@ -837,7 +841,7 @@ function handleNet(d){
     case 'drawOffer':
       if(S.mode==='online'&&!S.gameOver){
         $('drawWho').textContent=S.oppName+' offers a draw.';
-        $('drawOverlay').classList.add('open');
+        $('drawNotif').classList.add('show');
       }
       break;
     case 'drawAccept':
@@ -885,7 +889,7 @@ function startGame(mode){
   $('chatPanel').classList.toggle('hidden',!online);
   $('gameScreen').classList.toggle('wide',!online);
   $('resignBtn').classList.toggle('hidden',!timed);
-  $('drawBtn').classList.toggle('hidden',!timed);
+  $('drawBtn').classList.toggle('hidden',!online);
   $('restartBtn').classList.toggle('hidden',mode!=='bot');
 
   S.timed=timed;
@@ -1296,6 +1300,7 @@ function showGameOver(title,reason,offline){
 }
 function closeOverlays(){
   document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));
+  $('drawNotif').classList.remove('show');
 }
 
 /* ================================================================
@@ -1328,36 +1333,18 @@ $('resignBtn').onclick=()=>{
   endOnlineGame('lose','You resigned.');
 };
 $('drawBtn').onclick=()=>{
-  if(S.gameOver||S.drawOffered||S.mode==='local')return;
-  if(S.mode==='online'){
-    if(!S.net.connected)return;
-    S.drawOffered=true;
-    setSideStatus('Draw offer sent…');
-    netSend({t:'drawOffer'});
-  }else if(S.mode==='bot'){
-    S.drawOffered=true;
-    setSideStatus('Bot is considering…');
-    setTimeout(()=>{
-      if(S.gameOver||S.mode!=='bot')return;
-      const s=materialFromBotView();
-      const accept=s<=-200?true:Math.abs(s)<200?Math.random()<0.4:false;
-      if(accept){endOnlineGame('draw','Draw by agreement.');}
-      else{setSideStatus('Bot declined the draw.');S.drawOffered=false;}
-    },700);
-  }
+  if(S.mode!=='online'||S.gameOver||S.drawOffered||!S.net.connected)return;
+  S.drawOffered=true;
+  setSideStatus('Draw offer sent…');
+  netSend({t:'drawOffer'});
 };
-function materialFromBotView(){
-  const V={p:100,n:320,b:330,r:500,q:900};let s=0;
-  for(const row of S.game.board())for(const p of row){if(p&&p.type!=='k')s+=p.color==='w'?V[p.type]:-V[p.type];}
-  return S.botColor==='w'?s:-s;
-}
 $('drawAcceptBtn').onclick=()=>{
-  $('drawOverlay').classList.remove('open');
+  $('drawNotif').classList.remove('show');
   netSend({t:'drawAccept'});
   endOnlineGame('draw','Draw by agreement.');
 };
 $('drawDeclineBtn').onclick=()=>{
-  $('drawOverlay').classList.remove('open');
+  $('drawNotif').classList.remove('show');
   netSend({t:'drawDecline'});
 };
 
