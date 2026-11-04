@@ -89,13 +89,14 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 .playerbar.active{border-color:#34d399}
 .playerbar.active .pclock{border-color:#34d399;color:#34d399}
 
-#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(94vw,calc(100vw - 540px),calc(100vh - 165px),780px);aspect-ratio:1;border-radius:8px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.55);border:3px solid #3f3226;user-select:none}
+#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(94vw,calc(100vw - 540px),calc(100vh - 165px),780px);aspect-ratio:1;border-radius:8px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.55);border:3px solid #3f3226;user-select:none;touch-action:none}
 .sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .sq.light{background:#efe6d0}
 .sq.dark{background:#a97e4f}
 .sq.last{background:#cdd16a!important}
 .sq.last.light{background:#e2e57f!important}
 .sq.sel::after{content:'';position:absolute;inset:0;background:rgba(20,85,30,.45)}
+.sq.pre::after{content:'';position:absolute;inset:0;background:rgba(88,68,199,.45)}
 .sq .pc{width:88%;height:88%;position:relative;z-index:2;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4));pointer-events:none}
 .sq .dot{position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(18,40,20,.4);z-index:3;pointer-events:none}
 .sq .ring{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 6px rgba(18,40,20,.4);z-index:3;pointer-events:none}
@@ -609,6 +610,7 @@ const S={
   clockOn:false,
   timed:false,
   pendingPromo:null,
+  preMove:null,
   resignArmed:false,
   resignTimer:null,
   oppName:'Opponent',
@@ -861,7 +863,7 @@ $('hostStartBtn').onclick=()=>{
 ================================================================ */
 function startGame(mode){
   S.mode=mode;S.gameOver=false;S.selected=null;S.legal=[];S.lastMove=null;
-  S.pendingPromo=null;S.botThinking=false;S.drawOffered=false;
+  S.pendingPromo=null;S.botThinking=false;S.drawOffered=false;S.preMove=null;
   S.game=new Chess();
   closeOverlays();
   chatMsgs.innerHTML='';
@@ -955,6 +957,7 @@ function render(){
     if(p)html+=pieceSVG(p.color,p.type);
     if(S.lastMove&&(S.lastMove.from===s||S.lastMove.to===s))sq.classList.add('last');else sq.classList.remove('last');
     sq.classList.toggle('sel',S.selected===s);
+    sq.classList.toggle('pre',!!(S.preMove&&(S.preMove.from===s||S.preMove.to===s)));
     const lm=S.legal.find(m=>m.to===s);
     if(lm)html+=(p||lm.flags.indexOf('e')>=0)?'<span class="ring"></span>':'<span class="dot"></span>';
     if(S.orientation==='w'?rank===1:rank===8)html+='<span class="coord file">'+'abcdefgh'[file]+'</span>';
@@ -978,6 +981,7 @@ function statusLine(){
   let txt;
   if(S.mode==='bot'){
     txt=(turn===S.myColor)?'Your move ('+turnName+')':'Bot is thinking…';
+    if(S.preMove&&turn===S.botColor)txt+=' · pre-move ready';
   }else if(S.mode==='local'){
     txt=turnName+' to move';
   }else{
@@ -999,13 +1003,28 @@ function myTurn(){
   if(S.mode==='online')return turn===S.myColor&&S.net.connected;
   return true;
 }
+function premoveAllowed(){return S.mode==='bot'&&!S.gameOver&&S.game.turn()===S.botColor&&!S.pendingPromo;}
+function myMovesNow(square){
+  const f=S.game.fen().split(' ');f[1]=S.myColor;f[3]='-';
+  try{const t=new Chess(f.join(' '));return t.moves({square:square,verbose:true})||[];}catch(e){return[];}
+}
+function tryPremove(){
+  const pm=S.preMove;S.preMove=null;
+  if(!pm||S.gameOver||S.game.turn()!==S.myColor){render();return;}
+  let ok=false;try{const t=new Chess(S.game.fen());t.move(pm);ok=true;}catch(e){}
+  if(ok)commitMove(pm,true);
+  else{setSideStatus('Pre-move cancelled');render();}
+}
 function clickSquare(square){
-  if(!myTurn())return;
+  if(dragSuppress)return;
+  const canMove=myTurn(),canPre=premoveAllowed();
+  if(!canMove&&!canPre)return;
   const piece=S.game.get(square);
-  if(piece&&piece.color===S.game.turn()){
+  const col=canMove?S.game.turn():S.myColor;
+  if(piece&&piece.color===col){
     if(S.selected===square){S.selected=null;S.legal=[];render();return;}
     S.selected=square;
-    S.legal=S.game.moves({square:square,verbose:true});
+    S.legal=canMove?S.game.moves({square:square,verbose:true}):myMovesNow(square);
     SFX.select();
     render();
     return;
@@ -1013,13 +1032,82 @@ function clickSquare(square){
   if(!S.selected)return;
   const moves=S.legal.filter(m=>m.to===square);
   if(!moves.length){S.selected=null;S.legal=[];render();return;}
-  if(moves.some(m=>m.flags.indexOf('p')>=0)){
-    S.pendingPromo={from:S.selected,to:square};
-    showPromoChoices(S.game.turn());
-    $('promoOverlay').classList.add('open');
-    return;
+  const isPromo=moves.some(m=>m.flags.indexOf('p')>=0);
+  if(canMove){
+    if(isPromo){
+      S.pendingPromo={from:S.selected,to:square};
+      showPromoChoices(S.game.turn());
+      $('promoOverlay').classList.add('open');
+      return;
+    }
+    commitMove({from:S.selected,to:square},true);
+  }else{
+    S.preMove=isPromo?{from:S.selected,to:square,promotion:'q'}:{from:S.selected,to:square};
+    S.selected=null;S.legal=[];
+    render();
   }
-  commitMove({from:S.selected,to:square},true);
+}
+
+/* ---------- drag & drop ---------- */
+let dragCand=null,dragGhost=null,dragSuppress=false;
+boardEl.addEventListener('pointerdown',e=>{
+  if(e.button)return;
+  const sq=e.target.closest('.sq');if(!sq)return;
+  const square=sq.dataset.square;
+  if(!myTurn()&&!premoveAllowed())return;
+  const p=S.game.get(square);
+  const col=myTurn()?S.game.turn():S.myColor;
+  if(!p||p.color!==col)return;
+  dragCand={square,x:e.clientX,y:e.clientY};
+});
+window.addEventListener('pointermove',e=>{
+  if(!dragCand||dragGhost)return;
+  if(Math.abs(e.clientX-dragCand.x)+Math.abs(e.clientY-dragCand.y)<8)return;
+  const square=dragCand.square,canMove=myTurn();
+  S.selected=square;
+  S.legal=canMove?S.game.moves({square:square,verbose:true}):myMovesNow(square);
+  render();
+  const sq=[...boardEl.children].find(el=>el.dataset.square===square);
+  const pc=sq&&sq.querySelector('.pc');
+  if(!pc){dragCand=null;return;}
+  const r=sq.getBoundingClientRect();
+  dragGhost=pc.cloneNode(true);
+  dragGhost.style.cssText='position:fixed;z-index:999;pointer-events:none;width:'+r.width+'px;height:'+r.width+'px;left:'+(e.clientX-r.width/2)+'px;top:'+(e.clientY-r.height/2)+'px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
+  document.body.appendChild(dragGhost);
+  pc.style.visibility='hidden';
+});
+window.addEventListener('pointerup',e=>{
+  if(!dragCand)return;
+  const cand=dragCand;dragCand=null;
+  if(!dragGhost)return;
+  const ghost=dragGhost;dragGhost=null;
+  dragSuppress=true;setTimeout(()=>dragSuppress=false,300);
+  ghost.remove();
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const t=el&&el.closest?el.closest('.sq'):null;
+  const to=t&&t.dataset.square;
+  S.selected=null;S.legal=[];
+  render();
+  if(to&&to!==cand.square)attemptDrop(cand.square,to);
+});
+function attemptDrop(from,to){
+  const canMove=myTurn(),canPre=premoveAllowed();
+  if(!canMove&&!canPre)return;
+  const moves=(canMove?S.game.moves({square:from,verbose:true}):myMovesNow(from)).filter(m=>m.to===to);
+  if(!moves.length)return;
+  const isPromo=moves.some(m=>m.flags.indexOf('p')>=0);
+  if(canMove){
+    if(isPromo){
+      S.pendingPromo={from,to};
+      showPromoChoices(S.game.turn());
+      $('promoOverlay').classList.add('open');
+      return;
+    }
+    commitMove({from,to},true);
+  }else{
+    S.preMove=isPromo?{from,to,promotion:'q'}:{from,to};
+    render();
+  }
 }
 function showPromoChoices(color){
   document.querySelectorAll('#promoChoices button').forEach(btn=>{
@@ -1054,6 +1142,7 @@ function applyMove(mv,byMe){
   render();
   if(checkGameEnd())return true;
   if(S.game.in_check())SFX.check();
+  if(S.preMove&&S.game.turn()===S.myColor)tryPremove();
   if(S.mode==='bot'&&S.game.turn()===S.botColor)botMove();
   return true;
 }
@@ -1062,7 +1151,7 @@ function applyMove(mv,byMe){
    BOT
 ================================================================ */
 function botMove(){
-  if(S.gameOver||S.mode!=='bot'||S.game.turn()!==S.botColor)return;
+  if(S.gameOver||S.mode!=='bot'||S.botThinking||S.game.turn()!==S.botColor)return;
   S.botThinking=true;statusLine();
   askEngine(S.difficulty,mv=>{
     S.botThinking=false;
