@@ -873,14 +873,51 @@ function tone(f,d,type,v,slide){
     o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+d);
   }catch(e){}
 }
+/* ---------- meme samples ---------- */
+/* Each entry is a chain: the next clip starts only when the previous one has
+   actually finished, so a win is wow…rizz and a loss is faaah…taco bell. */
+const SFX={bad:['sounds/error.mp3'],wall:['sounds/vine-boom.mp3'],
+  win:['sounds/wow.mp3','sounds/rizz.mp3'],lose:['sounds/faaah.mp3','sounds/taco-bell.mp3']};
+const sfxTpl={};
+let sfxLive=null,sfxRun=0;
+function sfxAudio(src){
+  let t=sfxTpl[src];
+  if(!t){t=new Audio(src);t.preload='auto';sfxTpl[src]=t}
+  const a=t.cloneNode();
+  a.volume=.55;
+  return a;
+}
+function stopSfx(){
+  sfxRun++;
+  if(sfxLive){try{sfxLive.pause()}catch(e){}sfxLive=null}
+}
+function sfxChain(files,token){
+  if(!files.length||token!==sfxRun)return;
+  const a=sfxAudio(files[0]);
+  sfxLive=a;
+  let done=false;
+  const next=()=>{
+    if(done)return;
+    done=true;
+    if(sfxLive===a)sfxLive=null;
+    sfxChain(files.slice(1),token);
+  };
+  a.addEventListener('ended',next);
+  a.addEventListener('error',next);
+  const pr=a.play();
+  if(pr&&pr.catch)pr.catch(next);
+}
 function snd(kind){
   if(!CFG.sound)return;
+  const files=SFX[kind];
+  if(files){
+    /* A fresh win/lose chain cuts off whatever chain is still running. */
+    if(kind==='win'||kind==='lose')stopSfx();
+    sfxChain(files,sfxRun);
+    return;
+  }
   if(kind==='move')tone(420,.09,'triangle',.05,560);
   else if(kind==='jump')tone(660,.13,'sine',.06,920);
-  else if(kind==='wall'){tone(190,.1,'square',.05,120);tone(320,.07,'triangle',.035)}
-  else if(kind==='bad')tone(150,.16,'sawtooth',.045,95);
-  else if(kind==='win')[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.18,'triangle',.07),i*95));
-  else if(kind==='lose')[392,311,247].forEach((f,i)=>setTimeout(()=>tone(f,.24,'sine',.06),i*130));
 }
 /* ---------- toast ---------- */
 let toastT=null;
@@ -891,7 +928,7 @@ function toast(msg,bad){
 function show(name){
   UI.screen=name;
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='scr-'+name));
-  if(name!=='game')$('win').classList.remove('on');
+  if(name!=='game'){$('win').classList.remove('on');stopSfx()}
   if(name==='game')render();
 }
 
@@ -1024,7 +1061,7 @@ function askRematch(side){
   if(!G.started||!G.rq||G.rq[side])return;
   G.rq[side]=true;
   if(G.rq[1]&&G.rq[2]){startMatch();return}
-  snd('wall');
+  snd('move');
   if(NET.host)broadcast();
   paintRematch();
   toast(side===mySide()?'Rematch requested — waiting for the other player to accept.'
@@ -1117,7 +1154,9 @@ function doAction(p,a){
 }
 function afterAction(){
   if(UI.mode==='online'&&NET.host)broadcast();
-  if(G.snd)snd(G.snd.kind);
+  /* A finished game always stamps G.snd as 'win' for the winner; finishGame
+     picks the chain from each player's own point of view instead. */
+  if(G.snd&&!G.over)snd(G.snd.kind);
   if(G.over){finishGame();return}
   render();
   if(UI.mode==='bot'&&G.turn===2)queueBot();
@@ -1154,6 +1193,7 @@ function startMatch(){
   UI.armed=false;UI.touchPend=null;UI.lastSnap=null;hideGhost();
   UI.isMirrored = UI.mode === 'online' && NET.mySide === 2;
   $('win').classList.remove('on');
+  stopSfx();
   show('game');
   $('gameNote').textContent=UI.mode==='bot'
     ?'You are cyan at the bottom. Bot plays magenta.'
@@ -1309,7 +1349,7 @@ function applySnapshot(d){
   UI.isMirrored=NET.mySide===2;
   if(UI.screen!=='game'){UI.mode='online';show('game');$('gameNote').textContent='You are '+(NET.mySide===1?'cyan (bottom).':'magenta (bottom — board flipped).')}
   render();
-  if(d.snd&&d.snd.by!==NET.mySide&&!wasOver)snd(d.snd.kind);
+  if(d.snd&&d.snd.by!==NET.mySide&&!wasOver&&!d.over)snd(d.snd.kind);
   if(G.over&&!wasOver)finishGame();
 }
 function broadcastFix(){if(NET.host)broadcast()}
@@ -1344,12 +1384,13 @@ boardEl.addEventListener('click',e=>{
   if(UI.armed){
     if(!t)return;
     const s=snapTo(e.clientX,e.clientY);
-    if(!s.inside){toast('That is outside the board.',true);return}
+    if(!s.inside){snd('bad');toast('That is outside the board.',true);return}
     const needConfirm=UI.pointerType==='touch';
     if(needConfirm&&!(UI.touchPend&&UI.touchPend.i===s.i&&UI.touchPend.j===s.j&&UI.touchPend.o===UI.orient)){
       UI.touchPend={i:s.i,j:s.j,o:UI.orient};
       showGhostAt(e.clientX,e.clientY,true);
       const v=wallValid(G,G.turn,s.i,s.j,UI.orient);
+      if(!v.ok)snd('bad');
       toast(v.ok?'Seam selected — tap Place wall or tap here again.':'Blocked: '+v.why,!v.ok);
       return;
     }
@@ -1367,9 +1408,9 @@ $('btnRotate').onclick=()=>{
   if(UI.screen==='game'){paintSeams();if(UI.armed)showGhostAt(UI.lastX,UI.lastY,true);else render()}
 };
 $('btnDropWall').onclick=()=>{
-  if(!UI.armed){toast('Pick up a wall from your rack first.',true);return}
+  if(!UI.armed){snd('bad');toast('Pick up a wall from your rack first.',true);return}
   const s=UI.lastSnap||UI.touchPend;
-  if(!s){toast('Choose a seam first — drag a wall onto the board or tap a seam.',true);return}
+  if(!s){snd('bad');toast('Choose a seam first — drag a wall onto the board or tap a seam.',true);return}
   UI.touchPend=null;placeWall(s.i,s.j);
 };
 $('btnRestart').onclick=()=>{
