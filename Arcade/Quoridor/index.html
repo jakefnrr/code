@@ -181,7 +181,7 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
   #scr-game.on{height:100vh;height:100dvh;min-height:0;justify-content:flex-start;overflow:hidden;
     padding:calc(7px + env(safe-area-inset-top)) 8px calc(7px + env(safe-area-inset-bottom))}
   .stage{flex:1 1 auto;min-height:0;width:100%;align-items:stretch;gap:7px;
-    grid-template-areas:"p1 p2" "board";grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:"p1 p2" "board board";grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     grid-template-rows:auto minmax(0,1fr)}
   .boardbox{flex:1 1 auto;min-height:0;gap:7px}
   .boardzone{flex:1 1 auto}
@@ -204,6 +204,17 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 @media (min-width:561px) and (max-width:880px){
   .tool .btn{flex:1 1 auto;font-size:11px;min-height:42px}
   .stick{width:11px;height:26px}
+}
+/* Landscape phones have width to spare: keep the racks beside the board. */
+@media (max-width:880px) and (orientation:landscape){
+  .stage{grid-template-areas:"p1 board p2";grid-template-columns:minmax(0,150px) minmax(0,1fr) minmax(0,150px);
+    grid-template-rows:minmax(0,1fr);align-items:stretch}
+  .panel{display:flex;flex-wrap:wrap;align-content:flex-start;gap:0 8px}
+  .panel .role{display:none}
+  .panel .wn{width:100%;margin-top:2px}
+  .panel .rack{margin-top:4px}
+  .turnbar{min-height:28px;padding:5px 9px}
+  .tool .btn{min-height:34px;padding:6px 4px}
 }
 </style>
 </head>
@@ -620,8 +631,8 @@ function layoutBoard(){
   if(!zone)return;
   if(!MQCOMPACT.matches){boardEl.style.width='';boardEl.style.height='';return}
   const w=zone.clientWidth,h=zone.clientHeight;
-  if(w<40||h<40)return;
-  const bw=Math.min(w,h*COLS/ROWS);
+  if(w<40)return;
+  const bw=Math.max(140,Math.min(w,h*COLS/ROWS));
   boardEl.style.width=bw+'px';
   boardEl.style.height=(bw*ROWS/COLS)+'px';
 }
