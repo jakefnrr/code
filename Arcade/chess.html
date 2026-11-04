@@ -82,14 +82,15 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 #boardCol{display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center}
 #statusBar{font-size:15px;font-weight:600;color:#cbd5e1;min-height:22px;text-align:center}
 #statusBar.check{color:#f87171}
-.playerbar{display:flex;align-items:center;gap:9px;width:min(94vw,calc(100vw - 540px),calc(100vh - 165px),780px);padding:6px 10px;background:rgba(30,41,59,.72);border:1px solid #334155;border-radius:10px}
+.playerbar{display:flex;align-items:center;gap:9px;width:min(94vw,calc(100vw - 540px),calc(100vh - 160px),800px);padding:6px 10px;background:rgba(30,41,59,.72);border:1px solid #334155;border-radius:10px}
 .playerbar .av{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;background:#0f172a}
 .playerbar .pname{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .playerbar .pclock{font-family:'Courier New',monospace;font-weight:700;font-size:17px;background:#0f172a;padding:4px 10px;border-radius:7px;border:1px solid #334155}
 .playerbar.active{border-color:#34d399}
 .playerbar.active .pclock{border-color:#34d399;color:#34d399}
 
-#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(94vw,calc(100vw - 540px),calc(100vh - 165px),780px);aspect-ratio:1;border-radius:8px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.55);border:3px solid #3f3226;user-select:none;touch-action:none}
+#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(94vw,calc(100vw - 540px),calc(100vh - 160px),800px);aspect-ratio:1;border-radius:8px;overflow:hidden;box-shadow:0 18px 45px rgba(0,0,0,.55);border:3px solid #3f3226;user-select:none;touch-action:none}
+#gameScreen.wide #board,#gameScreen.wide .playerbar{width:min(94vw,calc(100vw - 280px),calc(100vh - 152px),860px)}
 .sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .sq.light{background:#efe6d0}
 .sq.dark{background:#a97e4f}
@@ -140,14 +141,16 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 @media(max-width:900px){
   #gameScreen{flex-direction:column;align-items:center;gap:8px;padding:36px 8px 8px}
   #boardCol{order:1}
-  #sidePanel{order:2;width:min(96vw,640px);flex-direction:row;align-items:stretch;gap:8px;padding-top:0}
-  .clockbox{flex:1;padding:8px}
+  #sidePanel{order:2;width:min(96vw,640px);flex-direction:row;flex-wrap:wrap;align-items:stretch;gap:8px;padding-top:0}
+  .clockbox{flex:1 1 45%;min-width:0;padding:8px}
   .clockbox .time{font-size:24px}
-  #sidePanel .btn{flex:0 0 auto;align-self:stretch}
+  .clockbox .nm{font-size:12px}
+  #sidePanel .btn{flex:1 1 22%;min-width:0;font-size:13px;padding:9px 8px}
   #sideStatus{display:none}
   #chatPanel{order:3;width:min(96vw,640px);max-height:32vh}
   #board{width:min(96vw,calc(100vh - 350px))}
   .playerbar{width:min(96vw,calc(100vh - 350px))}
+  #gameScreen.wide #board,#gameScreen.wide .playerbar{width:min(96vw,calc(100vh - 290px))}
 }
 @media(max-width:560px){
   .diffgrid{grid-template-columns:1fr}
@@ -307,6 +310,7 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 
   <div id="sidePanel">
     <button class="btn secondary small" id="menuBtn">☰ Menu</button>
+    <button class="btn secondary small hidden" id="restartBtn">↻ Restart</button>
     <div class="clockbox hidden" id="oppClockBox"><div class="who">Opponent</div><div class="nm" id="oppClockName">—</div><div class="time" id="oppClock">5:00</div></div>
     <div class="clockbox hidden" id="myClockBox"><div class="who">You</div><div class="nm" id="myClockName">—</div><div class="time" id="myClock">5:00</div></div>
     <button class="btn danger hidden" id="resignBtn">🏳 Resign</button>
@@ -879,8 +883,10 @@ function startGame(mode){
   const online=mode==='online';
   const timed=mode!=='local';
   $('chatPanel').classList.toggle('hidden',!online);
+  $('gameScreen').classList.toggle('wide',!online);
   $('resignBtn').classList.toggle('hidden',!timed);
   $('drawBtn').classList.toggle('hidden',!timed);
+  $('restartBtn').classList.toggle('hidden',mode!=='bot');
 
   S.timed=timed;
   if(timed){
@@ -1295,6 +1301,12 @@ function closeOverlays(){
 /* ================================================================
    RESIGN / DRAW (online)
 ================================================================ */
+$('restartBtn').onclick=()=>{
+  if(S.mode!=='bot')return;
+  if(!S.gameOver&&S.game.history().length>0&&!confirm('Restart this game?'))return;
+  closeOverlays();
+  startGame('bot');
+};
 $('resignBtn').onclick=()=>{
   if(S.gameOver||S.mode==='local'||S.mode==='online'&&!S.net.connected)return;
   if(!S.resignArmed){
