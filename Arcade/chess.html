@@ -444,10 +444,10 @@ function engineWorkerMain(){
     k:[-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20]
   };
   const LEVELS={
-    easy:{depth:2,pvs:false,q:false,time:250,blunderP:0.6,blMin:80,blMax:350},
+    easy:{depth:2,pvs:false,q:false,time:500,blunderP:0.6,blMin:80,blMax:350},
     medium:{depth:3,pvs:false,q:true,time:500,blunderP:0.4,blMin:60,blMax:250},
-    hard:{depth:3,pvs:false,q:true,time:800,blunderP:0.2,blMin:40,blMax:150},
-    expert:{depth:5,pvs:true,q:true,time:1500,qcap:999,blunderP:0.05,blMin:15,blMax:80}
+    hard:{depth:3,pvs:false,q:true,time:500,blunderP:0.2,blMin:40,blMax:150},
+    expert:{depth:5,pvs:true,q:true,time:500,qcap:999,blunderP:0.05,blMin:15,blMax:80}
   };
   function castlingBonus(g){
     const c=g._castling;
