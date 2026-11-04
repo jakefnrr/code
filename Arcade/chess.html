@@ -61,6 +61,8 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 #roomCodeBox{text-align:center;margin-top:14px}
 #roomCode{font-size:38px;letter-spacing:8px;font-weight:800;color:#fbbf24;font-family:'Courier New',monospace}
+.pcount{font-size:15px;font-weight:700;color:#94a3b8;margin-top:8px}
+.pcount.full{color:#34d399}
 .waiting{color:#94a3b8;font-size:14px;margin-top:6px}
 
 /* ---------- game screen ---------- */
@@ -278,6 +280,7 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
         <div id="roomCodeBox" class="hidden">
           <label class="fld">Room code — send this to your friend</label>
           <div id="roomCode"></div>
+          <div id="playerCount" class="pcount">👤 1/2 players</div>
           <div class="waiting" id="hostWait">Waiting for a player to join…</div>
           <button class="btn hidden" id="hostStartBtn" style="margin-top:12px;width:100%">Start Game</button>
         </div>
@@ -720,8 +723,8 @@ function teardownOnline(){
   S.net={peer:null,conn:null,isHost:false,code:'',connected:false};
   $('roomCodeBox').classList.add('hidden');
   $('hostStartBtn').classList.add('hidden');
+  setLobbyCount(1,'Waiting for a player to join…');
   $('hostWait').classList.remove('hidden');
-  $('hostWait').textContent='Waiting for a player to join…';
   $('joinWait').classList.add('hidden');
   $('joinBtn').disabled=false;
   $('createRoomBtn').disabled=false;
@@ -739,7 +742,7 @@ $('createRoomBtn').onclick=()=>{
   peer.on('open',()=>{
     $('roomCodeBox').classList.remove('hidden');
     $('roomCode').textContent=code;
-    $('hostWait').textContent='Waiting for a player to join…';
+    setLobbyCount(1,'Waiting for a player to join…');
     $('hostWait').classList.remove('hidden');
     $('createRoomBtn').disabled=false;
   });
@@ -786,14 +789,17 @@ $('joinBtn').onclick=()=>{
   peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
 };
 
+function setLobbyCount(n,msg){
+  $('playerCount').textContent=(n===2?'👥 2/2 players':'👤 1/2 players');
+  $('playerCount').classList.toggle('full',n===2);
+  $('hostStartBtn').classList.toggle('hidden',n!==2);
+  if(msg)$('hostWait').textContent=msg;
+}
 function setupConn(conn){
   S.net.conn=conn;S.net.connected=true;
   conn.on('open',()=>{
     netSend({t:'hello',name:name()});
-    if(S.net.isHost){
-      $('hostWait').classList.add('hidden');
-      $('hostStartBtn').classList.remove('hidden');
-    }
+    if(S.net.isHost)setLobbyCount(2,'Both players are here — press Start!');
   });
   conn.on('data',handleNet);
   conn.on('close',()=>{
@@ -801,6 +807,8 @@ function setupConn(conn){
     S.net.connected=false;
     if(S.mode==='online'&&!S.gameOver){
       endOnlineGame('win',S.oppName+' disconnected.');
+    }else if(S.net.isHost&&!$('roomCodeBox').classList.contains('hidden')){
+      setLobbyCount(1,'Opponent left — waiting for a player…');
     }
   });
 }

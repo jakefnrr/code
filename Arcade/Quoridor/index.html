@@ -66,6 +66,7 @@ input[type=text]:focus{outline:none;border-color:var(--c1)}
 .stage{display:grid;grid-template-areas:"p1 board p2";grid-template-columns:minmax(140px,186px) auto minmax(140px,186px);
   gap:clamp(10px,2vw,22px);align-items:start;justify-content:center;width:100%}
 .boardbox{grid-area:board;display:flex;flex-direction:column;gap:10px;min-width:0;align-items:center}
+.boardzone{display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
 #board{position:relative;width:min(94vw,50vh);aspect-ratio:9/12;border-radius:16px;touch-action:none;
   display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(12,1fr);
   background:linear-gradient(160deg,#0a1122,#060a14);border:1px solid rgba(37,230,255,.28);
@@ -106,7 +107,7 @@ input[type=text]:focus{outline:none;border-color:var(--c1)}
 .who{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .role{font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-top:2px;min-height:15px}
-.wn{font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.1;margin-top:8px;color:currentColor}
+.wn{display:flex;align-items:baseline;gap:7px;font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.1;margin-top:8px;color:currentColor}
 .wn small{font-size:10.5px;color:var(--dim);letter-spacing:.14em;font-weight:700}
 .rack{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;min-height:34px}
 .stick{width:15px;height:32px;border-radius:5px;background:linear-gradient(180deg,#a8f5ff,var(--c1));
@@ -118,6 +119,7 @@ input[type=text]:focus{outline:none;border-color:var(--c1)}
 .stick.spent{visibility:hidden}
 .tool{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(94vw,50vh)}
 .tool .btn{flex:1 1 auto;width:auto;padding:10px 8px;font-size:10.5px;min-height:44px;letter-spacing:.06em}
+.tool .monly{display:none}
 .turnbar{width:min(94vw,50vh);text-align:center;font-size:12.5px;letter-spacing:.06em;padding:10px 12px;border-radius:12px;
   background:#0a1220;border:1px solid var(--edge);color:var(--dim);min-height:42px;display:flex;align-items:center;justify-content:center}
 .turnbar.c1{color:#bdf5ff;border-color:rgba(37,230,255,.5);box-shadow:0 0 calc(24px*var(--glow)) rgba(37,230,255,.2)}
@@ -172,15 +174,36 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.bad{border-color:rgba(255,84,112,.6);color:#ffd0d8}
 
+#gameNote{width:min(94vw,760px);text-align:center;margin:10px 0 0}
+
+/* Mobile: wall racks above, board in the middle, buttons below, everything on one screen. */
 @media (max-width:880px){
-  .stage{grid-template-areas:"board" "p1 p2";grid-template-columns:1fr 1fr}
-  #board,.turnbar,.tool,#rqNote{width:min(94vw,58vh)}
-  .panel{padding:10px;border-radius:14px}
-  .stick{width:12px;height:26px}.rack{gap:4px}
+  #scr-game.on{height:100vh;height:100dvh;min-height:0;justify-content:flex-start;overflow:hidden;
+    padding:calc(7px + env(safe-area-inset-top)) 8px calc(7px + env(safe-area-inset-bottom))}
+  .stage{flex:1 1 auto;min-height:0;width:100%;align-items:stretch;gap:7px;
+    grid-template-areas:"p1 p2" "board";grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr)}
+  .boardbox{flex:1 1 auto;min-height:0;gap:7px}
+  .boardzone{flex:1 1 auto}
+  .turnbar,.tool,#rqNote,#gameNote{width:100%}
+  #board{width:auto;height:auto}
+  .panel{padding:9px 10px;border-radius:14px}
+  .who{font-size:11px}
+  .role{font-size:9px;min-height:11px;margin-top:1px}
+  .wn{font-size:19px;margin-top:3px}
+  .wn small{font-size:8.5px;letter-spacing:.1em}
+  .rack{min-height:22px;gap:4px;margin-top:5px}
+  .stick{width:9px;height:22px}
+  .turnbar{font-size:11.5px;line-height:1.25;padding:7px 10px;min-height:32px;border-radius:10px}
+  .tool{gap:6px}
+  .tool .monly{display:flex}
+  .tool .btn{flex:1 1 30%;min-width:0;padding:8px 4px;font-size:10px;letter-spacing:.04em;
+    border-radius:11px;min-height:38px;text-transform:none;font-weight:700}
+  #gameNote{font-size:10.5px;line-height:1.3;margin:2px 0 0}
 }
-@media (max-width:430px){
-  .tool .btn{flex:1 1 44%;font-size:10px;padding:9px 4px}
-  #board,.turnbar,.tool,#rqNote{width:min(94vw,48vh)}
+@media (min-width:561px) and (max-width:880px){
+  .tool .btn{flex:1 1 auto;font-size:11px;min-height:42px}
+  .stick{width:11px;height:26px}
 }
 </style>
 </head>
@@ -240,17 +263,19 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
     <aside class="panel" id="pan1">
       <div class="who" id="nm1">Player 1</div>
       <div class="role" id="rl1">Cyan · bottom</div>
-      <div class="wn"><span id="wc1">10</span><br><small>Walls left</small></div>
+      <div class="wn"><span id="wc1">10</span><small>walls left</small></div>
       <div class="rack" id="rack1"></div>
     </aside>
     <div class="boardbox">
       <div class="turnbar" id="turn">—</div>
-      <div id="board">
-        <div id="slotL"></div>
-        <div id="layers">
-          <div id="ghost"></div>
-          <div class="pawn p1" id="pw1"></div>
-          <div class="pawn p2" id="pw2"></div>
+      <div class="boardzone" id="boardzone">
+        <div id="board">
+          <div id="slotL"></div>
+          <div id="layers">
+            <div id="ghost"></div>
+            <div class="pawn p1" id="pw1"></div>
+            <div class="pawn p2" id="pw2"></div>
+          </div>
         </div>
       </div>
       <div class="rqnote" id="rqNote"></div>
@@ -260,16 +285,17 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
         <button class="btn ghost" id="btnRules2">Rules</button>
         <button class="btn ghost" id="btnRestart">Restart</button>
         <button class="btn ghost" id="btnMenu">Menu</button>
+        <button class="btn ghost monly" id="btnSettings2">Settings</button>
       </div>
     </div>
     <aside class="panel b" id="pan2">
       <div class="who" id="nm2">Player 2</div>
       <div class="role" id="rl2">Magenta · top</div>
-      <div class="wn"><span id="wc2">10</span><br><small>Walls left</small></div>
+      <div class="wn"><span id="wc2">10</span><small>walls left</small></div>
       <div class="rack" id="rack2"></div>
     </aside>
   </div>
-  <p class="status" id="gameNote" style="width:min(94vw,760px);text-align:center"></p>
+  <p class="status" id="gameNote"></p>
 </section>
 
 <section class="screen" id="scr-rules">
@@ -588,6 +614,17 @@ function show(name){
 }
 
 /* ================= geometry + render ================= */
+const MQCOMPACT=window.matchMedia('(max-width:880px)');
+function layoutBoard(){
+  const zone=$('boardzone');
+  if(!zone)return;
+  if(!MQCOMPACT.matches){boardEl.style.width='';boardEl.style.height='';return}
+  const w=zone.clientWidth,h=zone.clientHeight;
+  if(w<40||h<40)return;
+  const bw=Math.min(w,h*COLS/ROWS);
+  boardEl.style.width=bw+'px';
+  boardEl.style.height=(bw*ROWS/COLS)+'px';
+}
 function geom(){
   const rc=boardEl.getBoundingClientRect();
   return {w:rc.width,h:rc.height,l:rc.left,t:rc.top,cw:rc.width/COLS,ch:rc.height/ROWS};
@@ -628,6 +665,7 @@ function render(){
   boardEl.classList.toggle('mir',!!UI.isMirrored);
   paintRematch();
   buildBoard();
+  layoutBoard();
   const g=geom();
   if(g.w===0)return;
   slotLEl.querySelectorAll('.wall').forEach(e=>e.remove());
@@ -1060,6 +1098,7 @@ $('btnRestart').onclick=()=>{
   startMatch();
 };
 $('btnMenu').onclick=()=>show('menu');
+$('btnSettings2').onclick=()=>openSettings();
 $('btnRules2').onclick=()=>show('rules');
 $('btnRematch').onclick=()=>{if(UI.mode!=='online')$('win').classList.remove('on');rematch()};
 $('btnWinMenu').onclick=()=>{$('win').classList.remove('on');show('menu')};
@@ -1117,6 +1156,7 @@ document.addEventListener('keydown',e=>{
   if(d&&!UI.armed&&canAct()){e.preventDefault();const me=G.pos[G.turn];tapTile(me.r+d[0],me.c+d[1])}
 });
 window.addEventListener('resize',()=>{if(UI.screen==='game')render()});
+if(MQCOMPACT.addEventListener)MQCOMPACT.addEventListener('change',()=>{if(UI.screen==='game')render()});
 
 /* rules demos */
 function mini(el,map){
