@@ -190,10 +190,10 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
     <div class="card">
       <label class="fld">Difficulty</label>
       <div class="diffgrid" id="diffGrid">
-        <button class="diffcard sel" data-diff="easy"><h3>😊 Easy</h3><p>Decent, relaxed play. Mostly sensible moves, but it drifts and misses things sometimes.</p></button>
-        <button class="diffcard" data-diff="medium"><h3>🙂 Medium</h3><p>Knows what it's doing — develops, trades fairly — but makes real mistakes. Right in the middle.</p></button>
-        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Like a player with 1–4 years of experience. Calculates, punishes blunders, few mistakes.</p></button>
-        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Engine-strength. Deep calculation and near-perfect play. Good luck.</p></button>
+        <button class="diffcard sel" data-diff="easy"><h3>😊 Easy</h3><p>Plays sensible chess, but blunders about 6 out of every 10 moves.</p></button>
+        <button class="diffcard" data-diff="medium"><h3>🙂 Medium</h3><p>Knows the game — develops, trades fairly — but slips about 4 out of 10 moves.</p></button>
+        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Like a player with 1–4 years of experience. Punishes mistakes; only blunders about 2 in 10.</p></button>
+        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Stockfish-style: deep search, near-perfect play — a real slip only about once in 20 moves.</p></button>
       </div>
     </div>
     <div class="card">
@@ -422,10 +422,10 @@ function engineWorkerMain(){
     k:[-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20]
   };
   const LEVELS={
-    easy:{depth:2,noise:150,q:false,time:250},
-    medium:{depth:3,noise:60,q:true,time:500},
-    hard:{depth:3,noise:10,q:true,time:800},
-    expert:{depth:4,noise:0,q:true,time:1200}
+    easy:{depth:2,pvs:false,q:false,time:250,blunderP:0.6,blMin:80,blMax:350},
+    medium:{depth:3,pvs:false,q:true,time:500,blunderP:0.4,blMin:60,blMax:250},
+    hard:{depth:3,pvs:false,q:true,time:800,blunderP:0.2,blMin:40,blMax:150},
+    expert:{depth:5,pvs:true,q:true,time:1500,qcap:999,blunderP:0.05,blMin:15,blMax:80}
   };
   function castlingBonus(g){
     const c=g._castling;
@@ -453,13 +453,13 @@ function engineWorkerMain(){
       return{m:m,s:s};
     }).sort((a,b)=>b.s-a.s).map(x=>x.m);
   }
-  let deadline=0,aborted=false,nodes=0;
+  let deadline=0,aborted=false,nodes=0,qcap=14;
   function quiesce(g,alpha,beta,ply){
     if((++nodes&511)===0&&Date.now()>deadline)aborted=true;
     if(aborted)return 0;
     if(g.in_checkmate())return -90000+ply;
     if(g.game_over())return 0;
-    if(ply>14)return g.turn()==='w'?evaluate(g):-evaluate(g);
+    if(ply>qcap)return g.turn()==='w'?evaluate(g):-evaluate(g);
     const stand=g.turn()==='w'?evaluate(g):-evaluate(g);
     if(stand>=beta)return beta;
     if(stand>alpha)alpha=stand;
@@ -504,7 +504,7 @@ function engineWorkerMain(){
     const g=new Chess(e.data.fen);
     const moves=g.moves({verbose:true});
     if(!moves.length){self.postMessage({id:id,move:null});return;}
-    deadline=Date.now()+cfg.time;nodes=0;
+    deadline=Date.now()+cfg.time;nodes=0;qcap=cfg.qcap||14;
     let scored=orderMoves(g,moves).map(m=>({m:m,s:0}));
     for(let depth=1;depth<=cfg.depth;depth++){
       aborted=false;
@@ -513,7 +513,7 @@ function engineWorkerMain(){
         const m=scored[i].m;
         g.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
         let s,exact=true;
-        if(cfg.noise===0&&i>0&&alpha>-Infinity){
+        if(cfg.pvs&&i>0&&alpha>-Infinity){
           s=-negamax(g,depth-1,-alpha-1,-alpha,1,cfg);
           if(!aborted&&s>alpha)s=-negamax(g,depth-1,-Infinity,Infinity,1,cfg);
           else exact=false;
@@ -532,12 +532,18 @@ function engineWorkerMain(){
       if(Date.now()>deadline)break;
     }
     let pick;
-    if(cfg.noise>0){
-      const noisy=scored.map(x=>({m:x.m,s:x.s+(Math.random()*2-1)*cfg.noise}));
-      noisy.sort((a,b)=>b.s-a.s);
-      pick=noisy[0].m;
+    const best=scored[0].s;
+    const mateLike=best>85000||best<-85000;
+    if(!mateLike&&Math.random()<cfg.blunderP){
+      const lo=best-cfg.blMax,hi=best-cfg.blMin;
+      let band=scored.filter(x=>x.s>=lo&&x.s<=hi);
+      if(!band.length)band=scored.filter(x=>x.s<hi);
+      if(band.length){
+        band.sort((a,b)=>b.s-a.s);
+        const n=Math.max(1,Math.ceil(band.length/2));
+        pick=band[Math.floor(Math.random()*n)].m;
+      }else pick=scored[0].m;
     }else{
-      const best=scored[0].s;
       let tied=scored.filter(x=>x.exact&&x.s>=best);
       if(!tied.length)tied=[scored[0]];
       pick=tied[Math.floor(Math.random()*tied.length)].m;
