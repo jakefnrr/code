@@ -461,10 +461,6 @@ function wallValid(st,p,i,j,orient){
   if(!isFinite(b))return{ok:false,why:'That would seal Player 2 in with no route.'};
   return{ok:true};
 }
-function clone(st){
-  return {pos:{1:{...st.pos[1]},2:{...st.pos[2]}},wh:new Set(st.wh),wv:new Set(st.wv),own:{...st.own},
-    wl:{...st.wl},turn:st.turn,over:st.over,winner:st.winner,started:st.started,seq:st.seq,snd:st.snd,diff:st.diff,rq:{...st.rq}};
-}
 function stuckLoss(st){
   if(st.over||movesFor(st,st.turn).length)return;
   st.over=true;st.winner=other(st.turn);st.snd={kind:'win',by:st.winner,id:++sndSeq};
@@ -497,77 +493,349 @@ function tryAction(st,p,a){
 }
 
 /* ================= bot ================= */
+/* Difficulty changes *how* the bot decides, not how much noise it adds to one
+   formula. easy fumbles and wastes walls on empty seams; medium races correctly
+   and blocks one move deep; hard and expert search a typed-array copy of the
+   board — moves full width, walls only across the route the player who is
+   behind is trying to run. */
 const DIFF={
-  easy:{wall:false,noise:2.4,blunder:.45,wallCost:0},
-  medium:{wall:true,noise:.4,minGain:2,cap:8,wallCost:.35},
-  hard:{wall:true,noise:.12,minGain:2,cap:14,wallCost:.35,safe:true},
-  expert:{wall:true,noise:.02,minGain:2,cap:20,wallCost:.35,safe:true}
+  easy:{eng:'easy',wallTry:.3,random:.32},
+  medium:{eng:'race',need:2,blunder:.12,waste:.16},
+  hard:{eng:'ab',depth:5,wallK:9,ms:260,tt:false},
+  expert:{eng:'ab',depth:16,wallK:20,ms:700,tt:true}
 };
-const cd=d=>isFinite(d)?Math.min(d,400):1e5;
-function evalState(st,p,o){
-  if(st.over)return st.winner===p?9e5:-9e5;
-  const myD=cd(bfsDist(st,p,false)),opD=cd(bfsDist(st,other(p),false));
-  const win=st.turn===p?myD<=opD:myD<opD;
-  let v=win?60+(opD-myD)*.35:-60+(opD-myD)*.1;
-  v-=(START_WALLS-st.wl[p])*o.wallCost*4;
-  v+=(START_WALLS-st.wl[other(p)])*o.wallCost*2.4;
-  return v;
+/* Seam index is i*WSTRIDE+j, so the stride has to cover rows, not columns. */
+const WSTRIDE=ROWS+1,SZ=(COLS+1)*WSTRIDE,BIG=9e8,MATE=1e6;
+/* distGoal returns BIG for a sealed pawn; scored arithmetic needs a ceiling so a
+   sealed route can never outweigh every other term combined. */
+const dcap=d=>d>=BIG?400:d;
+const DDR=[-1,1,0,0],DDC=[0,0,-1,1];
+const _vis=new Int32Array(ROWS*COLS),_par=new Int32Array(ROWS*COLS),_qu=new Int32Array(ROWS*COLS);
+let _stamp=0,_gc=-1;
+const rnd32=()=>Math.random()*4294967296|0;
+const ZH=new Int32Array(SZ),ZV=new Int32Array(SZ),ZP=[null,new Int32Array(ROWS*COLS),new Int32Array(ROWS*COLS)],
+  ZW=[null,new Int32Array(START_WALLS+1),new Int32Array(START_WALLS+1)];
+const ZT=rnd32();
+for(let k=0;k<SZ;k++){ZH[k]=rnd32();ZV[k]=rnd32()}
+for(let p=1;p<=2;p++){for(let k=0;k<ROWS*COLS;k++)ZP[p][k]=rnd32();for(let k=0;k<=START_WALLS;k++)ZW[p][k]=rnd32()}
+
+function mkS(st){
+  const S={r:[0,st.pos[1].r,st.pos[2].r],c:[0,st.pos[1].c,st.pos[2].c],w:[0,st.wl[1],st.wl[2]],
+    h:new Int8Array(SZ),v:new Int8Array(SZ),k:0};
+  for(const key of st.wh){const a=key.split(':');const k=(+a[0])*WSTRIDE+(+a[1]);S.h[k]=1;S.k^=ZH[k]}
+  for(const key of st.wv){const a=key.split(':');const k=(+a[0])*WSTRIDE+(+a[1]);S.v[k]=1;S.k^=ZV[k]}
+  for(let p=1;p<=2;p++)S.k^=ZP[p][S.r[p]*COLS+S.c[p]]^ZW[p][S.w[p]];
+  return S;
 }
-function wallCands(st,p,o){
-  const op=other(p),base=cd(bfsDist(st,op,false)),mine=cd(bfsDist(st,p,false)),out=[];
-  const a=st.pos[1],b=st.pos[2];
-  for(let i=1;i<=COLS-1;i++){
-    if(Math.min(Math.abs(i-a.c),Math.abs(i-b.c))>4)continue;
-    for(let j=1;j<=ROWS-1;j++){
-      if(Math.min(Math.abs(j-a.r),Math.abs(j-b.r))>4)continue;
-      for(const ori of ['h','v']){
-        if(!wallValid(st,p,i,j,ori).ok)continue;
-        const s=clone(st);
-        (ori==='h'?s.wh:s.wv).add(sk(i,j));
-        const gain=cd(bfsDist(s,op,false))-base-(cd(bfsDist(s,p,false))-mine);
-        if(gain>=o.minGain)out.push({type:'wall',i,j,orient:ori,g:gain});
+/* Is the seam between two adjacent tiles clear? Same wall geometry as blocked(). */
+function pass(S,r1,c1,r2,c2){
+  if(r1===r2){const i=Math.min(c1,c2)+1;return !(S.v[i*WSTRIDE+r1]||S.v[i*WSTRIDE+r1+1])}
+  if(c1===c2){const j=Math.min(r1,r2)+1;return !(S.h[c1*WSTRIDE+j]||S.h[(c1+1)*WSTRIDE+j])}
+  return false;
+}
+/* Turns left to reach the goal row, honouring jumps over the idle opponent.
+   passOpp=true ignores the other pawn, which is how the rules test for a sealed player. */
+function distGoal(S,p,passOpp){
+  const goal=goalRow(p),o=other(p),orr=S.r[o],oc=S.c[o],stamp=++_stamp;
+  let head=0,tail=0,lvl=0;
+  const start=S.r[p]*COLS+S.c[p];
+  _vis[start]=stamp;_par[start]=-1;_qu[tail++]=start;
+  while(head<tail){
+    const stop=tail;
+    while(head<stop){
+      const cell=_qu[head++],r=(cell/COLS)|0,c=cell%COLS;
+      if(r===goal){_gc=cell;return lvl}
+      for(let d=0;d<4;d++){
+        const dr=DDR[d],dc=DDC[d],nr=r+dr,nc=c+dc;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
+        if(!pass(S,r,c,nr,nc))continue;
+        if(!passOpp&&nr===orr&&nc===oc){
+          const lr=nr+dr,lc=nc+dc;
+          if(lr>=0&&lr<ROWS&&lc>=0&&lc<COLS&&pass(S,nr,nc,lr,lc)){
+            const k=lr*COLS+lc;
+            if(_vis[k]!==stamp){_vis[k]=stamp;_par[k]=cell;_qu[tail++]=k}
+          }else{
+            for(let s=-1;s<=1;s+=2){
+              const tr=nr+(dc!==0?s:0),tc=nc+(dr!==0?s:0);
+              if(tr<0||tr>=ROWS||tc<0||tc>=COLS)continue;
+              if(!pass(S,nr,nc,tr,tc))continue;
+              const k=tr*COLS+tc;
+              if(_vis[k]!==stamp){_vis[k]=stamp;_par[k]=cell;_qu[tail++]=k}
+            }
+          }
+          continue;
+        }
+        const k=nr*COLS+nc;
+        if(_vis[k]!==stamp){_vis[k]=stamp;_par[k]=cell;_qu[tail++]=k}
       }
     }
+    lvl++;
   }
-  out.sort((x,y)=>y.g-x.g);
-  return out.slice(0,o.cap);
+  _gc=-1;return BIG;
 }
-function firstStep(st,p){
-  const op=st.pos[other(p)],goal=goalRow(p),seen={},q=[[st.pos[p].r,st.pos[p].c,null]];
-  seen[st.pos[p].r+','+st.pos[p].c]=1;
-  while(q.length){
-    const [r,c,first]=q.shift();
-    if(r===goal)return first;
-    for(const [dr,dc] of DIRS){
-      const nr=r+dr,nc=c+dc;
-      if(!inb(nr,nc)||seen[nr+','+nc])continue;
-      if(op.r===nr&&op.c===nc)continue;
-      if(blocked(st,{r,c},{r:nr,c:nc}))continue;
-      seen[nr+','+nc]=1;q.push([nr,nc,first||{r:nr,c:nc}]);
+function addWall(S,i,j,o){const k=i*WSTRIDE+j;if(o){S.v[k]=1;S.k^=ZV[k]}else{S.h[k]=1;S.k^=ZH[k]}}
+function delWall(S,i,j,o){const k=i*WSTRIDE+j;if(o){S.v[k]=0;S.k^=ZV[k]}else{S.h[k]=0;S.k^=ZH[k]}}
+function spend(S,p){S.k^=ZW[p][S.w[p]]^ZW[p][S.w[p]-1];S.w[p]--}
+function refund(S,p){S.k^=ZW[p][S.w[p]]^ZW[p][S.w[p]+1];S.w[p]++}
+function setPawn(S,p,r,c){S.k^=ZP[p][S.r[p]*COLS+S.c[p]]^ZP[p][r*COLS+c];S.r[p]=r;S.c[p]=c}
+/* Structure only: bounds, same seam, crossing, touching a neighbour. */
+function wallFit(S,i,j,o){
+  if(i<1||i>COLS-1||j<1||j>ROWS-1)return false;
+  const k=i*WSTRIDE+j;
+  if(o){if(S.v[k]||S.h[k]||S.v[k-1]||S.v[k+1])return false}
+  else{if(S.h[k]||S.v[k]||S.h[k-WSTRIDE]||S.h[k+WSTRIDE])return false}
+  return true;
+}
+/* wallFit plus the rules' promise that nobody is sealed in. */
+function wallOpen(S,i,j,o){
+  if(!wallFit(S,i,j,o))return false;
+  addWall(S,i,j,o);
+  const a=distGoal(S,1,true),b=distGoal(S,2,true);
+  delWall(S,i,j,o);
+  return a<BIG&&b<BIG;
+}
+const MV=[],WS=[];
+for(let i=0;i<24;i++){MV.push({r:new Int8Array(9),c:new Int8Array(9),k:new Int8Array(9),n:0});
+  WS.push({i:new Int8Array(56),j:new Int8Array(56),o:new Int8Array(56),n:0})}
+function genMoves(S,p,ply){
+  const M=MV[ply<24?ply:23],o=other(p),orr=S.r[o],oc=S.c[o],pr=S.r[p],pc=S.c[p];
+  let n=0;
+  for(let d=0;d<4;d++){
+    const dr=DDR[d],dc=DDC[d],nr=pr+dr,nc=pc+dc;
+    if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
+    if(!pass(S,pr,pc,nr,nc))continue;
+    if(nr===orr&&nc===oc){
+      const lr=nr+dr,lc=nc+dc;
+      if(lr>=0&&lr<ROWS&&lc>=0&&lc<COLS&&pass(S,nr,nc,lr,lc)){M.r[n]=lr;M.c[n]=lc;n++;continue}
+      for(let s=-1;s<=1;s+=2){
+        const tr=nr+(dc!==0?s:0),tc=nc+(dr!==0?s:0);
+        if(tr<0||tr>=ROWS||tc<0||tc>=COLS)continue;
+        if(!pass(S,nr,nc,tr,tc))continue;
+        M.r[n]=tr;M.c[n]=tc;n++;
+      }
+    }else{M.r[n]=nr;M.c[n]=nc;n++}
+  }
+  M.n=n;return M;
+}
+/* Seams that lie across victim's shortest route — the only walls worth a tempo. */
+function pathSeams(S,victim,ply){
+  distGoal(S,victim,false);
+  const W=WS[ply<24?ply:23];let n=0;
+  let a=_gc,b=a>=0?_par[a]:-1;
+  while(a>=0&&b>=0){
+    const ra=(a/COLS)|0,ca=a%COLS,rb=(b/COLS)|0,cb=b%COLS;
+    let i1,i2,j1,j2,o;
+    if(ra===rb){const i=Math.min(ca,cb)+1;i1=i2=i;j1=ra;j2=ra+1;o=1}
+    else{const j=Math.min(ra,rb)+1;i1=ca;i2=ca+1;j1=j2=j;o=0}
+    for(let t=0;t<2;t++){
+      const i=t?i2:i1,j=t?j2:j1;
+      if(i<1||i>COLS-1||j<1||j>ROWS-1)continue;
+      let dup=false;
+      for(let x=0;x<n;x++)if(W.i[x]===i&&W.j[x]===j&&W.o[x]===o){dup=true;break}
+      if(dup)continue;
+      W.i[n]=i;W.j[n]=j;W.o[n]=o;n++;
+    }
+    a=b;b=_par[a];
+  }
+  W.n=n;return W;
+}
+/* Race model: whoever reaches their goal row first wins, so the gap in turns
+   decides the game. Walls in hand are what turns a lost race back on. */
+function raceVal(S,p,dme,dop){
+  if(dme>=BIG)return -MATE;
+  if(dop>=BIG)return MATE;
+  const o=other(p),gap=dop-dme;
+  let v=dme<=dop?700+gap*9-dme*3:-700+gap*11+dop*2;
+  v+=(S.w[p]-S.w[o])*2.5;
+  if(dme>dop)v+=S.w[p]*3;
+  return v;
+}
+let _nodes=0,_dl=0,_stop=false;
+const _tt=new Map();
+function search(S,p,depth,alpha,beta,ply,O){
+  if(((++_nodes)&127)===0&&performance.now()>_dl)_stop=true;
+  if(_stop)return 0;
+  const o=other(p),g=goalRow(p);
+  const dme=distGoal(S,p,false),dop=distGoal(S,o,false);
+  if(depth<=0)return raceVal(S,p,dme,dop);
+  const key=p===1?S.k:S.k^ZT;
+  if(O.tt){
+    const e=_tt.get(key);
+    if(e&&e.d>=depth){
+      if(e.f===0)return e.v;
+      if(e.f===1&&e.v>=beta)return e.v;
+      if(e.f===2&&e.v<=alpha)return e.v;
     }
   }
-  return null;
+  const M=genMoves(S,p,ply);
+  if(!M.n)return -MATE+ply;
+  for(let x=0;x<M.n;x++)if(M.r[x]===g)return MATE-ply;
+  const pr=S.r[p],pc=S.c[p],sgn=g>pr?1:-1,a0=alpha;
+  let best=-BIG;
+  for(let x=0;x<M.n;x++)M.k[x]=M.r[x]===pr+sgn?0:(M.r[x]===pr?1:2);
+  for(let want=0;want<3;want++){
+    for(let x=0;x<M.n;x++){
+      if(M.k[x]!==want)continue;
+      const r=M.r[x],c=M.c[x];
+      setPawn(S,p,r,c);
+      const v=-search(S,o,depth-1,-beta,-alpha,ply+1,O);
+      setPawn(S,p,pr,pc);
+      if(v>best)best=v;
+      if(best>alpha)alpha=best;
+      if(alpha>=beta)break;
+    }
+    if(alpha>=beta)break;
+  }
+  if(S.w[p]>0&&dme>=dop){
+    const W=pathSeams(S,o,ply);
+    let used=0;
+    for(let x=0;x<W.n&&used<O.wallK;x++){
+      const i=W.i[x],j=W.j[x],oi=W.o[x];
+      if(!wallOpen(S,i,j,oi))continue;
+      used++;
+      addWall(S,i,j,oi);spend(S,p);
+      const v=-search(S,o,depth-1,-beta,-alpha,ply+1,O);
+      delWall(S,i,j,oi);refund(S,p);
+      if(v>best)best=v;
+      if(best>alpha)alpha=best;
+      if(alpha>=beta)break;
+    }
+  }
+  if(O.tt&&best>-MATE+64&&best<MATE-64&&_tt.size<300000)
+    _tt.set(key,{d:depth,v:best,f:best<=a0?2:(best>=beta?1:0)});
+  return best;
 }
-function botAction(st,p){
-  const o=DIFF[st.diff]||DIFF.medium,op=other(p),mv=movesFor(st,p);
+function rootSearch(S,p,depth,O){
+  const o=other(p),g=goalRow(p),pr=S.r[p],pc=S.c[p];
+  const M=genMoves(S,p,0);
+  let best=null,bv=-BIG,bt=BIG,alpha=-BIG;
+  /* Equal-score moves are common in a race, so the tie goes to the one that
+     actually closes the gap — that is what stops the bots shuffling. */
+  const better=(v,tie)=>v>bv||(v===bv&&tie<bt);
+  for(let x=0;x<M.n;x++){
+    const r=M.r[x],c=M.c[x];
+    let v,tie;
+    if(r===g){v=MATE;tie=-BIG}
+    else{
+      setPawn(S,p,r,c);
+      v=-search(S,o,depth-1,-BIG,-alpha,1,O);
+      tie=distGoal(S,p,false)-distGoal(S,o,false);
+      setPawn(S,p,pr,pc);
+    }
+    if(better(v,tie)){bv=v;bt=tie;best={type:'move',r,c}}
+    if(bv>alpha)alpha=bv;
+  }
+  if(S.w[p]>0){
+    const W=pathSeams(S,o,0);
+    for(let x=0;x<W.n;x++){
+      const i=W.i[x],j=W.j[x],oi=W.o[x];
+      if(!wallOpen(S,i,j,oi))continue;
+      addWall(S,i,j,oi);spend(S,p);
+      const v=-search(S,o,depth-1,-BIG,-alpha,1,O);
+      const tie=distGoal(S,p,false)-distGoal(S,o,false);
+      delWall(S,i,j,oi);refund(S,p);
+      if(better(v,tie)){bv=v;bt=tie;best={type:'wall',i,j,orient:oi?'v':'h'}}
+      if(bv>alpha)alpha=bv;
+    }
+  }
+  return{action:best,score:bv};
+}
+function abAction(st,p,O){
+  const S=mkS(st);
+  _nodes=0;_stop=false;_dl=performance.now()+O.ms;
+  if(O.tt&&_tt.size>240000)_tt.clear();
+  let keep=null;
+  for(let d=1;d<=O.depth;d++){
+    const r=rootSearch(S,p,d,O);
+    if(_stop||!r.action)break;
+    keep=r;
+    if(r.score>=MATE-64)break;
+  }
+  return keep&&keep.action;
+}
+/* Medium: runs the race properly and blocks with a measured gain, but never
+   looks past the opponent's next reply — and sometimes spends a wall it does
+   not need, which is what a thinking human can punish. */
+function raceAction(st,p,O){
+  const S=mkS(st),o=other(p),g=goalRow(p);
+  const M=genMoves(S,p,0);
+  if(!M.n)return null;
+  for(let x=0;x<M.n;x++)if(M.r[x]===g)return{type:'move',r:M.r[x],c:M.c[x]};
+  const dme=dcap(distGoal(S,p,false)),dop=dcap(distGoal(S,o,false));
+  if(S.w[p]>0&&(dme>=dop||Math.random()<O.waste)){
+    const W=pathSeams(S,o,0);
+    let pick=null,pg=0;
+    for(let x=0;x<W.n;x++){
+      const i=W.i[x],j=W.j[x],oi=W.o[x];
+      if(!wallOpen(S,i,j,oi))continue;
+      addWall(S,i,j,oi);
+      const ndo=dcap(distGoal(S,o,false)),ndm=dcap(distGoal(S,p,false));
+      delWall(S,i,j,oi);
+      const gain=ndo-dop-(ndm-dme);
+      if(gain>pg){pg=gain;pick={type:'wall',i,j,orient:oi?'v':'h'}}
+    }
+    if(pick&&pg>=O.need)return pick;
+  }
+  if(Math.random()<O.blunder){const x=(Math.random()*M.n)|0;return{type:'move',r:M.r[x],c:M.c[x]}}
+  let pick=null,pv=-BIG;
+  const pr=S.r[p],pc=S.c[p],og=goalRow(o);
+  for(let x=0;x<M.n;x++){
+    const r=M.r[x],c=M.c[x];
+    setPawn(S,p,r,c);
+    const ndm=dcap(distGoal(S,p,false)),ndo=dcap(distGoal(S,o,false));
+    const R=genMoves(S,o,3);
+    let fatal=0;
+    for(let y=0;y<R.n;y++)if(R.r[y]===og){fatal=1;break}
+    setPawn(S,p,pr,pc);
+    const v=(fatal?-4000:0)+ndo*5-ndm*12;
+    if(v>pv){pv=v;pick={type:'move',r,c}}
+  }
+  return pick;
+}
+/* Shortest-hop move: the greedy baseline easy leans on, and the fallback whenever
+   a level's planner has nothing to offer. */
+function bestProgress(st,p,mv){
+  if(mv.length===1)return{type:'move',r:mv[0].r,c:mv[0].c};
+  const S=mkS(st),pr=S.r[p],pc=S.c[p];
+  let best=mv[0],bd=BIG;
+  for(const m of mv){
+    setPawn(S,p,m.r,m.c);
+    const d=distGoal(S,p,false);
+    setPawn(S,p,pr,pc);
+    if(d<bd){bd=d;best=m}
+  }
+  return{type:'move',r:best.r,c:best.c};
+}
+/* Easy: takes a win it is handed, otherwise wanders and drops walls on seams far
+   from the opponent — legal, but doing nothing useful. */
+function easyAction(st,p,O){
+  const mv=movesFor(st,p);
   if(!mv.length)return null;
   for(const m of mv)if(m.r===goalRow(p))return{type:'move',r:m.r,c:m.c};
-  if(o.blunder&&Math.random()<o.blunder){const m=mv[(Math.random()*mv.length)|0];return{type:'move',r:m.r,c:m.c}}
-  const acts=mv.map(m=>({type:'move',r:m.r,c:m.c}));
-  const step=firstStep(st,p);
-  if(o.wall&&st.wl[p]>0)acts.push(...wallCands(st,p,o));
-  let best=null,bv=-Infinity;
-  for(const a of acts){
-    const s=clone(st);
-    if(!tryAction(s,p,a).ok)continue;
-    if(o.safe&&!s.over&&movesFor(s,op).some(m=>m.r===goalRow(op)))continue;
-    let v=evalState(s,p,o);
-    v+=Math.random()*o.noise;
-    if(a.type==='move'&&step&&a.r===step.r&&a.c===step.c)v+=.6;
-    if(v>bv){bv=v;best=a}
+  const op=st.pos[other(p)];
+  if(st.wl[p]>0&&Math.random()<O.wallTry){
+    for(let t=0;t<24;t++){
+      const i=1+((Math.random()*(COLS-1))|0),j=1+((Math.random()*(ROWS-1))|0),
+        orient=Math.random()<.5?'h':'v';
+      if(Math.abs(i-op.c)+Math.abs(j-op.r)<4)continue;
+      if(wallValid(st,p,i,j,orient).ok)return{type:'wall',i,j,orient};
+    }
   }
-  if(!best){const m=mv[0];return{type:'move',r:m.r,c:m.c}}
-  return best;
+  if(Math.random()<O.random){const m=mv[(Math.random()*mv.length)|0];return{type:'move',r:m.r,c:m.c}}
+  return bestProgress(st,p,mv);
+}
+function botAction(st,p){
+  const O=DIFF[st.diff]||DIFF.medium;
+  let a=null;
+  try{
+    a=O.eng==='easy'?easyAction(st,p,O):O.eng==='race'?raceAction(st,p,O):abAction(st,p,O);
+  }catch(e){a=null}
+  if(a){
+    if(a.type==='move'&&movesFor(st,p).some(m=>m.r===a.r&&m.c===a.c))return a;
+    if(a.type==='wall'&&st.wl[p]>0&&wallValid(st,p,a.i,a.j,a.orient).ok)return a;
+  }
+  const mv=movesFor(st,p);
+  return mv.length?bestProgress(st,p,mv):null;
 }
 
 
