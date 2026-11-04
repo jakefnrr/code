@@ -651,7 +651,7 @@ function raceVal(S,p,dme,dop){
   return v;
 }
 let _nodes=0,_dl=0,_stop=false;
-const _tt=new Map();
+const _tt=new Map(),TTCAP=140000;
 function search(S,p,depth,alpha,beta,ply,O){
   if(((++_nodes)&127)===0&&performance.now()>_dl)_stop=true;
   if(_stop)return 0;
@@ -701,7 +701,7 @@ function search(S,p,depth,alpha,beta,ply,O){
       if(alpha>=beta)break;
     }
   }
-  if(O.tt&&best>-MATE+64&&best<MATE-64&&_tt.size<300000)
+  if(O.tt&&best>-MATE+64&&best<MATE-64&&_tt.size<TTCAP)
     _tt.set(key,{d:depth,v:best,f:best<=a0?2:(best>=beta?1:0)});
   return best;
 }
@@ -743,7 +743,7 @@ function rootSearch(S,p,depth,O){
 function abAction(st,p,O){
   const S=mkS(st);
   _nodes=0;_stop=false;_dl=performance.now()+O.ms;
-  if(O.tt&&_tt.size>240000)_tt.clear();
+  if(O.tt&&_tt.size>TTCAP)_tt.clear();
   let keep=null;
   for(let d=1;d<=O.depth;d++){
     const r=rootSearch(S,p,d,O);
