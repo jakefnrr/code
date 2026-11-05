@@ -951,6 +951,7 @@ function startGame(mode){
   S.pendingPromo=null;S.botThinking=false;S.drawOffered=false;S.preMove=null;
   S.game=new Chess();
   S.gameSeed=Math.floor(Math.random()*2147483647);
+  S.bookPick={};
   closeOverlays();
   chatMsgs.innerHTML='';
   setSideStatus('');
@@ -1238,9 +1239,47 @@ function applyMove(mv,byMe){
 /* ================================================================
    BOT
 ================================================================ */
+/* Opening book — main grandmaster lines, used for the first moves at every level */
+const BOOK={
+  'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1':['e2e4','d2d4','g1f3','c2c4'],
+  'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1':['e7e5','c7c5','e7e6','c7c6','d7d5'],
+  'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2':['g1f3','f1c4','b1c3','f1b5'],
+  'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2':['d7d6','b8c6','g8f6'],
+  'rnbqkbnr/ppp2ppp/3p4/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3':['d2d4','f1c4','b1c3'],
+  'rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq - 1 2':['g8f6','b7b5','d7d5','b8c6'],
+  'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3':['g8f6','d7d6','f8c5'],
+  'rnbqkbnr/pp3ppp/2pp4/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4':['b1c3','g1f3'],
+  'rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3':['c2c3','b1c3','d2d4'],
+  'r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3':['c2c3','d2d4','b1c3'],
+  'rnbqkbnr/pp1ppppp/8/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR b KQkq - 0 2':['g8f6','d7d5','d7d6'],
+  'rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3':['b1c3','b1d2','e4e5'],
+  'rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3':['e4d5','b1c3','e4e5'],
+  'rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2':['d8d5','g8f6'],
+  'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1':['d7d5','g8f6','e7e6','c7c6'],
+  'rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq c3 0 2':['e7e6','c7c6','d5c4','g8f6'],
+  'rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR b KQkq - 1 3':['g8f6','f8b4','c7c6'],
+  'rnbqkbnr/pp2pppp/2p5/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR b KQkq - 1 3':['g8f6','e7e6'],
+  'rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 3':['e2e3','b1c3','g2g3'],
+  'rnbqkb1r/pppp1ppp/4pn2/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 3':['b1c3','g1f3'],
+  'rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 2 2':['d7d5','e7e6','c7c5','g7g6'],
+  'rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq d6 0 3':['c2c4','f1f4','b1c3'],
+  'rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq c3 0 1':['e7e5','g8f6','c7c5','e7e6'],
+  'rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1':['d7d5','g8f6','c7c5','g7g6']
+};
+S.bookPick={};
+function seedRandLocal(s){let x=(s>>>0)^0x9e3779b9;x=Math.imul(x^x>>>15,0x27d4eb2d);x=Math.imul(x^x>>>13,0x9e3779b9);return ((x^(x>>>16))>>>0)/4294967296;}
+function bookMoveNow(){
+  if(S.game.history().length>=10)return null;
+  const k=S.game.fen();
+  const list=BOOK[k];
+  if(!list)return null;
+  if(!(k in S.bookPick))S.bookPick[k]=Math.floor(seedRandLocal(S.gameSeed+k.length+k.charCodeAt(11)+list.length*31)*list.length);
+  return list[S.bookPick[k]%list.length];
+}
 function botMove(){
   if(S.gameOver||S.mode!=='bot'||S.botThinking||S.game.turn()!==S.botColor)return;
-  S.botThinking=true;statusLine();
+  const bm=bookMoveNow();
+  if(bm){S.botThinking=true;statusLine();setTimeout(()=>{S.botThinking=false;if(S.gameOver||S.mode!=='bot')return;applyMove({from:bm.slice(0,2),to:bm.slice(2,4)},false);},250);return;}
   askEngine(S.difficulty,S.gameSeed,mv=>{
     S.botThinking=false;
     if(S.gameOver||S.mode!=='bot')return;
