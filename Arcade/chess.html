@@ -454,10 +454,10 @@ function engineWorkerMain(){
     k:[-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20]
   };
   const LEVELS={
-    easy:{depth:2,pvs:false,q:false,time:500,blunderP:0.6,blMin:80,blMax:350,openMargin:60},
-    medium:{depth:3,pvs:false,q:true,time:500,blunderP:0.4,blMin:60,blMax:250,openMargin:50},
-    hard:{depth:3,pvs:false,q:true,time:500,blunderP:0.2,blMin:40,blMax:150,openMargin:35},
-    expert:{depth:5,pvs:true,q:true,time:500,qcap:999,blunderP:0.05,blMin:15,blMax:80,openMargin:30}
+    easy:{depth:2,pvs:false,q:false,time:500,blunderP:0.6,blMin:80,blMax:350,openMargin:70,lateMargin:12},
+    medium:{depth:3,pvs:false,q:true,time:500,blunderP:0.4,blMin:60,blMax:250,openMargin:60,lateMargin:12},
+    hard:{depth:3,pvs:false,q:true,time:500,blunderP:0.2,blMin:40,blMax:150,openMargin:50,lateMargin:12},
+    expert:{depth:5,pvs:true,q:true,time:500,qcap:999,blunderP:0.05,blMin:15,blMax:80,openMargin:45,lateMargin:12}
   };
   function seedRand(s){let x=(s>>>0)^0x9e3779b9;x=Math.imul(x^x>>>15,0x27d4eb2d);x=Math.imul(x^x>>>13,0x9e3779b9);return ((x^(x>>>16))>>>0)/4294967296;}
   function gamePlies(fen){const p=fen.split(' ');return (parseInt(p[5],10)-1)*2+(p[1]==='w'?0:2);}
@@ -469,13 +469,16 @@ function engineWorkerMain(){
     return ((f.indexOf('K')>=0||f.indexOf('Q')>=0)?25:0)-((f.indexOf('k')>=0||f.indexOf('q')>=0)?25:0);
   }
   function evaluate(g){
-    const b=g.board();let s=0;
+    const b=g.board();let s=0,qOut=0,nOut=0;
     for(let r=0;r<8;r++)for(let c=0;c<8;c++){
       const p=b[r][c];if(!p)continue;
       const idx=p.color==='w'?r*8+c:(7-r)*8+c;
       s+=(p.color==='w'?1:-1)*(VAL[p.type]+PST[p.type][idx]);
+      const white=p.color==='w';
+      if(p.type==='q'&&!(white?(r===7&&c===3):(r===0&&c===3)))qOut+=white?-12:12;
+      if(p.type==='n'&&(c===0||c===7)&&(white?(r===7||r===6):(r===0||r===1))&&!((white?r===7:r===0)&&(c===1||c===6)))nOut+=white?-15:15;
     }
-    return s+castlingBonus(g);
+    return s+castlingBonus(g)+qOut+nOut;
   }
   function orderMoves(g,moves){
     return moves.map(m=>{
@@ -571,14 +574,18 @@ function engineWorkerMain(){
     const best=scored[0].s;
     const mateLike=best>85000||best<-85000;
     const ply=gamePlies(e.data.fen);
-    const openVar=!mateLike&&ply<=10&&cfg.openMargin;
+    const varM=mateLike?0:(ply<=10?cfg.openMargin:cfg.lateMargin);
     let exactSet=scored.filter(x=>x.exact);
     if(!exactSet.length)exactSet=scored;
-    const sc=x=>x.s+(openVar&&exactSet.indexOf(x)>=0&&x.s>=best-cfg.openMargin?seedRand(seed+ply*911+x.m.from.charCodeAt(0)*83+x.m.to.charCodeAt(0))*Math.min(cfg.openMargin,best-x.s+1):0);
+    const sc=x=>{
+      if(!varM||exactSet.indexOf(x)<0||x.s<best-varM)return x.s;
+      const n=seedRand(seed+ply*911+x.m.from.charCodeAt(0)*83+x.m.to.charCodeAt(0));
+      return x.s+n*(x.s>=best?Math.min(varM,best-x.s+1):14);
+    };
     const rank=[...scored].sort((a,b)=>sc(b)-sc(a));
     const best2=sc(rank[0]);
     const tiedOK=exactSet.filter(x=>x.s>=best);
-    if(!mateLike&&!tiedOK.length&&openVar){
+    if(!mateLike&&!tiedOK.length&&ply<=10&&cfg.openMargin){
       const near=exactSet.filter(x=>x.s>=best-cfg.openMargin);
       if(near.length>1)pick=pickFrom(near,seed+ply*7919+(e.data.fen.length<<3)).m;
     }
@@ -589,7 +596,7 @@ function engineWorkerMain(){
       if(band.length)pick=pickFrom(band.sort((a,b)=>b.s-a.s).slice(0,Math.max(1,Math.ceil(band.length/2))),seed+ply*104729).m;
     }
     if(!pick){
-      let tied=openVar?rank.filter(x=>sc(x)>=best2-8):tiedOK;
+      let tied=varM?rank.filter(x=>sc(x)>=best2-8):tiedOK;
       if(!tied.length)tied=[rank[0]];
       pick=pickFrom(tied,seed+ply*31).m;
     }
