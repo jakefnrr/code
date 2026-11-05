@@ -425,9 +425,10 @@ function noiseBurst(d,v,delay){
     src.start(c.currentTime+(delay||0));
   }catch(e){}
 }
+const boomAudio=new Audio('sounds/vine-boom.mp3');
 const SFX={
   move(){tone(700,.06,'triangle',.09,0,520);noiseBurst(.03,.03);},
-  capture(){noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);tone(500,.06,'triangle',.05,.03);},
+  capture(){try{boomAudio.currentTime=0;boomAudio.volume=.8;boomAudio.play().catch(()=>{noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);});}catch(e){noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);tone(500,.06,'triangle',.05,.03);}},
   castle(){tone(520,.07,'triangle',.08);tone(660,.07,'triangle',.07,.08);},
   check(){tone(880,.09,'square',.05);tone(1175,.12,'square',.045,.09);},
   promote(){[660,880,1109,1319].forEach((f,i)=>tone(f,.1,'triangle',.07,i*.06));},
@@ -984,7 +985,7 @@ function startGame(mode){
     $('oppClockBox').classList.remove('hidden');
     document.querySelectorAll('.pclock').forEach(e=>e.classList.remove('hidden'));
     renderClocks();
-    startClock();
+    S.clockStarted=false;
     if(online){
       netSend({t:'clock',w:Math.round(S.clocks.w),b:Math.round(S.clocks.b)});
       addChatMsg(null,'Game started — '+S.settings.timeMin+' min + '+S.settings.incSec+'s. Good luck!',null,true);
@@ -1224,10 +1225,11 @@ function applyMove(mv,byMe){
   else if(result.flags.indexOf('c')>=0||result.flags.indexOf('e')>=0)SFX.capture();
   else if(result.flags.indexOf('k')>=0||result.flags.indexOf('q')>=0)SFX.castle();
   else SFX.move();
-  if(S.timed&&!S.gameOver){
+  if(S.timed&&!S.gameOver&&S.clockStarted){
     S.clocks[result.color]+=S.settings.incSec*1000;
     if(S.mode==='online'&&byMe)netSend({t:'clock',w:Math.round(S.clocks.w),b:Math.round(S.clocks.b)});
   }
+  if(S.timed&&!S.gameOver&&!S.clockStarted){S.clockStarted=true;startClock();}
   render();
   if(checkGameEnd())return true;
   if(S.game.in_check())SFX.check();
