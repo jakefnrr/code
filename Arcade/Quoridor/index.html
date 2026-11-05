@@ -50,6 +50,7 @@ h1{font-size:clamp(38px,9vw,74px);letter-spacing:.22em;margin:0;font-weight:800;
   font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;transition:.15s;min-height:44px}
 .chip.on{border-color:var(--c1);background:rgba(37,230,255,.16);box-shadow:0 0 calc(20px*var(--glow)) rgba(37,230,255,.3)}
 .chip:hover{border-color:rgba(37,230,255,.5)}
+.chip:disabled{opacity:.4}
 .t{font-size:clamp(15px,4vw,19px);font-weight:800;letter-spacing:.06em;margin:0 0 6px}
 .p{color:var(--dim);font-size:13.5px;margin:0 0 14px}
 label.f{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px}
@@ -233,10 +234,18 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
       <button class="btn pink" data-go="bot">Play against bot</button>
       <div class="row" id="diffRow" style="display:none">
         <button class="chip" data-diff="easy">Easy</button>
-        <button class="chip" data-diff="medium">Medium</button>
+        <button class="chip on" data-diff="medium">Medium</button>
         <button class="chip" data-diff="hard">Hard</button>
         <button class="chip" data-diff="expert">Expert</button>
       </div>
+      <label class="f" id="wallLbl" style="display:none">Walls per player</label>
+      <div class="row" id="wallRow" style="display:none">
+        <button class="chip" data-walls="10">10</button>
+        <button class="chip" data-walls="15">15</button>
+        <button class="chip" data-walls="20">20</button>
+        <button class="chip" data-walls="99">∞</button>
+      </div>
+      <button class="btn prim" id="btnBegin" style="display:none">Start match</button>
       <button class="btn ghost" data-go="rules">How to play</button>
       <button class="btn ghost" data-go="settings">Settings</button>
     </div>
@@ -265,6 +274,15 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
     </div>
     <p class="status"><span class="pill" id="netPill"><i></i><span id="netTxt">Idle</span></span></p>
     <p class="status" id="netNote"></p>
+    <div id="wallsBox">
+      <label class="f" id="wallsWho">Walls per player — you decide</label>
+      <div class="row" id="hostWallRow">
+        <button class="chip" data-walls="10">10</button>
+        <button class="chip" data-walls="15">15</button>
+        <button class="chip" data-walls="20">20</button>
+        <button class="chip" data-walls="99">∞</button>
+      </div>
+    </div>
     <div class="row" style="margin-top:14px">
       <button class="btn prim" id="btnStart" disabled>Start game</button>
       <button class="btn ghost" id="btnLeave">Cancel</button>
@@ -332,7 +350,7 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
       <li>A wall never lets you jump into a space it seals, and you can never land on an occupied tile.</li></ul>
       <div class="mini" id="dm2"></div><p class="p">Cyan at the middle hops over magenta to the glowing tile.</p></div>
     <div class="sect"><h3>Walls</h3><ul>
-      <li>Each player starts with <b>10 walls</b>. A wall is two tiles long and sits in the seams between tiles, never on a tile.</li>
+      <li>Each player starts with <b><span id="rulesWalls">10</span> walls</b>. A wall is two tiles long and sits in the seams between tiles, never on a tile.</li>
       <li>A <b>horizontal</b> wall seals two vertical crossings at once; a <b>vertical</b> wall seals two horizontal crossings.</li>
       <li>Drag a wall from your rack toward the board. It snaps to the nearest seam and previews green when legal, red when not.</li>
       <li>Prefer tapping: tap a wall to pick it up, tap a seam, tap again to commit. <span class="kbd">R</span> rotates, <span class="kbd">Esc</span> returns it.</li>
@@ -375,7 +393,7 @@ ul{padding-left:20px;margin:6px 0 12px;color:#cfe2f7;font-size:14px}li{margin:5p
 <script>
 "use strict";
 /* ================= rules model ================= */
-const COLS=9,ROWS=12,START_WALLS=10;
+const COLS=9,ROWS=12,START_WALLS=10,WALLS_UNLIM=99;
 const DIRS=[[-1,0],[1,0],[0,-1],[0,1]];
 const ONLINE_PREFIX='quoridor2-neon-';
 const other=p=>p===1?2:1;
@@ -384,9 +402,10 @@ const sk=(i,j)=>i+':'+j;
 const goalRow=p=>p===1?0:ROWS-1;
 let sndSeq=0;
 
-function newState(){
-  return {pos:{1:{r:ROWS-1,c:4},2:{r:0,c:4}},wh:new Set(),wv:new Set(),own:{},
-    wl:{1:START_WALLS,2:START_WALLS},turn:1,over:false,winner:0,started:false,seq:0,snd:null,diff:'medium',rq:{1:false,2:false}};
+function newState(wm){
+  const n=wm===undefined?START_WALLS:Math.max(0,Math.min(WALLS_UNLIM,wm|0));
+  return {pos:{1:{r:ROWS-1,c:4},2:{r:0,c:4}},wh:new Set(),wv:new Set(),own:{},wm:n,
+    wl:{1:n,2:n},turn:1,over:false,winner:0,started:false,seq:0,snd:null,diff:'medium',rq:{1:false,2:false}};
 }
 function blocked(st,a,b){
   if(a.r===b.r&&Math.abs(a.c-b.c)===1){
@@ -515,10 +534,10 @@ const _vis=new Int32Array(ROWS*COLS),_par=new Int32Array(ROWS*COLS),_qu=new Int3
 let _stamp=0,_gc=-1;
 const rnd32=()=>Math.random()*4294967296|0;
 const ZH=new Int32Array(SZ),ZV=new Int32Array(SZ),ZP=[null,new Int32Array(ROWS*COLS),new Int32Array(ROWS*COLS)],
-  ZW=[null,new Int32Array(START_WALLS+1),new Int32Array(START_WALLS+1)];
+  ZW=[null,new Int32Array(WALLS_UNLIM+1),new Int32Array(WALLS_UNLIM+1)];
 const ZT=rnd32();
 for(let k=0;k<SZ;k++){ZH[k]=rnd32();ZV[k]=rnd32()}
-for(let p=1;p<=2;p++){for(let k=0;k<ROWS*COLS;k++)ZP[p][k]=rnd32();for(let k=0;k<=START_WALLS;k++)ZW[p][k]=rnd32()}
+for(let p=1;p<=2;p++){for(let k=0;k<ROWS*COLS;k++)ZP[p][k]=rnd32();for(let k=0;k<=WALLS_UNLIM;k++)ZW[p][k]=rnd32()}
 
 function mkS(st){
   const S={r:[0,st.pos[1].r,st.pos[2].r],c:[0,st.pos[1].c,st.pos[2].c],w:[0,st.wl[1],st.wl[2]],
@@ -882,7 +901,7 @@ function botAction(st,p){
 const $=id=>document.getElementById(id);
 const boardEl=$('board'),ghostEl=$('ghost'),slotLEl=$('slotL');
 let G=newState();
-let CFG=loadCfg(),chosenDiff='medium';
+let CFG=loadCfg(),chosenDiff='medium',chosenWalls=START_WALLS,pendingStart=null;
 const UI={screen:'menu',mode:'menu',armed:false,orient:'h',legal:[],drag:false,lastSnap:null,
   lastX:0,lastY:0,pointerType:'mouse',touchPend:null,blockClick:0,thinking:false,lastSeq:-1};
 const NET={peer:null,conn:null,host:false,mySide:1,code:'',awaiting:false,retryT:null,retries:0,wantJoin:false};
@@ -1045,7 +1064,8 @@ function render(){
     t.classList.toggle('jmp',!!(m&&m.jump));
   });
   paintSeams();
-  $('wc1').textContent=G.wl[1];$('wc2').textContent=G.wl[2];
+  const inf=isUnlim(G.wm);
+  $('wc1').textContent=inf?'∞':G.wl[1];$('wc2').textContent=inf?'∞':G.wl[2];
   const botName='Bot · '+G.diff.toUpperCase();
   $('nm1').textContent=CFG.n1;
   $('nm2').textContent=UI.mode==='bot'?botName:CFG.n2;
@@ -1109,7 +1129,9 @@ function askRematch(side){
 function buildRack(p){
   const el=$('rack'+p);el.innerHTML='';
   const usable=(p===G.turn)&&canAct();
-  for(let i=0;i<START_WALLS;i++){
+  /* Unlimited racks still show a full tray — the counter above it is what says ∞. */
+  const slots=isUnlim(G.wm)?START_WALLS:G.wm;
+  for(let i=0;i<slots;i++){
     const b=document.createElement('button');b.type='button';b.className='stick';
     if(i>=G.wl[p]){b.classList.add('spent');b.disabled=true}
     else{
@@ -1227,9 +1249,44 @@ function queueBot(){
 }
 
 /* ================= lifecycle ================= */
-function startMatch(){
+/* The wall count is one choice shared by every entry point — bot, two players on
+   one device, and the online host — so all three paint from the same value. */
+const isUnlim=n=>n>=WALLS_UNLIM;
+const wallsWord=n=>isUnlim(n)?'unlimited':String(n);
+const wallsGlyph=n=>isUnlim(n)?'∞':String(n);
+function paintWalls(){
+  document.querySelectorAll('[data-walls]').forEach(x=>x.classList.toggle('on',+x.dataset.walls===chosenWalls));
+  $('menuNote').textContent='Custom 9 wide × 12 tall board · '+wallsGlyph(chosenWalls)+' walls per player.';
+  $('rulesWalls').textContent=wallsWord(chosenWalls);
+  syncWallsBox();
+}
+function syncWallsBox(){
+  const guest=!!NET.peer&&!NET.host;
+  document.querySelectorAll('#hostWallRow [data-walls]').forEach(b=>b.disabled=guest);
+  $('wallsWho').textContent=guest?'Walls per player — the host decides':'Walls per player — you decide';
+}
+function setWallRow(show){
+  $('wallLbl').style.display=show?'':'none';
+  $('wallRow').style.display=show?'flex':'none';
+}
+function showSetup(mode){
+  pendingStart=mode;
+  setWallRow(true);
+  $('btnBegin').style.display='';
+  $('btnBegin').textContent=mode==='bot'?'Start match':'Start game';
+}
+function hideSetup(){
+  pendingStart=null;
+  setWallRow(false);
+  $('btnBegin').style.display='none';
+  $('diffRow').style.display='none';
+}
+function startMatch(wm){
   const keepSeq=G.seq||0;
-  G=newState();G.seq=keepSeq+1;G.diff=chosenDiff;G.started=true;
+  /* A rematch keeps the count both players already agreed on; only a fresh start
+     reads the picker. */
+  const walls=wm===undefined?(Number.isInteger(G.wm)?G.wm:chosenWalls):wm;
+  G=newState(walls);G.seq=keepSeq+1;G.diff=chosenDiff;G.started=true;
   UI.thinking=false;UI.lastSeq=-1;NET.awaiting=false;
   UI.armed=false;UI.touchPend=null;UI.lastSnap=null;hideGhost();
   UI.isMirrored = UI.mode === 'online' && NET.mySide === 2;
@@ -1288,6 +1345,7 @@ function teardown(){
   try{if(NET.peer)NET.peer.destroy()}catch(e){}
   NET.conn=null;NET.peer=null;NET.awaiting=false;NET.retries=0;
   $('roomBox').style.display='none';$('joinBox').style.display='none';$('btnStart').disabled=true;
+  syncWallsBox();
 }
 function bindConn(c){
   NET.conn=c;
@@ -1300,7 +1358,7 @@ function hostGame(){
   if(!peerReady())return;
   teardown();
   UI.mode='online';NET.host=true;NET.mySide=1;NET.code=makeCode();
-  G=newState();G.started=false;
+  G=newState(chosenWalls);G.started=false;paintWalls();
   $('lblCode').textContent=NET.code;$('roomBox').style.display='block';$('joinBox').style.display='none';
   netPill('warn','Opening room');netNote('Sharing this code lets one player join.');
   NET.peer=new Peer(rid(NET.code));
@@ -1318,7 +1376,7 @@ function joinGame(){
   if(code.length<4){netPill('bad','Enter a code');netNote('Room codes are 5 characters.');return}
   teardown();
   UI.mode='online';NET.host=false;NET.mySide=2;NET.code=code;
-  G=newState();G.started=false;
+  G=newState(chosenWalls);G.started=false;paintWalls();
   netPill('warn','Connecting');netNote('Dialling room '+code+'…');
   NET.peer=new Peer();
   NET.peer.on('open',()=>{bindConn(NET.peer.connect(rid(code),{reliable:true}))});
@@ -1328,6 +1386,7 @@ function joinGame(){
   });
 }
 function onLinkOpen(){
+  syncWallsBox();
   if(NET.host){
     $('btnStart').disabled=false;
     netPill('ok','Two players');netNote('Player joined. Press Start when ready.');
@@ -1342,6 +1401,7 @@ function onLinkOpen(){
 function onLinkDown(){
   NET.conn=null;NET.awaiting=false;
   G.started=false;
+  syncWallsBox();
   netPill('bad','Disconnected');
   if(UI.screen==='game')toast('Opponent disconnected.');
   if(NET.host){$('btnStart').disabled=true;netNote('The other player left. Their code still works — they can rejoin and you can Start again.');return}
@@ -1370,7 +1430,7 @@ function sendIntent(a){
   return true;
 }
 function snapshot(){
-  return {t:'state',seq:G.seq,started:G.started,over:G.over,winner:G.winner,turn:G.turn,diff:G.diff,
+  return {t:'state',seq:G.seq,started:G.started,over:G.over,winner:G.winner,turn:G.turn,diff:G.diff,wm:G.wm,
     p1:{...G.pos[1]},p2:{...G.pos[2]},wh:[...G.wh],wv:[...G.wv],own:{...G.own},wl:{...G.wl},
     snd:G.snd,rq:{1:!!(G.rq&&G.rq[1]),2:!!(G.rq&&G.rq[2])},names:{1:CFG.n1,2:CFG.n2}};
 }
@@ -1380,12 +1440,14 @@ function applySnapshot(d){
   /* A peer is an input boundary, so a snapshot is range-checked before any of it reaches
      the rules model — a bogus turn or wall count would otherwise drive the game. */
   const cell=q=>!!q&&Number.isInteger(q.r)&&Number.isInteger(q.c)&&q.r>=0&&q.r<ROWS&&q.c>=0&&q.c<COLS;
-  const wcount=v=>Number.isInteger(v)?Math.max(0,Math.min(START_WALLS,v)):START_WALLS;
+  const wmax=Number.isInteger(d.wm)&&d.wm>=0&&d.wm<=WALLS_UNLIM?d.wm:START_WALLS;
+  const wcount=v=>Number.isInteger(v)?Math.max(0,Math.min(wmax,v)):wmax;
   if(!cell(d.p1)||!cell(d.p2)||!d.wl||!Array.isArray(d.wh)||!Array.isArray(d.wv))return;
   const wasOver=G.over;
   UI.lastSeq=d.seq;
   G.pos={1:{r:d.p1.r,c:d.p1.c},2:{r:d.p2.r,c:d.p2.c}};
-  G.wh=new Set(d.wh);G.wv=new Set(d.wv);G.own=d.own||{};G.wl={1:wcount(d.wl[1]),2:wcount(d.wl[2])};
+  G.wh=new Set(d.wh);G.wv=new Set(d.wv);G.own=d.own||{};G.wm=wmax;G.wl={1:wcount(d.wl[1]),2:wcount(d.wl[2])};
+  if(!NET.host){chosenWalls=wmax;paintWalls()}
   G.turn=d.turn===2?2:1;
   G.over=!!d.over&&(d.winner===1||d.winner===2);
   G.winner=G.over?d.winner:0;
@@ -1480,7 +1542,7 @@ $('btnHost').onclick=hostGame;
 $('btnJoin').onclick=()=>{$('joinBox').style.display='block';$('inCode').focus()};
 $('btnDial').onclick=joinGame;
 $('inCode').addEventListener('keydown',e=>{if(e.key==='Enter')joinGame()});
-$('btnStart').onclick=()=>{if(!NET.host)return;startMatch()};
+$('btnStart').onclick=()=>{if(!NET.host)return;startMatch(chosenWalls)};
 $('btnLeave').onclick=()=>{teardown();UI.mode='menu';netPill('','Idle');netNote('');show('menu')};
 $('btnCopy').onclick=async()=>{
   const txt=NET.code||$('inCode').value;
@@ -1494,18 +1556,32 @@ $('btnCopy').onclick=async()=>{
 };
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{
   const to=b.dataset.go;
-  if(to==='menu')show('menu');
+  if(to==='menu'){hideSetup();show('menu')}
   else if(to==='rules')show('rules');
   else if(to==='settings')openSettings();
   else if(to==='online'){UI.mode='online';show('online')}
-  else if(to==='offline'){UI.mode='offline';teardown();startMatch()}
-  else if(to==='bot'){const r=$('diffRow');r.style.display=r.style.display==='none'?'flex':'none'}
+  else if(to==='offline'){$('diffRow').style.display='none';showSetup('offline')}
+  else if(to==='bot'){
+    const opening=$('diffRow').style.display==='none';
+    $('diffRow').style.display=opening?'flex':'none';
+    if(opening){pendingStart=null;setWallRow(false);$('btnBegin').style.display='none'}
+    else hideSetup();
+  }
 });
 document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{
   chosenDiff=b.dataset.diff;
   document.querySelectorAll('[data-diff]').forEach(x=>x.classList.toggle('on',x===b));
-  UI.mode='bot';teardown();startMatch();
+  showSetup('bot');
 });
+document.querySelectorAll('[data-walls]').forEach(b=>b.onclick=()=>{
+  if(b.disabled)return;
+  chosenWalls=+b.dataset.walls;
+  paintWalls();
+});
+$('btnBegin').onclick=()=>{
+  if(!pendingStart)return;
+  UI.mode=pendingStart;teardown();startMatch(chosenWalls);
+};
 function openSettings(){
   $('setN1').value=CFG.n1;$('setN2').value=CFG.n2;
   $('swSound').classList.toggle('on',CFG.sound);$('swAnim').classList.toggle('on',CFG.anim);
@@ -1542,7 +1618,7 @@ mini($('dm1'),[[17,'k1'],[12,'hl'],[16,'hl'],[18,'hl'],[13,'wl'],[14,'wl']]);
 mini($('dm2'),[[12,'k1'],[7,'k2'],[2,'hl'],[1,'hl'],[3,'hl']]);
 mini($('dm3'),[[17,'k1'],[2,'k2'],[8,'wl'],[9,'wl']]);
 
-applyCfg();buildBoard();buildSeams();
+applyCfg();buildBoard();buildSeams();paintWalls();
 show('menu');
 </script>
 </body>
