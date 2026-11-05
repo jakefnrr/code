@@ -401,9 +401,15 @@ const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
 const sk=(i,j)=>i+':'+j;
 const goalRow=p=>p===1?0:ROWS-1;
 let sndSeq=0;
+/* Every position the match has actually reached, counted. Two planners that each
+   refuse to concede a ply can settle into a corridor shuffle and never finish, and
+   the game has no draw rule to fall back on, so the root is made to pay for
+   replaying a position instead of orbiting the same three squares forever. */
+const _rep=new Map(),REP_PEN=6;
 
 function newState(wm){
   const n=wm===undefined?START_WALLS:Math.max(0,Math.min(WALLS_UNLIM,wm|0));
+  _rep.clear();
   return {pos:{1:{r:ROWS-1,c:4},2:{r:0,c:4}},wh:new Set(),wv:new Set(),own:{},wm:n,
     wl:{1:n,2:n},turn:1,over:false,winner:0,started:false,seq:0,snd:null,diff:'medium',rq:{1:false,2:false}};
 }
@@ -496,6 +502,7 @@ function tryAction(st,p,a){
     st.snd={kind:m.jump?'jump':'move',by:p,id:++sndSeq};
     if(a.r===goalRow(p)){st.over=true;st.winner=p;st.snd.kind='win'}
     else{st.turn=other(p);stuckLoss(st)}
+    repMark(st);
     return{ok:true};
   }
   if(a.type==='wall'){
@@ -506,6 +513,7 @@ function tryAction(st,p,a){
     st.wl[p]--;st.seq++;
     st.snd={kind:'wall',by:p,id:++sndSeq};
     st.turn=other(p);stuckLoss(st);
+    repMark(st);
     return{ok:true};
   }
   return{ok:false,why:'Unknown action.'};
@@ -513,16 +521,18 @@ function tryAction(st,p,a){
 
 /* ================= bot ================= */
 /* Difficulty changes *how* the bot decides, not how much noise it adds to one
-   formula. easy fumbles and wastes walls on empty seams; medium races correctly
-   and blocks one move deep; hard and expert search a typed-array copy of the
-   board — moves full width, walls only across the route the player who is behind
-   is trying to run and only those that measurably lengthen it. expert simply
-   thinks longer, deeper and over more wall candidates. */
+   formula. easy fumbles and drops walls on seams far from the runner; medium races
+   correctly and blocks one move deep; hard and expert search a typed-array copy of
+   the board — moves full width, walls only across the route the player ahead of
+   them is trying to run, and only those that measurably lengthen it. Both price an
+   unused wall the same now, so they win the race with one wall in hand instead of
+   fencing away ten of them in the first twenty plies; expert is the deeper and
+   longer look, which is what decides a wall trade between two planners. */
 const DIFF={
-  easy:{eng:'easy',wallTry:.3,random:.32},
-  medium:{eng:'race',need:2,blunder:.12,waste:.16},
-  hard:{eng:'ab',depth:7,wallK:9,wkIn:4,ms:400,tt:true},
-  expert:{eng:'ab',depth:20,wallK:16,wkIn:6,ms:900,tt:true}
+  easy:{eng:'easy',wallTry:.22,random:.34},
+  medium:{eng:'race',need:2,blunder:.2,waste:.18},
+  hard:{eng:'ab',depth:12,wallK:9,wkIn:9,ms:420,tt:false,keep:14},
+  expert:{eng:'ab',depth:13,wallK:9,wkIn:9,ms:520,tt:false,keep:14}
 };
 /* Seam index is i*WSTRIDE+j, so the stride has to cover rows, not columns. */
 const WSTRIDE=ROWS+1,SZ=(COLS+1)*WSTRIDE,BIG=9e8,MATE=1e6;
@@ -547,6 +557,9 @@ function mkS(st){
   for(let p=1;p<=2;p++)S.k^=ZP[p][S.r[p]*COLS+S.c[p]]^ZW[p][S.w[p]];
   return S;
 }
+const sKey=(S,side)=>side===1?S.k:S.k^ZT;
+function repMark(st){const S=mkS(st),k=sKey(S,st.turn);_rep.set(k,(_rep.get(k)|0)+1)}
+function repPen(k){const n=_rep.get(k);return n?REP_PEN*Math.min(n,3):0}
 /* Is the seam between two adjacent tiles clear? Same wall geometry as blocked(). */
 function pass(S,r1,c1,r2,c2){
   if(r1===r2){const i=Math.min(c1,c2)+1;return !(S.v[i*WSTRIDE+r1]||S.v[i*WSTRIDE+r1+1])}
@@ -683,15 +696,21 @@ function wallCands(S,victim,ply,cap,keepFlat){
   C.n=Math.min(n,cap);return C;
 }
 /* Race model: whoever reaches their goal row first wins, so the gap in turns
-   decides the game. Walls in hand are what turns a lost race back on. */
-function raceVal(S,p,dme,dop){
+   decides the game. The rack is ammunition for that finish, and a planner that
+   prices it at zero trades eight walls away for one ply each and then loses the
+   race it was supposed to win — that price is the whole difference between a bot
+   that "wastes all its walls" and one that decides the game with a single wall.
+   Only the lead in walls matters, and only up to a few: being five down is as
+   fatal as being twenty down, which also keeps an unlimited rack from swamping
+   the score. */
+const WALL_KEEP=8,WALL_DEC=4;
+function raceVal(S,p,dme,dop,keep){
   if(dme>=BIG)return -MATE;
   if(dop>=BIG)return MATE;
   const o=other(p),gap=dop-dme;
   let v=dme<=dop?700+gap*9-dme*3:-700+gap*11+dop*2;
-  v+=(S.w[p]-S.w[o])*2.5;
-  if(dme>dop)v+=S.w[p]*3;
-  return v;
+  const d=Math.max(-WALL_DEC,Math.min(WALL_DEC,S.w[p]-S.w[o]));
+  return v+d*(keep===undefined?WALL_KEEP:keep);
 }
 let _nodes=0,_dl=0,_stop=false;
 const _tt=new Map(),TTCAP=140000;
@@ -700,7 +719,7 @@ function search(S,p,depth,alpha,beta,ply,O){
   if(_stop)return 0;
   const o=other(p),g=goalRow(p);
   const dme=distGoal(S,p,false),dop=distGoal(S,o,false);
-  if(depth<=0)return raceVal(S,p,dme,dop);
+  if(depth<=0)return raceVal(S,p,dme,dop,O.keep);
   const key=p===1?S.k:S.k^ZT;
   let pv=-1;
   if(O.tt){
@@ -746,7 +765,7 @@ function search(S,p,depth,alpha,beta,ply,O){
       if(best>alpha)alpha=best;
     }
   }
-  if(S.w[p]>0&&(O.wallFull||dme>=dop)){
+  if(S.w[p]>0&&dme>=dop){
     const W=wallCands(S,o,ply,O.wkIn||O.wallK,O.gmin===0);
     for(let x=0;x<W.n;x++){
       const i=W.i[x],j=W.j[x],oi=W.o[x];
@@ -767,32 +786,42 @@ function search(S,p,depth,alpha,beta,ply,O){
 function rootSearch(S,p,depth,O){
   const o=other(p),g=goalRow(p),pr=S.r[p],pc=S.c[p];
   const M=genMoves(S,p,0);
-  let best=null,bv=-BIG,bt=BIG,alpha=-BIG;
-  /* Equal-score moves are common in a race, so the tie goes to the one that
-     actually closes the gap — that is what stops the bots shuffling. */
-  const better=(v,tie)=>v>bv||(v===bv&&tie<bt);
+  let best=null,bv=-BIG,bsc=-BIG,bt=BIG,bs=BIG,alpha=-BIG;
+  /* Equal-score actions are common in a race. Break the tie by progress of the
+     feet first, and only then by the rack: a wall widens the gap by more than a
+     step does, so scoring the gap itself would always prefer the wall and the
+     bot would spend its ammunition in the opening instead of the finish. A
+     position the match has already lived through is charged on top of the
+     search score, but the score the callers see stays the honest one. */
+  const better=(sc,tie,spent)=>sc>bsc||(sc===bsc&&(tie<bt||(tie===bt&&spent<bs)));
   for(let x=0;x<M.n;x++){
     const r=M.r[x],c=M.c[x];
-    let v,tie;
-    if(r===g){v=MATE;tie=-BIG}
+    let v,tie,sc;
+    if(r===g){v=MATE;sc=MATE;tie=-BIG}
     else{
       setPawn(S,p,r,c);
       v=-search(S,o,depth-1,-BIG,-alpha,1,O);
-      tie=distGoal(S,p,false)-distGoal(S,o,false);
+      sc=v-repPen(sKey(S,o));
+      tie=distGoal(S,p,false);
       setPawn(S,p,pr,pc);
     }
-    if(better(v,tie)){bv=v;bt=tie;best={type:'move',r,c}}
+    if(better(sc,tie,0)){bv=v;bsc=sc;bt=tie;bs=0;best={type:'move',r,c}}
     if(bv>alpha)alpha=bv;
   }
-  if(S.w[p]>0){
+  /* The root answers to the same condition as the inner nodes: only a player who
+     is not already ahead in the race has a reason to spend a wall. Without it the
+     planner happily threw away its rack while winning. */
+  const dme=dcap(distGoal(S,p,false)),dop=dcap(distGoal(S,o,false));
+  if(S.w[p]>0&&dme>=dop){
     const W=wallCands(S,o,0,O.wallK,O.gmin===0);
     for(let x=0;x<W.n;x++){
       const i=W.i[x],j=W.j[x],oi=W.o[x];
       addWall(S,i,j,oi);spend(S,p);
       const v=-search(S,o,depth-1,-BIG,-alpha,1,O);
-      const tie=distGoal(S,p,false)-distGoal(S,o,false);
+      const sc=v-repPen(sKey(S,o));
+      const tie=distGoal(S,p,false);
       delWall(S,i,j,oi);refund(S,p);
-      if(better(v,tie)){bv=v;bt=tie;best={type:'wall',i,j,orient:oi?'v':'h'}}
+      if(better(sc,tie,1)){bv=v;bsc=sc;bt=tie;bs=1;best={type:'wall',i,j,orient:oi?'v':'h'}}
       if(bv>alpha)alpha=bv;
     }
   }
@@ -1533,11 +1562,11 @@ $('btnRestart').onclick=()=>{
   }
   startMatch();
 };
-$('btnMenu').onclick=()=>show('menu');
+$('btnMenu').onclick=()=>{hideSetup();show('menu')};
 $('btnSettings2').onclick=()=>openSettings();
 $('btnRules2').onclick=()=>show('rules');
 $('btnRematch').onclick=()=>{if(UI.mode!=='online')$('win').classList.remove('on');rematch()};
-$('btnWinMenu').onclick=()=>{$('win').classList.remove('on');show('menu')};
+$('btnWinMenu').onclick=()=>{$('win').classList.remove('on');hideSetup();show('menu')};
 $('btnHost').onclick=hostGame;
 $('btnJoin').onclick=()=>{$('joinBox').style.display='block';$('inCode').focus()};
 $('btnDial').onclick=joinGame;
