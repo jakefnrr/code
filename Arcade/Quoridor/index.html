@@ -496,13 +496,14 @@ function tryAction(st,p,a){
 /* Difficulty changes *how* the bot decides, not how much noise it adds to one
    formula. easy fumbles and wastes walls on empty seams; medium races correctly
    and blocks one move deep; hard and expert search a typed-array copy of the
-   board — moves full width, walls only across the route the player who is
-   behind is trying to run. */
+   board — moves full width, walls only across the route the player who is behind
+   is trying to run and only those that measurably lengthen it. expert simply
+   thinks longer, deeper and over more wall candidates. */
 const DIFF={
   easy:{eng:'easy',wallTry:.3,random:.32},
   medium:{eng:'race',need:2,blunder:.12,waste:.16},
-  hard:{eng:'ab',depth:5,wallK:9,ms:260,tt:false},
-  expert:{eng:'ab',depth:16,wallK:20,ms:700,tt:true}
+  hard:{eng:'ab',depth:7,wallK:9,wkIn:4,ms:400,tt:true},
+  expert:{eng:'ab',depth:20,wallK:16,wkIn:6,ms:900,tt:true}
 };
 /* Seam index is i*WSTRIDE+j, so the stride has to cover rows, not columns. */
 const WSTRIDE=ROWS+1,SZ=(COLS+1)*WSTRIDE,BIG=9e8,MATE=1e6;
@@ -639,6 +640,29 @@ function pathSeams(S,victim,ply){
   }
   W.n=n;return W;
 }
+const WC=[];
+for(let i=0;i<24;i++)WC.push({i:new Int8Array(56),j:new Int8Array(56),o:new Int8Array(56),g:new Int16Array(56),n:0});
+/* The legal route seams, most expensive first. A wall buys a tempo only if the run
+   it forces is longer than the run it blocks, so measuring that gain — instead of
+   taking the first wallK seams along the path — is what separates a wall that
+   matters from a wall that merely looks pointed at the opponent. */
+function wallCands(S,victim,ply,cap,keepFlat){
+  const W=pathSeams(S,victim,ply),C=WC[ply<24?ply:23];
+  const d0=dcap(distGoal(S,victim,false));
+  let n=0;
+  for(let x=0;x<W.n;x++){
+    const i=W.i[x],j=W.j[x],oi=W.o[x];
+    if(!wallOpen(S,i,j,oi))continue;
+    addWall(S,i,j,oi);
+    const g=dcap(distGoal(S,victim,false))-d0;
+    delWall(S,i,j,oi);
+    if(g<1&&!keepFlat)continue;
+    let p=n++;
+    while(p>0&&C.g[p-1]<g){C.i[p]=C.i[p-1];C.j[p]=C.j[p-1];C.o[p]=C.o[p-1];C.g[p]=C.g[p-1];p--}
+    C.i[p]=i;C.j[p]=j;C.o[p]=oi;C.g[p]=g;
+  }
+  C.n=Math.min(n,cap);return C;
+}
 /* Race model: whoever reaches their goal row first wins, so the gap in turns
    decides the game. Walls in hand are what turns a lost race back on. */
 function raceVal(S,p,dme,dop){
@@ -659,40 +683,54 @@ function search(S,p,depth,alpha,beta,ply,O){
   const dme=distGoal(S,p,false),dop=distGoal(S,o,false);
   if(depth<=0)return raceVal(S,p,dme,dop);
   const key=p===1?S.k:S.k^ZT;
+  let pv=-1;
   if(O.tt){
     const e=_tt.get(key);
-    if(e&&e.d>=depth){
-      if(e.f===0)return e.v;
-      if(e.f===1&&e.v>=beta)return e.v;
-      if(e.f===2&&e.v<=alpha)return e.v;
+    if(e){
+      pv=e.m;
+      if(e.d>=depth){
+        if(e.f===0)return e.v;
+        if(e.f===1&&e.v>=beta)return e.v;
+        if(e.f===2&&e.v<=alpha)return e.v;
+      }
     }
   }
   const M=genMoves(S,p,ply);
   if(!M.n)return -MATE+ply;
   for(let x=0;x<M.n;x++)if(M.r[x]===g)return MATE-ply;
   const pr=S.r[p],pc=S.c[p],sgn=g>pr?1:-1,a0=alpha;
-  let best=-BIG;
+  let best=-BIG,bm=-1;
   for(let x=0;x<M.n;x++)M.k[x]=M.r[x]===pr+sgn?0:(M.r[x]===pr?1:2);
-  for(let want=0;want<3;want++){
+  /* The line the previous iteration preferred goes first, so the narrow window
+     actually bites instead of re-searching everything from scratch. */
+  if(pv>0&&pv<=ROWS*COLS){
+    const r=(pv-1)/COLS|0,c=(pv-1)%COLS;
     for(let x=0;x<M.n;x++){
+      if(M.r[x]!==r||M.c[x]!==c)continue;
+      M.k[x]=-1;
+      setPawn(S,p,r,c);
+      const v=-search(S,o,depth-1,-beta,-alpha,ply+1,O);
+      setPawn(S,p,pr,pc);
+      if(v>best){best=v;bm=pv}
+      if(best>alpha)alpha=best;
+      break;
+    }
+  }
+  for(let want=0;want<3&&alpha<beta;want++){
+    for(let x=0;x<M.n&&alpha<beta;x++){
       if(M.k[x]!==want)continue;
       const r=M.r[x],c=M.c[x];
       setPawn(S,p,r,c);
       const v=-search(S,o,depth-1,-beta,-alpha,ply+1,O);
       setPawn(S,p,pr,pc);
-      if(v>best)best=v;
+      if(v>best){best=v;bm=1+r*COLS+c}
       if(best>alpha)alpha=best;
-      if(alpha>=beta)break;
     }
-    if(alpha>=beta)break;
   }
-  if(S.w[p]>0&&dme>=dop){
-    const W=pathSeams(S,o,ply);
-    let used=0;
-    for(let x=0;x<W.n&&used<O.wallK;x++){
+  if(S.w[p]>0&&(O.wallFull||dme>=dop)){
+    const W=wallCands(S,o,ply,O.wkIn||O.wallK,O.gmin===0);
+    for(let x=0;x<W.n;x++){
       const i=W.i[x],j=W.j[x],oi=W.o[x];
-      if(!wallOpen(S,i,j,oi))continue;
-      used++;
       addWall(S,i,j,oi);spend(S,p);
       const v=-search(S,o,depth-1,-beta,-alpha,ply+1,O);
       delWall(S,i,j,oi);refund(S,p);
@@ -701,8 +739,10 @@ function search(S,p,depth,alpha,beta,ply,O){
       if(alpha>=beta)break;
     }
   }
-  if(O.tt&&best>-MATE+64&&best<MATE-64&&_tt.size<TTCAP)
-    _tt.set(key,{d:depth,v:best,f:best<=a0?2:(best>=beta?1:0)});
+  /* A timed-out node's value is meaningless; storing it is what made the earlier
+     transposition table cost strength instead of buying it. */
+  if(O.tt&&!_stop&&best>-MATE+64&&best<MATE-64&&_tt.size<TTCAP)
+    _tt.set(key,{d:depth,v:best,f:best<=a0?2:(best>=beta?1:0),m:bm});
   return best;
 }
 function rootSearch(S,p,depth,O){
@@ -726,10 +766,9 @@ function rootSearch(S,p,depth,O){
     if(bv>alpha)alpha=bv;
   }
   if(S.w[p]>0){
-    const W=pathSeams(S,o,0);
+    const W=wallCands(S,o,0,O.wallK,O.gmin===0);
     for(let x=0;x<W.n;x++){
       const i=W.i[x],j=W.j[x],oi=W.o[x];
-      if(!wallOpen(S,i,j,oi))continue;
       addWall(S,i,j,oi);spend(S,p);
       const v=-search(S,o,depth-1,-BIG,-alpha,1,O);
       const tie=distGoal(S,p,false)-distGoal(S,o,false);
@@ -892,7 +931,7 @@ function stopSfx(){
   if(sfxLive){try{sfxLive.pause()}catch(e){}sfxLive=null}
 }
 function sfxChain(files,token){
-  if(!files.length||token!==sfxRun)return;
+  if(!files.length||token!==sfxRun||!CFG.sound)return;
   const a=sfxAudio(files[0]);
   sfxLive=a;
   let done=false;
@@ -928,7 +967,7 @@ function toast(msg,bad){
 function show(name){
   UI.screen=name;
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='scr-'+name));
-  if(name!=='game'){$('win').classList.remove('on');stopSfx()}
+  if(name!=='game'){$('win').classList.remove('on');stopSfx();disarm()}
   if(name==='game')render();
 }
 
@@ -1178,7 +1217,9 @@ function queueBot(){
     UI.thinking=false;
     if(UI.mode!=='bot'||G.over||G.turn!==2){render();return}
     const a=botAction(G,2);
-    if(!a){G.turn=1;render();return}
+    /* Empty only when side 2 has no move at all — the rules already score that as a
+       loss, so it must never be turned into a free pass of the turn. */
+    if(!a){stuckLoss(G);if(G.over){finishGame();return}render();return}
     if(a.type==='wall'&&!doAction(2,a))render();
     else if(a.type==='move')doAction(2,{type:'move',r:a.r,c:a.c});
     else render();
@@ -1203,6 +1244,7 @@ function startMatch(){
 }
 function finishGame(){
   const p=G.winner;
+  disarm();
   $('winName').textContent=(p===1?CFG.n1:(UI.mode==='bot'?'Bot':CFG.n2))+' wins';
   $('winBox').style.color=p===1?'var(--c1)':'var(--c2)';
   $('winWhy').textContent=G.pos[p].r===goalRow(p)?'Reached the far side first.':'No legal reply left.';
@@ -1335,11 +1377,19 @@ function snapshot(){
 function broadcast(){if(NET.host)send(snapshot())}
 function applySnapshot(d){
   if(d.seq<UI.lastSeq){broadcastFix();return}
+  /* A peer is an input boundary, so a snapshot is range-checked before any of it reaches
+     the rules model — a bogus turn or wall count would otherwise drive the game. */
+  const cell=q=>!!q&&Number.isInteger(q.r)&&Number.isInteger(q.c)&&q.r>=0&&q.r<ROWS&&q.c>=0&&q.c<COLS;
+  const wcount=v=>Number.isInteger(v)?Math.max(0,Math.min(START_WALLS,v)):START_WALLS;
+  if(!cell(d.p1)||!cell(d.p2)||!d.wl||!Array.isArray(d.wh)||!Array.isArray(d.wv))return;
   const wasOver=G.over;
   UI.lastSeq=d.seq;
   G.pos={1:{r:d.p1.r,c:d.p1.c},2:{r:d.p2.r,c:d.p2.c}};
-  G.wh=new Set(d.wh);G.wv=new Set(d.wv);G.own=d.own||{};G.wl={1:d.wl[1],2:d.wl[2]};
-  G.turn=d.turn;G.over=!!d.over;G.winner=d.winner;G.started=!!d.started;G.diff=d.diff||G.diff;
+  G.wh=new Set(d.wh);G.wv=new Set(d.wv);G.own=d.own||{};G.wl={1:wcount(d.wl[1]),2:wcount(d.wl[2])};
+  G.turn=d.turn===2?2:1;
+  G.over=!!d.over&&(d.winner===1||d.winner===2);
+  G.winner=G.over?d.winner:0;
+  G.started=!!d.started;G.diff=d.diff||G.diff;
   if(d.names){CFG.n1=d.names[1]||CFG.n1;CFG.n2=d.names[2]||CFG.n2}
   const prevWant=!!(G.rq&&G.rq[other(mySide())]);
   G.rq={1:!!(d.rq&&d.rq[1]),2:!!(d.rq&&d.rq[2])};
@@ -1349,7 +1399,8 @@ function applySnapshot(d){
   UI.isMirrored=NET.mySide===2;
   if(UI.screen!=='game'){UI.mode='online';show('game');$('gameNote').textContent='You are '+(NET.mySide===1?'cyan (bottom).':'magenta (bottom — board flipped).')}
   render();
-  if(d.snd&&d.snd.by!==NET.mySide&&!wasOver&&!d.over)snd(d.snd.kind);
+  if(d.snd&&d.snd.by!==NET.mySide&&!wasOver&&!d.over&&d.snd.id!==UI.lastSndId)snd(d.snd.kind);
+  UI.lastSndId=d.snd?d.snd.id:0;
   if(G.over&&!wasOver)finishGame();
 }
 function broadcastFix(){if(NET.host)broadcast()}
