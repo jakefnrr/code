@@ -426,14 +426,26 @@ function noiseBurst(d,v,delay){
   }catch(e){}
 }
 const boomAudio=new Audio('sounds/vine-boom.mp3');
+const SFX_FILES={faaah:'sounds/faaah.mp3',rizz:'sounds/rizz.mp3'};
+const memeTpl={};
+function playMeme(src){
+  try{
+    let t=memeTpl[src];
+    if(!t){t=new Audio(src);t.preload='auto';memeTpl[src]=t;}
+    const a=t.cloneNode();
+    a.volume=.55;
+    const p=a.play();if(p&&p.catch)p.catch(()=>{});
+    return a;
+  }catch(e){return null;}
+}
 const SFX={
   move(){tone(700,.06,'triangle',.09,0,520);noiseBurst(.03,.03);},
   capture(){try{boomAudio.currentTime=0;boomAudio.volume=.8;boomAudio.play().catch(()=>{noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);});}catch(e){noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);tone(500,.06,'triangle',.05,.03);}},
   castle(){tone(520,.07,'triangle',.08);tone(660,.07,'triangle',.07,.08);},
-  check(){tone(880,.09,'square',.05);tone(1175,.12,'square',.045,.09);},
+  check(){if(!playMeme(SFX_FILES.faaah)){tone(880,.09,'square',.05);tone(1175,.12,'square',.045,.09);}},
   promote(){[660,880,1109,1319].forEach((f,i)=>tone(f,.1,'triangle',.07,i*.06));},
-  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.1,i*.11));},
-  lose(){tone(392,.2,'sawtooth',.06,0,247);tone(247,.3,'sine',.07,.18,131);},
+  win(){if(!playMeme(SFX_FILES.rizz)){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.1,i*.11));}},
+  lose(){if(!playMeme(SFX_FILES.faaah)){tone(392,.2,'sawtooth',.06,0,247);tone(247,.3,'sine',.07,.18,131);}},
   draw(){tone(440,.15,'sine',.07);tone(349,.2,'sine',.07,.15);},
   start(){tone(392,.1,'triangle',.08);tone(523,.14,'triangle',.08,.1);},
   msg(){tone(988,.07,'sine',.05);tone(1319,.07,'sine',.04,.06);},
