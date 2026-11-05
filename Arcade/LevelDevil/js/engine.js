@@ -31,6 +31,48 @@ const LD = (() => {
   function saveMode() { try { localStorage.setItem(MODE_KEY, mode); } catch (e) {} }
   function heartCap() { return HEART_CAPS[mode] || HEART_CAPS.hard; }
 
+  /* ---------- run save ----------
+     The heart pool is written to localStorage on every change, so closing the
+     tab cannot hand you back hearts you already lost. The blob is checksummed
+     with a key so a hand-edited value is rejected instead of trusted.        */
+  const RUN_KEY = "leveldevil_run";
+  const RUN_KEY_SECRET = "ld.run.v1:9f3a7c5e2b";
+  function checksum(str) {
+    let h = 2166136261 >>> 0;
+    const s = RUN_KEY_SECRET + "\u0001" + str + "\u0001" + RUN_KEY_SECRET;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return (h >>> 0).toString(36);
+  }
+  function saveRun() {
+    try {
+      const data = { v: 1, m: mode, c: heartCap(), w: heartsWorld, h: hearts.map(h => h && h.lost ? 1 : 0) };
+      const body = JSON.stringify(data);
+      localStorage.setItem(RUN_KEY, body + "." + checksum(body));
+    } catch (e) {}
+  }
+  function loadRun() {
+    try {
+      const raw = localStorage.getItem(RUN_KEY);
+      if (!raw) return null;
+      const sep = raw.lastIndexOf(".");
+      if (sep < 0) return null;
+      const body = raw.slice(0, sep);
+      if (checksum(body) !== raw.slice(sep + 1)) return null;
+      const d = JSON.parse(body);
+      if (!d || d.m !== mode || d.c !== heartCap()) return null;
+      if (!Array.isArray(d.h) || d.h.length !== d.c) return null;
+      if (d.h.every(x => x)) return null;   // a dead run is not resumable
+      return d;
+    } catch (e) { return null; }
+  }
+  function restoreRun() {
+    const d = loadRun();
+    if (!d) { resetRun(); return; }
+    hearts = d.h.map((lost, i) => ({ x: 16 + i * 26, y: 14, lost: !!lost }));
+    heartsWorld = d.w || 1;
+    syncLives();
+  }
+
   const PW = 26, PH = 38;   // player hitbox
 
   /* ---------- state ---------- */
@@ -323,6 +365,7 @@ const LD = (() => {
     let n = 0;
     for (const h of hearts) if (!h.lost) n++;
     lives = n;
+    saveRun();
   }
 
   function resetHearts() {
@@ -339,6 +382,7 @@ const LD = (() => {
     const newWorld = mode === "easy" && heartsWorld !== current.world;
     if (wrongCap || newWorld || hearts.length === 0) resetHearts();
     heartsWorld = current.world;
+    saveRun();
   }
 
   function resetRun() {
@@ -1563,6 +1607,7 @@ const LD = (() => {
       pb = { cleared: {} };
       savePB();
       totalDeaths = 0;
+      resetRun();
       Audio.sfx.click();
     }
 
@@ -2071,6 +2116,8 @@ const LD = (() => {
     }
   }, 0);
 
+  restoreRun();
+
   loop(0);
 
   // ---- debug / modding handle (also used by AI test tools) ----
@@ -2131,6 +2178,7 @@ const LD = (() => {
     press, release,
     atMenu: () => state === "menu",
     mode: () => mode,
+    hearts: () => runLevel ? hearts.map(h => ({ lost: !!h.lost })) : null,
     heartCap: () => heartCap(),
     heartsLeft: () => lives,
     toggleMode() { return setMode(mode === "hard" ? "easy" : "hard"); },

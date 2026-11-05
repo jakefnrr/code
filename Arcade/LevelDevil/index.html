@@ -89,9 +89,22 @@
     box-shadow:0 0 18px rgba(176,107,255,0.4);
   }
 
-  /* big red hearts — top LEFT of the WHOLE screen (DOM overlay) */
+  /* top-LEFT HUD: difficulty badge + big red hearts (DOM overlay) */
+  #hudTL{
+    position:fixed;top:12px;left:16px;z-index:99;
+    display:flex;flex-direction:column;gap:7px;
+    pointer-events:none;
+  }
+  #modeBadge{
+    align-self:flex-start;
+    font-size:12px;font-weight:700;letter-spacing:2px;
+    padding:5px 11px;border-radius:7px;
+    opacity:0;transition:opacity .15s ease;
+  }
+  body.in-game #modeBadge{opacity:1}
+  #modeBadge.hard{background:rgba(58,13,13,.82);border:1px solid #ff5b6a;color:#ff8a7a}
+  #modeBadge.easy{background:rgba(13,42,24,.82);border:1px solid #46d67a;color:#8fe6a8}
   #hearts{
-    position:fixed;top:16px;left:16px;z-index:99;
     display:flex;flex-wrap:wrap;justify-content:flex-start;
     gap:6px;max-width:calc(100vw - 32px);
     pointer-events:none;line-height:1;
@@ -109,7 +122,8 @@
   #hearts.many{gap:3px}
   #hearts.many .h{font-size:21px}
 
-  /* secret code — bottom-right corner of the worlds menu */
+  /* secret code — invisible hotspot, bottom-right of the worlds menu.
+     It is still clickable; it only paints itself once it has focus. */
   #secretCodeWrap{
     position:fixed;left:0;top:0;z-index:98;
     display:none;align-items:center;gap:8px;
@@ -122,10 +136,12 @@
     background:rgba(13,5,20,0.85);
     color:#e8dcc8;font-size:12px;font-family:inherit;letter-spacing:1px;
     border:1px solid rgba(176,107,255,0.4);border-radius:6px;
-    outline:none;transition:border-color .15s ease, box-shadow .15s ease;
+    outline:none;transition:border-color .15s ease, box-shadow .15s ease, opacity .12s ease;
+    opacity:0;
   }
+  #secretCodeWrap input:focus{opacity:1;border-color:#b06bff;box-shadow:0 0 10px rgba(176,107,255,0.35)}
+  #secretCodeWrap input.reveal{opacity:1}
   #secretCodeWrap input::placeholder{color:#8a6a8a}
-  #secretCodeWrap input:focus{border-color:#b06bff;box-shadow:0 0 10px rgba(176,107,255,0.35)}
   #secretCodeWrap input.ok{border-color:#46d67a;box-shadow:0 0 12px rgba(70,214,122,0.5);color:#7fffb0}
   #secretCodeWrap input.err{border-color:#ff5b6a;box-shadow:0 0 12px rgba(255,91,106,0.45)}
 
@@ -136,10 +152,13 @@
 
   <a class="all-projects" id="projectsBtn" href="../index.html" title="Back to Hub">BACK TO HUB</a>
 
-  <!-- big red hearts, top-left of the whole screen -->
-  <div id="hearts" aria-hidden="true"></div>
+  <!-- top-left HUD: difficulty badge + hearts -->
+  <div id="hudTL">
+    <div id="modeBadge" aria-hidden="true"></div>
+    <div id="hearts" aria-hidden="true"></div>
+  </div>
 
-  <!-- secret code — bottom-right of the worlds menu -->
+  <!-- secret code — invisible hotspot, bottom-right of the worlds menu -->
   <div id="secretCodeWrap">
     <input id="secretCode" type="text" placeholder="secret code…" autocomplete="off" spellcheck="false" aria-label="Secret code">
   </div>
@@ -184,10 +203,17 @@
       btn.textContent = inGame ? '◄ LEVEL SELECT' : 'BACK TO HUB';
       btn.dataset.back = inGame ? '1' : '';
     }
-    // big red hearts at the top-left of the screen
+    // difficulty badge + big red hearts at the top-left of the screen
+    document.body.classList.toggle('in-game', inGame);
+    const badge = document.getElementById('modeBadge');
+    if (badge) {
+      const m = window.LD && window.LD.mode ? window.LD.mode() : 'hard';
+      badge.textContent = (m === 'easy' ? 'EASY' : 'HARD') + ' MODE';
+      badge.className = m === 'easy' ? 'easy' : 'hard';
+    }
     const hd = document.getElementById('hearts');
     if (hd) {
-      const arr = window.LDDBG && window.LDDBG.hearts ? window.LDDBG.hearts() : null;
+      const arr = window.LD && window.LD.hearts ? window.LD.hearts() : null;
       if (arr && arr.length) {
         if (hd.children.length !== arr.length) {
           hd.innerHTML = '';
@@ -208,6 +234,8 @@
     if (scWrap) {
       const onMenu = !!(window.LD && window.LD.atMenu && window.LD.atMenu());
       document.body.classList.toggle('show-secret', onMenu);
+      const sc = document.getElementById('secretCode');
+      if (sc) sc.classList.toggle('reveal', onMenu && document.activeElement === sc);
       if (onMenu) {
         const c = document.getElementById('game');
         if (c) {
@@ -237,6 +265,9 @@
       scInput.parentElement.style.left = Math.round(r.right - scInput.parentElement.offsetWidth - 14) + 'px';
       scInput.parentElement.style.top = Math.round(r.bottom - scInput.parentElement.offsetHeight - 14) + 'px';
     };
+    // the field paints itself only while it holds focus, so the spot stays invisible
+    scInput.addEventListener('focus', () => scInput.classList.add('reveal'));
+    scInput.addEventListener('blur', () => scInput.classList.remove('reveal'));
     scInput.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
