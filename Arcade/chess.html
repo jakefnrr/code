@@ -207,8 +207,8 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
       <div class="diffgrid" id="diffGrid">
         <button class="diffcard sel" data-diff="easy"><h3>😊 Easy</h3><p>Plays sensible chess, but blunders about 6 out of every 10 moves.</p></button>
         <button class="diffcard" data-diff="medium"><h3>🙂 Medium</h3><p>Knows the game — develops, trades fairly — but slips about 4 out of 10 moves.</p></button>
-        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Like a player with 1–4 years of experience. Punishes mistakes; only blunders about 2 in 10.</p></button>
-        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Stockfish-style: deep search, near-perfect play — a real slip only about once in 20 moves.</p></button>
+        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Real Stockfish engine — grandmaster strength. Rarely misses anything.</p></button>
+        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Stockfish turned up to eleven — crazy deep calculation, near-alien play.</p></button>
       </div>
     </div>
     <div class="card">
@@ -605,6 +605,36 @@ function engineWorkerMain(){
 }
 const workerURL=URL.createObjectURL(new Blob(['('+engineWorkerMain.toString()+')()'],{type:'text/javascript'}));
 let engine=null,engineReqId=0,pendingBotMove=null;
+/* Real Stockfish (10) via CDN, used for Hard & Expert; our built-in engine is the offline fallback */
+const SF_CDN='https://cdn.jsdelivr.net/npm/stockfish@10.0.2/src/stockfish.asm.js';
+let sfInit=null,sfSq=null,sfCb=null,sfWarm=false;
+function ensureSF(){
+  if(!sfInit){
+    sfInit=new Promise((resolve,reject)=>{
+      const boot=`self.onmessage=e=>{if(e.data==='boot'){try{importScripts(${JSON.stringify(SF_CDN)});self.sfq=STOCKFISH(l=>self.postMessage(String(l)));self.postMessage('BOOTED');}catch(err){self.postMessage('ERR '+String(err));}}else if(self.sfq){self.sfq.postMessage(e.data);}};`;
+      const w=new Worker(URL.createObjectURL(new Blob([boot],{type:'text/javascript'})));
+      const to=setTimeout(()=>reject(new Error('timeout')),15000);
+      w.onmessage=m=>{
+        const s=String(m.data);
+        if(s==='BOOTED'){w.postMessage('setoption Use NNUE value false');w.postMessage('setoption Skill Level value 20');w.postMessage('setoption MultiPV value 1');w.postMessage('isready');}
+        else if(s.startsWith('ERR')){clearTimeout(to);reject(new Error(s));}
+        else if(s==='readyok'&&!sfWarm){sfWarm=true;clearTimeout(to);sfSq=t=>w.postMessage(t);resolve();}
+        else if(s.startsWith('bestmove')&&sfCb){sfCb(s);}
+      };
+      w.postMessage('boot');
+    }).catch(e=>{sfInit=null;throw e;});
+  }
+  return sfInit;
+}
+function askSF(fen,plies,ms,cb){
+  ensureSF().then(()=>{
+    let done=false;
+    sfCb=u=>{if(done)return;done=true;sfCb=null;cb(u);};
+    setTimeout(()=>{if(!done){done=true;sfCb=null;cb(null);}},9000);
+    sfSq('position fen '+fen);
+    sfSq('go depth 30 movetime '+ms);
+  }).catch(()=>cb(null));
+}
 function getEngine(){
   if(!engine){
     engine=new Worker(workerURL);
@@ -619,6 +649,21 @@ function getEngine(){
   return engine;
 }
 function askEngine(level,seed,cb){
+  if((level==='hard'||level==='expert')&&navigator.onLine){
+    const ms=level==='expert'?900:550;
+    const fen=S.game.fen();
+    askSF(fen,0,ms,uci=>{
+      if(uci&&/^bestmove [a-h][1-8][a-h][1-8]/.test(uci)){
+        const mv=uci.split(' ')[1];
+        cb({from:mv.slice(0,2),to:mv.slice(2,4),promotion:mv[4]||'q'});
+      }else{
+        engineReqId++;
+        pendingBotMove=cb;
+        getEngine().postMessage({id:engineReqId,fen:fen,level:level,seed:seed});
+      }
+    });
+    return;
+  }
   engineReqId++;
   pendingBotMove=cb;
   getEngine().postMessage({id:engineReqId,fen:S.game.fen(),level:level,seed:seed});
