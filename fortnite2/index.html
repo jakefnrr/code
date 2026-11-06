@@ -82,6 +82,21 @@
         #ehint{position:absolute;top:62%;left:50%;transform:translateX(-50%);color:#ffd24a;font-size:12px;display:none;background:rgba(0,0,0,.72);padding:6px 16px;border-radius:7px;border:1px solid rgba(255,210,74,.35);white-space:nowrap}
         #ehint b{color:#fff}
 
+        /* ===== HOLD-TO-INTERACT RING ===== */
+        /* One widget, two uses: hold E to open a chest, hold LMB to use a consumable.
+           The arc always starts at 12 o'clock and sweeps clockwise back to it. */
+        #hold{position:absolute;top:50%;left:50%;transform:translate(-50%,44px);display:none;align-items:center;gap:10px}
+        #hc{width:56px;height:56px}
+        #hl{color:#fff;font-size:14px;font-weight:bold;letter-spacing:.5px;background:rgba(0,0,0,.65);padding:6px 14px;border-radius:7px;border:2px solid rgba(74,208,255,.5);text-shadow:0 0 8px rgba(74,208,255,.5);white-space:nowrap}
+        #hold.cons #hl{border-color:rgba(80,255,140,.5);text-shadow:0 0 8px rgba(80,255,140,.5)}
+
+        /* ===== FULL-SCREEN MAP (T) ===== */
+        #mapscreen{position:fixed;top:0;left:0;width:100%;height:100%;z-index:120;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);pointer-events:none}
+        #mapscreen .frame{position:relative;background:#0a1a24;border:2px solid rgba(120,200,255,.35);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6);padding:10px}
+        #mapc{display:block;border-radius:6px}
+        #maptitle{position:absolute;top:16px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:900;letter-spacing:6px;text-transform:uppercase;text-shadow:0 2px 8px #000}
+        #maphint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#9fd0ee;font-size:11px;letter-spacing:2px}
+
         /* ===== VICTORY / ELIMINATED SCREEN ===== */
         #end{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column;color:#fff;overflow:hidden}
         #end-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(0,20,60,.95),rgba(0,0,0,.98));z-index:-1}
@@ -194,8 +209,10 @@
     <div id="fp">FPS: 60</div>
     <div id="ri">⟳ RELOADING</div>
     <div id="lp">[E] Pick up</div>
+    <div id="hold"><canvas id="hc" width="56" height="56"></canvas><div id="hl">Open</div></div>
     <div id="elim-banner"><div class="eb-text"></div><div class="eb-sub"></div></div>
 </div>
+<div id="mapscreen"><div class="frame"><canvas id="mapc" width="720" height="720"></canvas></div><div id="maptitle">The Island</div><div id="maphint">T - CLOSE MAP</div></div>
 <div id="vignette"></div><div id="do"></div><div id="zo"></div>
 <div id="dp"><div id="dt">🚌 BATTLE BUS</div><div id="ds">Press SPACE to jump!</div><div id="dalt">ALT 120m</div><div class="glider-hint">Flying over the island...</div></div>
 <div id="end">
