@@ -422,27 +422,45 @@ function mkPlayer(){
     P.hipL=limb(-.18,.8,leg);P.hipR=limb(.18,.8,leg);
     P.shL=limb(-.48,1.42,arm);P.shR=limb(.48,1.42,arm);
 
-    // Weapon mount rides with the right arm
-    P.hand=new THREE.Group();P.hand.position.set(0,-.58,.04);P.shR.add(P.hand);
-
     g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
     return g;
 }
 
 // Pose the rig: walk cycle, aim, crouch, airborne
 let _pt=0;
-const _qCi=new THREE.Quaternion();
-// The weapon rides the right hand but must not inherit the arm swing: undo the
-// shoulder rotation first, then aim the barrel. A gun's muzzle runs along its own
-// local -Z while the rig's front is +Z, so the half turn (rotateZ PI) is what makes
-// the weapon point where the crosshair points, and the same pitch that tilts the
-// camera tilts it up and down. Recoil (G.rc) lifts the muzzle as it fires.
-function poseGun(){
-    if(!gg||!P.hand||gg.parent!==P.hand)return;
-    _qCi.copy(P.shR.quaternion).invert();
-    gg.quaternion.copy(_qCi);
-    gg.rotateX(Math.PI-(pitch+G.rc*3));
-    gg.rotateZ(Math.PI);
+const _axX=new THREE.Vector3(1,0,0);
+const _qHalf=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);
+const _gq=new THREE.Quaternion(),_gpv=new THREE.Vector3(),_lpv=new THREE.Vector3(),_lvv=new THREE.Vector3();
+// The rig has no elbows, so a hand can only sit one arm-length (0.66) from its
+// shoulder, at (+-0.48, 1.42). This mount was solved against those two spheres and
+// the grip points below, so both hands land on the weapon: at the next-best height
+// and reach the hands drift 9cm off it, and hanging it from the right hand at the hip
+// is what made it look like the character had dropped it. The stock ends inside the
+// chest box, which is what shouldering a rifle looks like on a blocky rig.
+const GUN_POS=new THREE.Vector3(-.12,1.28,.14);
+// Aim an elbow-less limb, which hangs along its local -Y, at a rig-space target:
+// rz carries the sideways angle, rx the forward one.
+function aimLimb(piv,sx,sy,t){
+    _lvv.set(t.x-sx,t.y-sy,t.z).normalize();
+    piv.rotation.set(Math.atan2(-_lvv.z,-_lvv.y),0,Math.asin(Math.max(-1,Math.min(1,_lvv.x))));
+}
+// The weapon follows the camera, not the arm swing: its muzzle runs along gun-local
+// -Z while the rig's front is +Z, so the half turn about Z brings the barrel forward
+// and the turn about X adds the camera pitch plus the recoil lift. Both arms are then
+// solved to the grip points that orientation puts them at, so the hands keep tracking
+// the weapon as it tilts up and down.
+function poseGun(skipArms){
+    if(!gg||!P.g)return;
+    if(gg.parent!==P.g)P.g.add(gg);
+    _gq.setFromAxisAngle(_axX,Math.PI-(pitch+G.rc*3)).multiply(_qHalf);
+    gg.position.copy(GUN_POS);
+    gg.quaternion.copy(_gq);
+    if(skipArms||!P.shR)return;
+    const hd=gg.userData.hold;
+    _gpv.copy(hd.g).applyQuaternion(_gq).add(GUN_POS);
+    _lpv.copy(hd.f).applyQuaternion(_gq).add(GUN_POS);
+    aimLimb(P.shR,.48,1.42,_gpv);
+    aimLimb(P.shL,-.48,1.42,_lpv);
 }
 function uPlayer(dt,mov){
     if(!P.g)return;
@@ -472,19 +490,12 @@ function uPlayer(dt,mov){
         P.hipL.rotation.x=-.35+sw*.1;P.hipR.rotation.x=.45;
         P.shL.rotation.x=-2.4;P.shR.rotation.x=-2.4;
         P.shL.rotation.z=.9;P.shR.rotation.z=-.9;
-    }else if(P.aiming||BLD.mode){
-        P.hipL.rotation.x=0;P.hipR.rotation.x=0;
-        P.shR.rotation.x=-1.15;P.shR.rotation.z=-.24;
-        P.shL.rotation.x=-1.30;P.shL.rotation.z=.66;
     }else{
-        // Gun-ready carry: both hands stay on the weapon instead of the arms
-        // swinging, so the model never looks like it is dropping what it holds.
-        const bob=mov?sw*.05:0;
         P.hipL.rotation.x=sw*ls;P.hipR.rotation.x=-sw*ls;
-        P.shR.rotation.x=-.98+bob;P.shR.rotation.z=-.30;
-        P.shL.rotation.x=-1.12+bob;P.shL.rotation.z=.60;
     }
-    poseGun();
+    // Both arms are solved onto the weapon, so the only arm pose left here is the
+    // airborne one, where the hands come off it and trail.
+    poseGun(air);
 }
 
 // ===== THIRD-PERSON CAMERA =====
@@ -1749,12 +1760,18 @@ function mkGun(name){
         gg.add(mk2(GEO.box,M,[0,-.06,.02],[.035,.08,.035]));
     }
 
+    // Barrel end, measured off the parts rather than assumed: GEO.box is a unit cube
+    // so each mesh reaches position.z - scale.z/2. A pistol held with the same hand
+    // spacing as a rifle leaves the off hand and the flash hanging in mid-air ahead of
+    // the muzzle, so both are placed from this instead.
+    let tip=0;
+    gg.children.forEach(c=>{if(c.isMesh){let z=c.position.z-c.scale.z/2;if(z<tip)tip=z;}});
+    gg.userData.hold={g:new THREE.Vector3(0,-.12,tip*.08),f:new THREE.Vector3(0,-.05,Math.max(-.42,tip*.55))};
     mf=new THREE.Mesh(GEO.sphere,new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:0}));
-    mf.position.set(0,.02,-.8);mf.scale.set(.07,.07,.12);gg.add(mf);
-    // The mount sits exactly in the hand and the barrel is aimed by poseGun(), so no
-    // hand-space offset is left here to be dragged around by the arm swing.
-    gg.position.set(0,0,0);gg.rotation.set(0,0,0);
-    if(P.hand)P.hand.add(gg);else C.add(gg);
+    mf.position.set(0,.02,tip-.02);mf.scale.set(.07,.07,.12);gg.add(mf);
+    // The rig holds the weapon at the chest; poseGun() re-parents it if P.g did not
+    // exist yet, which happens in the practice and 1v1 maps that equip before building.
+    if(P.g)P.g.add(gg);else C.add(gg);
 }
 
 // ===== SHOOTING =====
@@ -2102,6 +2119,7 @@ function uRide(dt,now){
         P.g.position.copy(_bw);
         P.g.rotation.set(BUS.tilt*.6,BUS.yaw+Math.sin(t*.3)*.02,BUS.tilt);
         P.crouch=0;
+        poseGun();
     }
     // chase camera orbits the bus with the mouse, so you can look around
     _eA.set(pitch*.45,yaw,0,'YXZ');_qA.setFromEuler(_eA);
@@ -2142,7 +2160,14 @@ function uFall(dt,now){
     const push=BUS.phase==='fall'?.012:.02;
     P.p.x+=sx*push*f;P.p.z+=sz*push*f;
     P.p.y+=G.v.y*f;
-    if(P.g){P.g.rotation.y=yaw+Math.PI;P.g.position.copy(P.p);poseGun();}
+    if(P.g){
+        P.g.rotation.y=yaw+Math.PI;P.g.position.copy(P.p);
+        // Same trail-back pose the airborne branch of uPlayer uses: the slipstream
+        // takes the hands off the weapon, so the gun rides at the chest unheld.
+        P.hipL.rotation.x=-.35;P.hipR.rotation.x=.45;
+        P.shR.rotation.set(-2.4,0,-.9);P.shL.rotation.set(-2.4,0,.9);
+        poseGun(true);
+    }
     if(BUS.glider){
         BUS.glider.visible=BUS.phase==='glide';
         if(BUS.glider.visible)BUS.glider.position.set(P.p.x,P.p.y+2.5,P.p.z);
