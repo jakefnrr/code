@@ -3989,6 +3989,22 @@
             animate();
         }
 
+        // A restart regenerates the world, so the previous match's actors have to
+        // leave the scene first — otherwise lobbies and props stack up.
+        function clearMatchWorld() {
+            for (const bot of bots) scene.remove(bot.mesh);
+            bots = [];
+            for (const obj of objects) scene.remove(obj);
+            objects = [];
+            for (const chest of chests) scene.remove(chest);
+            chests = [];
+            for (const car of cars) scene.remove(car.mesh);
+            cars = [];
+            for (const drop of loot) scene.remove(drop.mesh);
+            loot = [];
+            buildings = [];
+        }
+
         window.startGame = (mode) => {
             document.getElementById('start-screen').style.display = 'none';
             gameStarted = true;
@@ -4019,6 +4035,7 @@
             structures = new Map();
             projectiles.forEach(p => scene.remove(p.mesh));
             projectiles = [];
+            clearMatchWorld();
 
             generateTerrain();
             createStormMesh();
