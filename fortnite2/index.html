@@ -150,7 +150,7 @@
     </div>
     <div class="ctrl">
         <p><span>WASD</span> Move</p><p><span>MOUSE</span> Look / Camera</p>
-        <p><span>LEFT CLICK</span> Shoot / Place build</p><p><span>TAP LMB or RMB</span> Toggle aim zoom</p>
+        <p><span>LEFT CLICK</span> Shoot / Place build</p><p><span>T</span> Toggle aim zoom</p>
         <p><span>SPACE</span> Jump</p><p><span>LEFT SHIFT</span> Sprint</p>
         <p><span>LEFT CTRL</span> Crouch</p><p><span>R</span> Reload</p>
         <p><span>E</span> Pick up / Use</p><p><span>Q</span> Toggle build mode</p>
@@ -431,6 +431,19 @@ function mkPlayer(){
 
 // Pose the rig: walk cycle, aim, crouch, airborne
 let _pt=0;
+const _qCi=new THREE.Quaternion();
+// The weapon rides the right hand but must not inherit the arm swing: undo the
+// shoulder rotation first, then aim the barrel. A gun's muzzle runs along its own
+// local -Z while the rig's front is +Z, so the half turn (rotateZ PI) is what makes
+// the weapon point where the crosshair points, and the same pitch that tilts the
+// camera tilts it up and down. Recoil (G.rc) lifts the muzzle as it fires.
+function poseGun(){
+    if(!gg||!P.hand||gg.parent!==P.hand)return;
+    _qCi.copy(P.shR.quaternion).invert();
+    gg.quaternion.copy(_qCi);
+    gg.rotateX(Math.PI-(pitch+G.rc*3));
+    gg.rotateZ(Math.PI);
+}
 function uPlayer(dt,mov){
     if(!P.g)return;
     const air=!G.og&&!P.onBus;
@@ -439,10 +452,16 @@ function uPlayer(dt,mov){
 
     P.crouch+=((G.cr?1:0)-P.crouch)*Math.min(1,dt*.014);
 
-    // Facing: toward movement, or toward the camera when aiming / building / idle
-    let tf=mov&&!P.aiming&&!BLD.mode?Math.atan2(-AIM.f.x,-AIM.f.z):yaw;
-    let d=((tf-P.face+Math.PI*360)%(Math.PI*2))-Math.PI;
-    P.face+=d*Math.min(1,dt*.02);
+    // Facing: the rig's own front is local +Z (eyes, belt pouch) while the aim ray
+    // runs along the camera frame's -Z, so the target yaw is turned half around.
+    let tf=(mov&&!P.aiming&&!BLD.mode?Math.atan2(-AIM.f.x,-AIM.f.z):yaw)+Math.PI;
+    // Shortest signed turn. This line used to add Math.PI*360, which is a whole
+    // number of full turns and therefore nothing, so the wrapped difference never
+    // centred on zero and the lerp settled exactly half a turn off its target:
+    // the character walked away from the crosshair.
+    let e=(tf-P.face)%(Math.PI*2);
+    if(e>Math.PI)e-=Math.PI*2;else if(e<-Math.PI)e+=Math.PI*2;
+    P.face+=e*Math.min(1,dt*.02);
     P.g.rotation.y=P.face;
 
     P.g.position.set(P.p.x,P.p.y-P.crouch*.55,P.p.z);
@@ -455,13 +474,17 @@ function uPlayer(dt,mov){
         P.shL.rotation.z=.9;P.shR.rotation.z=-.9;
     }else if(P.aiming||BLD.mode){
         P.hipL.rotation.x=0;P.hipR.rotation.x=0;
-        P.shL.rotation.x=-1.35;P.shR.rotation.x=-1.35;
-        P.shL.rotation.z=.35;P.shR.rotation.z=-.22;
+        P.shR.rotation.x=-1.15;P.shR.rotation.z=-.24;
+        P.shL.rotation.x=-1.30;P.shL.rotation.z=.66;
     }else{
+        // Gun-ready carry: both hands stay on the weapon instead of the arms
+        // swinging, so the model never looks like it is dropping what it holds.
+        const bob=mov?sw*.05:0;
         P.hipL.rotation.x=sw*ls;P.hipR.rotation.x=-sw*ls;
-        P.shL.rotation.x=-sw*ls*.8;P.shR.rotation.x=sw*ls*.8;
-        P.shL.rotation.z=.08;P.shR.rotation.z=-.08;
+        P.shR.rotation.x=-.98+bob;P.shR.rotation.z=-.30;
+        P.shL.rotation.x=-1.12+bob;P.shL.rotation.z=.60;
     }
+    poseGun();
 }
 
 // ===== THIRD-PERSON CAMERA =====
@@ -1550,10 +1573,10 @@ function bShoot(bot,dist,isP){
         else if(dist>40) bot.w='Sniper';
         else bot.w='AK-47';
         // Higher accuracy in 1v1 but still fair
-        if(Math.random()>.4)return;
+        const h1=Math.random()<=.4;bTrc(bot,isP,h1);if(!h1)return;
         if(isP&&!G.dead){dmgPlayer(wd.d*(.2+Math.random()*.25));}
     } else {
-        if(Math.random()>.25)return;
+        const h2=Math.random()<=.25;bTrc(bot,isP,h2);if(!h2)return;
         if(isP&&!G.dead){dmgPlayer(wd.d*(.15+Math.random()*.2));}
         else if(bot.en&&bot.en.alive){dmgBot(bot.en,wd.d*(.5+Math.random()*.4),bot);}
     }
@@ -1728,7 +1751,9 @@ function mkGun(name){
 
     mf=new THREE.Mesh(GEO.sphere,new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:0}));
     mf.position.set(0,.02,-.8);mf.scale.set(.07,.07,.12);gg.add(mf);
-    gg.position.set(0,-.05,-.2);gg.rotation.set(0,0,0);
+    // The mount sits exactly in the hand and the barrel is aimed by poseGun(), so no
+    // hand-space offset is left here to be dragged around by the arm swing.
+    gg.position.set(0,0,0);gg.rotation.set(0,0,0);
     if(P.hand)P.hand.add(gg);else C.add(gg);
 }
 
@@ -1740,7 +1765,10 @@ function shoot(){
     G.ls=now;sl.a--;uWep();G.rc=wd.rc;if(mf)mf.material.opacity=1;pShoot(wd);
 
     for(let b=0;b<wd.bps;b++){
-        const sp=new THREE.Vector2((Math.random()-.5)*wd.sp,(Math.random()-.5)*wd.sp);
+        // The cone shrinks while aiming; the ray itself is still the crosshair ray at
+        // NDC 0,0, so ADS buys accuracy without moving where the shot goes.
+        const spd=wd.sp*(P.aiming?.3:1);
+        const sp=new THREE.Vector2((Math.random()-.5)*spd,(Math.random()-.5)*spd);
         const rc=new THREE.Raycaster();rc.setFromCamera(sp,C);
         G.bots.forEach(bot=>{
             if(!bot.alive)return;
@@ -1754,6 +1782,7 @@ function shoot(){
             }
         });
         if(MODE==='practice')hitTgt(rc,wd.rng);
+        trcShot(rc,wd.rng);
     }
     if(sl.a<=0)rlod();
 }
@@ -2113,7 +2142,7 @@ function uFall(dt,now){
     const push=BUS.phase==='fall'?.012:.02;
     P.p.x+=sx*push*f;P.p.z+=sz*push*f;
     P.p.y+=G.v.y*f;
-    if(P.g){P.g.rotation.y=yaw;P.g.position.copy(P.p);}
+    if(P.g){P.g.rotation.y=yaw+Math.PI;P.g.position.copy(P.p);poseGun();}
     if(BUS.glider){
         BUS.glider.visible=BUS.phase==='glide';
         if(BUS.glider.visible)BUS.glider.position.set(P.p.x,P.p.y+2.5,P.p.z);
@@ -2507,11 +2536,10 @@ document.addEventListener('mousemove',e=>{
     yaw-=e.movementX*.0022;
     pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
 });
-// ADS is a latch, not a hold: a tap of either mouse button turns the zoom on and
-// the next tap turns it off. LMB also shoots, so its shot is deferred by TAP_MS to
-// tell a tap apart from a hold-to-fire.
-const TAP_MS=120;
-let tapT=null,aimLock=false;
+// ADS is a latch on the keyboard: T turns the zoom on, T again turns it off. The
+// mouse buttons are then free — LMB shoots, RMB only does build work.
+const ADS_KEY='KeyT';
+let aimLock=false;
 function uAim(){P.aiming=aimLock;}
 document.addEventListener('mousedown',e=>{
     if(!G.play||G.dead)return;
@@ -2519,22 +2547,18 @@ document.addEventListener('mousedown',e=>{
         if(BUS.phase==='bus')jumpFromBus();
         return;
     }
-    if(e.button===0){                                    // LMB: place / confirm / tap-zoom / shoot
+    if(e.button===0){                                    // LMB: place / confirm / shoot
         if(BLD.edit){endEdit(true);return;}
         if(BLD.mode){placePiece();return;}
-        tapT=setTimeout(()=>{
-            tapT=null;shoot();
-            const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);
-        },TAP_MS);
-    }else if(e.button===2){                              // RMB: toggle ADS, or pick a build to edit
+        shoot();
+        const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);
+    }else if(e.button===2){                              // RMB: edit a build, nothing else
         if(BLD.edit){endEdit(false);return;}
         if(BLD.mode){startEdit();return;}
-        aimLock=!aimLock;uAim();
     }
 });
 document.addEventListener('mouseup',e=>{
     if(e.button===0){
-        if(tapT){clearTimeout(tapT);tapT=null;aimLock=!aimLock;uAim();}
         clearInterval(si);si=null;
     }
 });
@@ -2563,6 +2587,7 @@ document.addEventListener('keydown',e=>{
         else{BLD.mode=!BLD.mode;uBuildBar();}
     }
     if(PBIND[e.code]!==undefined)setPiece(PBIND[e.code]);              // X/C/B/V piece (and convert while editing)
+    if(e.code===ADS_KEY){aimLock=!aimLock;uAim();return;}               // T toggles the aim zoom
     if(e.code==='KeyF')BLD.edit?endEdit(true):startEdit();             // F edit building
     if(e.code==='KeyG'){                                               // G delete a build
         const t=BLD.edit||targetPiece();
@@ -2592,6 +2617,7 @@ let lastUp=0,frameMod=0;
 function update(now){
     if(!G.play)return;
     const dt=Math.min(50,lastUp?now-lastUp:16.7);lastUp=now;
+    uTrc();   // before the drop branch, so trails do not freeze mid-air in flight
     if(dp){uDrop(dt,now);return;}
     if(G.dead)return;
     frameMod++;
@@ -2623,11 +2649,9 @@ function update(now){
     if(mov&&G.og)C.position.y+=Math.sin(G.hbs)*.03*(crouch?.4:1);
     uGhost();
 
-    // Gun: recoil and sway now live on the hand mount
+    // Gun: recoil feeds the barrel lift inside poseGun(); only the flash fades here.
     if(gg){
-        if(G.rc>.0003){G.rc*=.78;gg.position.z=-.2+G.rc*2;gg.rotation.x=-G.rc*3;}
-        else if(G.rc){G.rc=0;gg.position.z=-.2;gg.rotation.x=0;}
-        if(mov)gg.position.x=Math.sin(now*.005)*.012;
+        if(G.rc>.0003)G.rc*=.78;else G.rc=0;
         if(mf&&mf.material.opacity>0)mf.material.opacity-=.22;
     }
 
@@ -2683,6 +2707,72 @@ function animate(now){
     update(now);
     R.render(S,C);
     uFPS();
+}
+
+// ===== TRACERS =====
+// Both guns are hitscan, so before this nothing was visible along a bullet's path.
+// A tracer is one thin bar stretched muzzle-to-impact that fades in about eight
+// frames, which keeps a burst readable instead of turning the screen into lasers.
+const TRC={list:[],max:48};
+const TRC_MINE=0xffe066,TRC_ENEMY=0xff5a32;
+
+function mkTrc(a,b,col){
+    const len=a.distanceTo(b);
+    if(len<.3)return;
+    if(TRC.list.length>=TRC.max){const old=TRC.list.shift();S.remove(old.m);old.m.material.dispose();}
+    const m=new THREE.Mesh(GEO.box,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.85,depthWrite:false}));
+    m.position.copy(a).add(b).multiplyScalar(.5);
+    m.lookAt(b);
+    m.scale.set(.05,.05,len);
+    S.add(m);
+    TRC.list.push({m,l:1});
+}
+
+// Where the line stops: the first thing the bullet ray meets, or full range.
+function trcEnd(rc,rng){
+    const far=rc.far;
+    rc.far=rng;
+    let d=rng;
+    const obs=nearObs.length?nearObs:obsCache;
+    const h=rc.intersectObjects(obs,false);
+    if(h.length&&h[0].distance<d)d=h[0].distance;
+    const bots=G.bots.filter(b=>b.alive).map(b=>b.g);
+    if(bots.length){const hb=rc.intersectObjects(bots,true);if(hb.length&&hb[0].distance<d)d=hb[0].distance;}
+    if(MODE==='practice'){
+        const ht=rc.intersectObjects(G.tg.map(t=>t.face),true);
+        if(ht.length&&ht[0].distance<d)d=ht[0].distance;
+    }
+    rc.far=far;
+    return rc.ray.at(d,new THREE.Vector3());
+}
+
+function trcShot(rc,rng){
+    const st=new THREE.Vector3();
+    if(mf)mf.getWorldPosition(st);else st.copy(rc.ray.origin);
+    mkTrc(st,trcEnd(rc,rng),TRC_MINE);
+}
+
+// Enemy shots are a dice roll, not a ray, so the bar is drawn from the shooter to
+// the target and pushed off to one side when that roll says the shot missed.
+function bTrc(bot,isP,hit){
+    const np=isP?new THREE.Vector3(P.p.x,0,P.p.z):(bot.en?new THREE.Vector3(bot.en.g.position.x,0,bot.en.g.position.z):null);
+    if(!np)return;
+    const st=new THREE.Vector3(bot.g.position.x,1.45,bot.g.position.z);
+    let en=new THREE.Vector3(np.x,1.15,np.z);
+    if(!hit){
+        const a=Math.random()*6.283,r=1+Math.random()*2;
+        en=new THREE.Vector3(np.x+Math.sin(a)*r,1.15+Math.cos(a)*r*.5,np.z+Math.cos(a)*r);
+    }
+    mkTrc(st,en,TRC_ENEMY);
+}
+
+function uTrc(){
+    TRC.list=TRC.list.filter(t=>{
+        t.l-=.14;
+        if(t.l<=0){S.remove(t.m);t.m.material.dispose();return false;}
+        t.m.material.opacity=t.l*.85;
+        return true;
+    });
 }
 
 // ===== PRACTICE RANGE =====
