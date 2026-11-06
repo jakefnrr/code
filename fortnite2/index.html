@@ -431,12 +431,17 @@ let _pt=0;
 const _axX=new THREE.Vector3(1,0,0);
 const _qHalf=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);
 const _gq=new THREE.Quaternion(),_gpv=new THREE.Vector3(),_lpv=new THREE.Vector3(),_lvv=new THREE.Vector3();
+const _bv=new THREE.Vector3(),_pv=new THREE.Vector3();
+const _LOW=new THREE.Vector3(0,-.05,0),_SHL=new THREE.Vector3(-.48,1.42,0);
+// Shoulder to hand centre, measured off the arm boxes in mkPlayer.
+const GUN_ARM=.66;
 // The rig has no elbows, so a hand can only sit one arm-length (0.66) from its
 // shoulder, at (+-0.48, 1.42). This mount was solved against those two spheres and
-// the grip points below, so both hands land on the weapon: at the next-best height
-// and reach the hands drift 9cm off it, and hanging it from the right hand at the hip
-// is what made it look like the character had dropped it. The stock ends inside the
-// chest box, which is what shouldering a rifle looks like on a blocky rig.
+// the grip and barrel points mkGun measures, so both hands land on the weapon: the
+// next-best height and reach leaves the hands 9cm off it, and hanging the gun from
+// the right hand at the hip is what made it look like the character had dropped it.
+// The stock ends inside the chest box, which is what shouldering a rifle looks like
+// on a blocky rig.
 const GUN_POS=new THREE.Vector3(-.12,1.28,.14);
 // Aim an elbow-less limb, which hangs along its local -Y, at a rig-space target:
 // rz carries the sideways angle, rx the forward one.
@@ -447,8 +452,7 @@ function aimLimb(piv,sx,sy,t){
 // The weapon follows the camera, not the arm swing: its muzzle runs along gun-local
 // -Z while the rig's front is +Z, so the half turn about Z brings the barrel forward
 // and the turn about X adds the camera pitch plus the recoil lift. Both arms are then
-// solved to the grip points that orientation puts them at, so the hands keep tracking
-// the weapon as it tilts up and down.
+// solved onto it, so the hands keep tracking the weapon as it tilts up and down.
 function poseGun(skipArms){
     if(!gg||!P.g)return;
     if(gg.parent!==P.g)P.g.add(gg);
@@ -457,9 +461,16 @@ function poseGun(skipArms){
     gg.quaternion.copy(_gq);
     if(skipArms||!P.shR)return;
     const hd=gg.userData.hold;
-    _gpv.copy(hd.g).applyQuaternion(_gq).add(GUN_POS);
-    _lpv.copy(hd.f).applyQuaternion(_gq).add(GUN_POS);
-    aimLimb(P.shR,.48,1.42,_gpv);
+    aimLimb(P.shR,.48,1.42,_gpv.copy(hd.g).applyQuaternion(_gq).add(GUN_POS));
+    // The off hand goes as far down the barrel as the straight left arm reaches: solve
+    // |start + d*barrel - shoulder| = arm for d, and never let it sit past the muzzle.
+    // A fixed foregrip point pushed it 17cm in front of a pistol's barrel.
+    _bv.set(0,0,-1).applyQuaternion(_gq);
+    _pv.copy(GUN_POS).add(_LOW).sub(_SHL);
+    const b=_pv.dot(_bv),disc=b*b-_pv.lengthSq()+GUN_ARM*GUN_ARM;
+    const reach=Math.max(.06,-hd.tip-.05);
+    const d=disc>0?Math.min(reach,Math.max(.06,-b+Math.sqrt(disc))):reach;
+    _lpv.copy(GUN_POS).add(_LOW).addScaledVector(_bv,d);
     aimLimb(P.shL,-.48,1.42,_lpv);
 }
 function uPlayer(dt,mov){
@@ -1766,7 +1777,7 @@ function mkGun(name){
     // the muzzle, so both are placed from this instead.
     let tip=0;
     gg.children.forEach(c=>{if(c.isMesh){let z=c.position.z-c.scale.z/2;if(z<tip)tip=z;}});
-    gg.userData.hold={g:new THREE.Vector3(0,-.12,tip*.08),f:new THREE.Vector3(0,-.05,Math.max(-.42,tip*.55))};
+    gg.userData.hold={g:new THREE.Vector3(0,-.12,tip*.08),tip:tip};
     mf=new THREE.Mesh(GEO.sphere,new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:0}));
     mf.position.set(0,.02,tip-.02);mf.scale.set(.07,.07,.12);gg.add(mf);
     // The rig holds the weapon at the chest; poseGun() re-parents it if P.g did not
@@ -2677,7 +2688,7 @@ function update(now){
     // Gun: recoil feeds the barrel lift inside poseGun(); only the flash fades here.
     if(gg){
         if(G.rc>.0003)G.rc*=.78;else G.rc=0;
-        if(mf&&mf.material.opacity>0)mf.material.opacity-=.22;
+        if(mf&&mf.material.opacity>0)mf.material.opacity=Math.max(0,mf.material.opacity-.22);
     }
 
     // Loot float (every 4th frame)
