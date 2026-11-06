@@ -440,7 +440,6 @@
         
         #health-bar { background: linear-gradient(90deg, #ff4d4d, #ff8888); }
         #shield-bar { background: linear-gradient(90deg, #0072ff, #00d2ff); }
-        #overshield-bar { background: linear-gradient(90deg, #ffaa00, #ffff00); }
 
         /* Resources Bar - Compact */
         #resources-bar {
@@ -947,9 +946,6 @@
             gap: 6px 12px;
             margin: 18px 0;
         }
-        .bind-row {
-            display: contents;
-        }
         .bind-label {
             padding: 7px 10px;
             background: rgba(255,255,255,0.06);
@@ -1018,6 +1014,12 @@
             font-weight: 700;
         }
         .build-piece .piece-icon { font-size: 1.2rem; display: block; }
+        .build-piece .piece-key {
+            display: block;
+            font-size: 0.6rem;
+            color: #7fe3ff;
+            margin-top: 2px;
+        }
         .build-piece.selected { border-color: #00d2ff; background: rgba(0, 90, 130, 0.75); }
         .build-piece.no-wood { opacity: 0.4; }
         #build-hint {
@@ -1236,21 +1238,21 @@
         <!-- Build Mode UI -->
         <div id="build-bar">
             <div class="build-piece selected" id="piece-wall" onclick="selectPiece('wall')">
-                <span class="piece-icon">🧱</span>WALL
+                <span class="piece-icon">🧱</span>WALL<span class="piece-key">C</span>
             </div>
             <div class="build-piece" id="piece-floor" onclick="selectPiece('floor')">
-                <span class="piece-icon">⬛</span>FLOOR
+                <span class="piece-icon">⬛</span>FLOOR<span class="piece-key">X</span>
             </div>
             <div class="build-piece" id="piece-ramp" onclick="selectPiece('ramp')">
-                <span class="piece-icon">📐</span>RAMP
+                <span class="piece-icon">📐</span>RAMP<span class="piece-key">V</span>
             </div>
-            <div class="build-piece" id="piece-stair" onclick="selectPiece('stair')">
-                <span class="piece-icon">🪜</span>STAIRS
+            <div class="build-piece" id="piece-cone" onclick="selectPiece('cone')">
+                <span class="piece-icon">🔺</span>CONE<span class="piece-key">Z</span>
             </div>
         </div>
-        <div id="build-hint">LMB place &middot; Q piece &middot; RMB edit &middot; F harvest &middot; B exit</div>
+        <div id="build-hint">LMB place &middot; C X V Z piece &middot; F edit &middot; Q exit</div>
         <div id="drop-banner"></div>
-        <div id="edit-mode-badge">EDIT MODE &mdash; LMB toggle tile &middot; RMB exit</div>
+        <div id="edit-mode-badge">EDIT MODE &mdash; LMB toggle tile &middot; F exit</div>
 
         <!-- HUD Container -->
         <div id="hud-container">
@@ -1289,25 +1291,12 @@
                     <div class="stat-header">
                         <div class="stat-icon">🛡️</div>
                         <div class="stat-title">Shield</div>
-                        <div class="stat-value" id="shield-value">100</div>
+                        <div class="stat-value" id="shield-value">0</div>
                     </div>
                     <div class="stat-bar-container">
-                        <div id="shield-bar" class="stat-bar" style="width: 100%"></div>
+                        <div id="shield-bar" class="stat-bar" style="width: 0%"></div>
                     </div>
                 </div>
-                
-                <!-- Overshield -->
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon">🔥</div>
-                        <div class="stat-title">Overshield</div>
-                        <div class="stat-value" id="overshield-value">50</div>
-                    </div>
-                    <div class="stat-bar-container">
-                        <div id="overshield-bar" class="stat-bar" style="width: 100%"></div>
-                    </div>
-                </div>
-                
                 <!-- Resources -->
                 <div id="resources-bar">
                     <div class="resource-item">
@@ -1359,10 +1348,10 @@
             <div id="btn-reload" class="mobile-button">RELOAD</div>
 
             <div id="mobile-piece-select">
-                <div class="mobile-piece-btn selected" data-piece="wall">W</div>
-                <div class="mobile-piece-btn" data-piece="floor">F</div>
-                <div class="mobile-piece-btn" data-piece="ramp">R</div>
-                <div class="mobile-piece-btn" data-piece="stair">S</div>
+                <div class="mobile-piece-btn selected" data-piece="wall">C</div>
+                <div class="mobile-piece-btn" data-piece="floor">X</div>
+                <div class="mobile-piece-btn" data-piece="ramp">V</div>
+                <div class="mobile-piece-btn" data-piece="cone">Z</div>
             </div>
         </div>
     </div>
@@ -1415,15 +1404,23 @@
         const PLAYER_HEIGHT = 1.8;
         const PLAYER_RADIUS = 0.5;
         const STEP_UP = 0.6;
+        const SHIELD_MAX = 100;      // overshields are gone; shields cap here
+        const CROUCH_HEIGHT = 1.1;   // eye-to-feet while Shift is held
+        const CROUCH_SPEED = 4;      // crouching is slow but quiet
+        const MANTLE_MIN = 0.6;      // STEP_UP already covers anything lower
+        const MANTLE_MAX = 2.2;      // tallest ledge you can vault onto
+        const MANTLE_TIME = 260;     // ms of the step-up animation
 
         // --- BUILD SYSTEM ---
         const GRID = 4;              // metres per build cell
         const PIECE_H = 4;           // vertical spacing between build levels
         const BUILD_COST = 10;       // wood per piece
-        const PIECE_HP = 150;        // structure health
+        const PIECE_HP = 100;        // structure health — two pickaxe swings
         const EDIT_TILES = 2;        // wall/floor split into EDIT_TILES x EDIT_TILES panels
         const BUILD_REACH = 9;       // how far ahead a piece may land
         const EDIT_REACH = 12;
+        const TURBO_BUILD_MS = 110;  // turbo: one piece per this interval while LMB is held
+        const BUILD_PROBE_START = 2; // metres along the reticle before a cell is eligible
 
         // --- BOT COMBAT ---
         const BOT_SIGHT_RANGE = 55;
@@ -1432,10 +1429,15 @@
         const BOT_BUILD_CHANCE = 0.7;
         const BOT_THINK_MS = 140;
         const BOT_MEMORY_MS = 12000;
-        
-        const OVER_SHIELD_MAX = 50;
-        const OVER_SHIELD_REGEN_RATE = 15;
-        const OVER_SHIELD_REGEN_DELAY = 3000;
+
+        // --- PICKAXE ---
+        const PICKAXE_RANGE = 6;                       // melee reach from the body, metres
+        const PICKAXE_RATE = 450;                      // ms between swings
+        const PICKAXE_STRUCT_DAMAGE = 50;              // two swings break a built piece
+        const PICKAXE_PLAYER_DAMAGE = 25;
+        const PICKAXE_WOOD_STRUCTURE = 5;              // per swing on a player build
+        const PICKAXE_WOOD_PROP = 10;                  // per swing on a tree or world building
+        const WORLD_PROP_HP = 200;
         
         // Level System
         let playerLevel = 1;
@@ -1451,11 +1453,11 @@
         
         // Level perks
         const LEVEL_PERKS = [
-            { level: 1, perks: ["+5% Dmg", "+10 Shield"] },
-            { level: 5, perks: ["+10% Dmg", "+25 Shield", "+5% Speed"] },
-            { level: 10, perks: ["+15% Dmg", "+50 Shield", "+10% Speed"] },
-            { level: 15, perks: ["+20% Dmg", "+75 Shield", "+15% Speed"] },
-            { level: 20, perks: ["+25% Dmg", "+100 Shield", "+20% Speed"] }
+            { level: 1, perks: ["+0% Dmg", "+0% Speed"] },
+            { level: 5, perks: ["+10% Dmg", "+5% Speed"] },
+            { level: 10, perks: ["+15% Dmg", "+10% Speed"] },
+            { level: 15, perks: ["+20% Dmg", "+15% Speed"] },
+            { level: 20, perks: ["+25% Dmg", "+20% Speed"] }
         ];
         
         // --- WEAPONS CONFIG ---
@@ -1498,13 +1500,18 @@
         const CONSUMABLE_KEYS = Object.keys(CONSUMABLES);
 
         // --- STORM PHASES ---
+        // `time` is the countdown the HUD shows before that circle starts closing,
+        // `close` is how long the actual shrink takes, so a phase lasts time+close.
+        // The opening radius clears the map corners (424m out) so nobody lands
+        // already standing in the storm.
+        const STORM_START_RADIUS = WORLD_SIZE * 0.75;
         const STORM_PHASES = [
-            { time: 60, radius: WORLD_SIZE * 0.5, damage: 3, status: "Wait" }, 
-            { time: 60, radius: WORLD_SIZE * 0.4, damage: 3, status: "Shrink" }, 
-            { time: 120, radius: WORLD_SIZE * 0.4, damage: 3, status: "Hold" }, 
-            { time: 60, radius: WORLD_SIZE * 0.3, damage: 5, status: "Shrink" }, 
-            { time: 60, radius: WORLD_SIZE * 0.18, damage: 7, status: "Shrink" },
-            { time: 45, radius: 14, damage: 12, status: "Final" }
+            { time: 10, close: 10, radius: WORLD_SIZE * 0.42, damage: 3, status: "STORM 1" },
+            { time: 20, close: 15, radius: WORLD_SIZE * 0.30, damage: 3, status: "STORM 2" },
+            { time: 20, close: 15, radius: WORLD_SIZE * 0.20, damage: 5, status: "STORM 3" },
+            { time: 20, close: 15, radius: WORLD_SIZE * 0.12, damage: 7, status: "STORM 4" },
+            { time: 10, close: 10, radius: WORLD_SIZE * 0.06, damage: 9, status: "STORM 5" },
+            { time: 5,  close: 5,  radius: 14, damage: 12, status: "FINAL" }
         ];
 
         // ===============================================================
@@ -1518,19 +1525,20 @@
             ['back',       'KeyS',        'Move back'],
             ['left',       'KeyA',        'Move left'],
             ['right',      'KeyD',        'Move right'],
-            ['sprint',     'ShiftLeft',   'Sprint'],
+            ['sprint',     'ControlLeft', 'Sprint'],
+            ['crouch',     'ShiftLeft',   'Crouch (hold)'],
             ['jump',       'Space',       'Jump / leave bus / glider'],
-            ['use',        'Mouse0',      'Fire / use / place'],
+            ['use',        'Mouse0',      'Fire / place / chop (pickaxe)'],
             ['ads',        'Mouse2',      'Aim (toggle)'],
             ['interact',   'KeyE',        'Open chest / vehicle'],
-            ['harvest',    'KeyF',        'Harvest / chop'],
+            ['edit',       'KeyF',        'Edit the build I am aiming at'],
             ['reload',     'KeyR',        'Reload'],
-            ['build',      'KeyB',        'Build menu'],
-            ['pieceWall',  'KeyX',        'Wall'],
-            ['pieceFloor', 'KeyC',        'Floor'],
-            ['pieceStair', 'KeyZ',        'Stair'],
-            ['pieceCone',  'KeyV',        'Cone'],
-            ['cyclePiece', 'KeyQ',        'Next build piece'],
+            ['build',      'KeyQ',        'Blueprint'],
+            ['pieceWall',  'KeyC',        'Wall'],
+            ['pieceFloor', 'KeyX',        'Floor'],
+            ['pieceRamp',  'KeyV',        'Ramp'],
+            ['pieceCone',  'KeyB',        'Cone'],
+            ['pickaxe',    'Tab',         'Equip pickaxe'],
             ['slot1',      'Digit1',      'Slot 1 (pickaxe)'],
             ['slot2',      'Digit2',      'Slot 2'],
             ['slot3',      'Digit3',      'Slot 3'],
@@ -1540,21 +1548,27 @@
             ['cancel',     'Escape',      'Exit edit / settings'],
         ];
 
+        const INVENTORY_SIZE = 6;   // pickaxe in slot 1, then five weapon/item slots
+
         const DEFAULT_BINDS = {};
         for (const [action, code] of BIND_ACTIONS) DEFAULT_BINDS[action] = code;
 
         // Actions that stay active while held; everything else fires once per press.
-        const HELD_BINDS = new Set(['forward', 'back', 'left', 'right', 'sprint', 'jump', 'harvest', 'use']);
+        const HELD_BINDS = new Set(['forward', 'back', 'left', 'right', 'sprint', 'crouch', 'jump', 'use']);
 
         let keybinds = Object.assign({}, DEFAULT_BINDS);
         let heldBinds = {};
         let rebindTarget = null;
         let settingsOpen = false;
 
+        // The action set changed shape when the build keys moved, so an older saved map
+        // would resurrect retired bindings like B-for-blueprint. Version the storage key.
+        const KEYBIND_STORE = 'fortniteKeybinds.v2';
+
         function loadKeybinds() {
             keybinds = Object.assign({}, DEFAULT_BINDS);
             try {
-                const saved = JSON.parse(localStorage.getItem('fortniteKeybinds') || '{}');
+                const saved = JSON.parse(localStorage.getItem(KEYBIND_STORE) || '{}');
                 for (const action of Object.keys(DEFAULT_BINDS)) {
                     if (typeof saved[action] === 'string' && saved[action]) keybinds[action] = saved[action];
                 }
@@ -1562,7 +1576,7 @@
         }
 
         function saveKeybinds() {
-            localStorage.setItem('fortniteKeybinds', JSON.stringify(keybinds));
+            localStorage.setItem(KEYBIND_STORE, JSON.stringify(keybinds));
         }
 
         function bindLabel(code) {
@@ -1575,6 +1589,20 @@
             if (/^Arrow./.test(code)) return code.slice(5).toUpperCase();
             if (/^Numpad./.test(code)) return 'NUM' + code.slice(6);
             return code.toUpperCase();
+        }
+
+        // The blueprint tiles and the mobile pad advertise their key, so those captions are
+        // drawn from the live bind table instead of being typed into the markup.
+        const PIECE_BIND_ACTION = { wall: 'pieceWall', floor: 'pieceFloor', ramp: 'pieceRamp', cone: 'pieceCone' };
+
+        function renderPieceKeys() {
+            for (const [type, action] of Object.entries(PIECE_BIND_ACTION)) {
+                const label = bindLabel(keybinds[action]);
+                const caption = document.querySelector(`#piece-${type} .piece-key`);
+                if (caption) caption.textContent = label;
+                const pad = document.querySelector(`.mobile-piece-btn[data-piece="${type}"]`);
+                if (pad) pad.textContent = label;
+            }
         }
 
         function inputId(event) {
@@ -1600,9 +1628,18 @@
             inputs.a = !!heldBinds.left;
             inputs.d = !!heldBinds.right;
             inputs.sprint = !!heldBinds.sprint;
-            inputs.harvest = !!heldBinds.harvest;
-            inputs.fire = !!heldBinds.use;
+            inputs.crouch = !!heldBinds.crouch;
+            // One button, three jobs: with the blueprint open LMB always places, with the
+            // pickaxe in hand it chops, otherwise it fires.
+            const chop = !!heldBinds.use && !buildMode && isPickaxeEquipped();
+            inputs.harvest = chop;
+            inputs.fire = !!heldBinds.use && !chop;
             if (heldBinds.jump) inputs.jump = true;
+        }
+
+        function isPickaxeEquipped() {
+            const item = player.inventory[player.slot];
+            return !!item && item.category === 'pickaxe';
         }
 
         function pressBoundAction(action) {
@@ -1612,9 +1649,10 @@
                 case 'build': toggleBuildMode(); break;
                 case 'pieceWall': pickBuildPiece('wall'); break;
                 case 'pieceFloor': pickBuildPiece('floor'); break;
-                case 'pieceStair': pickBuildPiece('stair'); break;
+                case 'pieceRamp': pickBuildPiece('ramp'); break;
                 case 'pieceCone': pickBuildPiece('cone'); break;
-                case 'cyclePiece': cyclePiece(); break;
+                case 'edit': toggleEditMode(); break;
+                case 'pickaxe': equipPickaxe(); break;
                 case 'ads': setADS(!player.ads); break;
                 case 'slot1': switchSlot(0); break;
                 case 'slot2': switchSlot(1); break;
@@ -1626,10 +1664,15 @@
             }
         }
 
-        // B then the piece key shows the ghost, so the piece keys also open the menu.
+        function equipPickaxe() {
+            const idx = player.inventory.findIndex(i => i && i.category === 'pickaxe');
+            if (idx >= 0) switchSlot(idx);
+        }
+
+        // The piece keys open the blueprint as needed, so there is nothing to cycle.
         function pickBuildPiece(type) {
-            if (dropPhase !== 'landed') { flashHint('build after you land'); return; }
             if (!buildMode) toggleBuildMode(true);
+            if (editMode) exitEditMode();
             selectPiece(type);
         }
 
@@ -1654,6 +1697,7 @@
                 list.appendChild(name);
                 list.appendChild(key);
             }
+            renderPieceKeys();
         }
 
         function captureRebind(input) {
@@ -1697,29 +1741,30 @@
 
         let scene, camera, renderer, controls;        
         // Player stats
+        // You arrive with a pickaxe and 100 wood and nothing else: guns are chest loot.
         let player = { 
-            health: 100, shield: 100, overshield: 50, wood: 0, 
-            inventory: [null, null, null, null, null], slot: 0, 
+            health: 100, shield: 0, wood: 100, 
+            inventory: [createPickaxeItem(), null, null, null, null, null], slot: 0, 
             dead: false, ads: false, vehicle: null, eliminations: 0,
+            crouching: false,
             isReloading: false,
             isHealing: false,
             healingItem: null,
             healingStartTime: 0,
             lastStormDamage: 0,
-            lastOvershieldDamage: 0, 
-            overshieldRegenTimer: null,
-            lastOvershieldBreak: 0,
             levelDamageMultiplier: 1.0,
-            levelShieldBonus: 0,
             levelSpeedMultiplier: 1.0,
             isMoving: false
         };
         
-        let inputs = { w: false, a: false, s: false, d: false, jump: false, sprint: false, fire: false, reload: false, use: false, harvest: false };
+        let inputs = { w: false, a: false, s: false, d: false, jump: false, sprint: false, crouch: false, fire: false, reload: false, use: false, harvest: false };
         let velocity = new THREE.Vector3();
         let isGrounded = false;
+        let mantle = null;        // in-flight vault: {feetFrom, feetTo, x/z From/To, start}
         let lastTime = performance.now();
         let lastShot = 0;
+        let lastPickaxeSwing = 0;
+        let lastPlaceTick = 0;
 
         // --- THIRD PERSON RIG -------------------------------------------
         // playerPos is the gameplay anchor (eye level, feet = playerPos.y - PLAYER_HEIGHT).
@@ -1785,7 +1830,7 @@
         let lastHarvestTick = 0;
 
         // Storm State
-        let stormRadius = STORM_PHASES[0].radius;
+        let stormRadius = STORM_START_RADIUS;
         let stormCenter = new THREE.Vector2(0, 0);
         let stormDamageRate = STORM_PHASES[0].damage;
         let stormPhaseTime = STORM_PHASES[0].time; 
@@ -1834,27 +1879,22 @@
 
         function applyLevelBonuses() {
             player.levelDamageMultiplier = 1.0;
-            player.levelShieldBonus = 0;
             player.levelSpeedMultiplier = 1.0;
             
             if (playerLevel >= 5) {
                 player.levelDamageMultiplier = 1.1;
-                player.levelShieldBonus = 25;
                 player.levelSpeedMultiplier = 1.05;
             }
             if (playerLevel >= 10) {
                 player.levelDamageMultiplier = 1.15;
-                player.levelShieldBonus = 50;
                 player.levelSpeedMultiplier = 1.1;
             }
             if (playerLevel >= 15) {
                 player.levelDamageMultiplier = 1.2;
-                player.levelShieldBonus = 75;
                 player.levelSpeedMultiplier = 1.15;
             }
             if (playerLevel >= 20) {
                 player.levelDamageMultiplier = 1.25;
-                player.levelShieldBonus = 100;
                 player.levelSpeedMultiplier = 1.2;
             }
         }
@@ -2209,14 +2249,14 @@
         }
 
         // Panels are modelled slightly smaller than a tile so the grid reads visually;
-        // pad the box so seams don't let bullets or line of sight slip through. Ramps and
-        // stairs are climbed via their analytic surface, so they must not contribute the
-        // cube that encloses their rotated mesh.
+        // pad the box so seams don't let bullets or line of sight slip through. Ramps are
+        // climbed via their analytic surface and cones are roofs you walk under, so neither
+        // contributes the cube that encloses its mesh.
         function panelSolid(piece, p) {
             if (!p.box) p.box = boxOf(p.mesh).expandByScalar(0.05);
             return addSolid(p.box, {
                 obj: p.mesh, piece: piece, panel: p,
-                blocks: piece.type !== 'ramp' && piece.type !== 'stair'
+                blocks: piece.type !== 'ramp' && piece.type !== 'cone'
             });
         }
 
@@ -2298,7 +2338,7 @@
             return best;
         }
 
-        // T to null when (x,z) is outside the ramp/stair footprint. 0 = low edge, 1 = high edge.
+        // T to null when (x,z) is outside the ramp footprint. 0 = low edge, 1 = high edge.
         function rampT(rm, x, z) {
             if (Math.abs(x - rm.cx) > GRID / 2 || Math.abs(z - rm.cz) > GRID / 2) return null;
             let t;
@@ -2313,14 +2353,7 @@
             let t = rampT(rm, x, z);
             if (t === null) return null;
             if (rm.editState === 'open') { t = t > 0.5 ? t : null; if (t === null) return null; }
-            let rise = rm.baseY + t * PIECE_H;
-            if (rm.type === 'stair') {
-                rise = rm.baseY + Math.floor(t * 4) / 4 * PIECE_H;   // stand on treads
-                if (rm.editState === 'peaked') rise = rm.baseY + PIECE_H;
-            } else if (rm.editState === 'peaked') {
-                rise = rm.baseY + PIECE_H;
-            }
-            return rise;
+            return rm.baseY + (rm.editState === 'peaked' ? PIECE_H : t * PIECE_H);
         }
 
         // Move an entity on the XZ plane, sliding along blockers.
@@ -2328,6 +2361,56 @@
             let feet = feetRef.y;
             if (Math.abs(dx) > 0.0001 && !blockedAt(pos.x + dx, pos.z, feet, radius, height)) pos.x += dx;
             if (Math.abs(dz) > 0.0001 && !blockedAt(pos.x, pos.z + dz, feet, radius, height)) pos.z += dz;
+        }
+
+        // --- CROUCH & MANTLE ------------------------------------------
+        // playerPos.y is the top of the body, so crouching lowers the anchor by exactly
+        // the height removed and standing back up needs the room to be clear.
+        function playerHeight() {
+            return player.crouching ? CROUCH_HEIGHT : PLAYER_HEIGHT;
+        }
+
+        function setCrouch(on) {
+            if (on === player.crouching) return;
+            const feet = feetY();
+            if (!on && blockedAt(playerPos.x, playerPos.z, feet, PLAYER_RADIUS, PLAYER_HEIGHT)) return;
+            player.crouching = on;
+            playerPos.y = feet + playerHeight();
+        }
+
+        // Vaulting onto a ledge you are walking into: taller than STEP_UP, low enough to
+        // haul yourself over, and clear on the far side.
+        function tryMantle(wishX, wishZ) {
+            const feet = feetY();
+            const nx = playerPos.x + wishX * 0.9;
+            const nz = playerPos.z + wishZ * 0.9;
+            const blocker = blockedAt(nx, nz, feet, PLAYER_RADIUS, playerHeight());
+            if (!blocker) return false;
+            const ledge = blocker.box.max.y;
+            const rise = ledge - feet;
+            if (rise < MANTLE_MIN || rise > MANTLE_MAX) return false;
+            if (blockedAt(nx, nz, ledge, PLAYER_RADIUS, PLAYER_HEIGHT)) return false;
+            if (surfaceYAt(nx, nz, ledge, PLAYER_RADIUS) > ledge + 0.5) return false;
+            mantle = {
+                feetFrom: feet, feetTo: ledge,
+                xFrom: playerPos.x, zFrom: playerPos.z, xTo: nx, zTo: nz,
+                start: performance.now()
+            };
+            velocity.set(0, 0, 0);
+            return true;
+        }
+
+        function updateMantle(now) {
+            const p = Math.min(1, (now - mantle.start) / MANTLE_TIME);
+            const ease = p * p * (3 - 2 * p);
+            playerPos.x = THREE.MathUtils.lerp(mantle.xFrom, mantle.xTo, ease);
+            playerPos.z = THREE.MathUtils.lerp(mantle.zFrom, mantle.zTo, ease);
+            playerPos.y = THREE.MathUtils.lerp(mantle.feetFrom, mantle.feetTo, ease) + playerHeight();
+            if (p >= 1) {
+                mantle = null;
+                velocity.y = 0;
+                isGrounded = true;
+            }
         }
 
         // ===============================================================
@@ -2761,52 +2844,51 @@
 
             const nextPhase = STORM_PHASES[stormPhase];
             if (!nextPhase) return;
-            
-            stormPhaseTimer = nextPhase.time;
+
+            const waitSeconds = nextPhase.time;
+            const closeSeconds = nextPhase.close || 10;
+            const totalSeconds = waitSeconds + closeSeconds;
+            let ticksLeft = totalSeconds;
+
+            stormPhaseTimer = waitSeconds;
             document.getElementById('storm-status').innerText = nextPhase.status;
-            stormDamageRate = nextPhase.damage; 
-            
+            document.getElementById('storm-timer').innerText = formatTime(waitSeconds);
+            stormDamageRate = nextPhase.damage;
+
             const startRadius = stormRadius;
             const endRadius = nextPhase.radius;
-            const startTime = performance.now();
 
             // The safe zone drifts toward a new centre each shrink, so camping the
             // middle of the first circle stops being a winning strategy.
             stormCenterStart.copy(stormCenter);
-            if (nextPhase.status === "Shrink" || nextPhase.status === "Final") {
-                const drift = Math.max(0, startRadius - endRadius) * 0.55;
-                const a = Math.random() * Math.PI * 2;
-                stormCenterNext.set(
-                    stormCenterStart.x + Math.cos(a) * drift,
-                    stormCenterStart.y + Math.sin(a) * drift
-                );
-            } else {
-                stormCenterNext.copy(stormCenterStart);
-            }
+            const drift = Math.max(0, startRadius - endRadius) * 0.55;
+            const a = Math.random() * Math.PI * 2;
+            stormCenterNext.set(
+                stormCenterStart.x + Math.cos(a) * drift,
+                stormCenterStart.y + Math.sin(a) * drift
+            );
 
             stormTimerInterval = setInterval(() => {
                 if (player.dead) {
                     clearInterval(stormTimerInterval);
                     return;
                 }
-                
-                stormPhaseTimer -= 1;
-                document.getElementById('storm-timer').innerText = formatTime(stormPhaseTimer);
-                
-                if (nextPhase.status === "Shrink" || nextPhase.status === "Final") {
-                    const elapsed = performance.now() - startTime;
-                    const duration = nextPhase.time * 1000;
-                    const t = Math.min(1, elapsed / duration);
+
+                ticksLeft--;
+                const closing = ticksLeft < closeSeconds;
+
+                if (closing) {
+                    const t = Math.min(1, (closeSeconds - ticksLeft) / closeSeconds);
                     stormRadius = startRadius + (endRadius - startRadius) * t;
                     stormCenter.lerpVectors(stormCenterStart, stormCenterNext, t);
-                    stormActive = true; 
-                } else if (nextPhase.status === "Hold") {
                     stormActive = true;
-                } else {
-                    stormActive = false;
+                    document.getElementById('storm-status').innerText = 'CLOSING';
                 }
 
-                if (stormPhaseTimer <= 0) {
+                stormPhaseTimer = Math.max(0, closing ? ticksLeft : ticksLeft - closeSeconds);
+                document.getElementById('storm-timer').innerText = formatTime(stormPhaseTimer);
+
+                if (ticksLeft <= 0) {
                     clearInterval(stormTimerInterval);
                     stormPhase++;
                     startStormTimer();
@@ -2843,8 +2925,9 @@
         const _aimFromV = new THREE.Vector3();
         const _gunTipV = new THREE.Vector3();
 
-        function feetY() { return playerPos.y - PLAYER_HEIGHT; }
-        function playerChest(out) { return (out || _chestV).set(playerPos.x, feetY() + 1.15, playerPos.z); }
+        // playerPos.y is the crown of the body, so crouching lowers the feet anchor too.
+        function feetY() { return playerPos.y - playerHeight(); }
+        function playerChest(out) { return (out || _chestV).set(playerPos.x, feetY() + playerHeight() * 0.64, playerPos.z); }
         function playerFeet(out) { return (out || _feetV).set(playerPos.x, feetY(), playerPos.z); }
 
         // The character you actually see: primitives today, your Spitfire .glb later.
@@ -3458,7 +3541,7 @@
             wall:  { label: 'WALL',  icon: '🧱' },
             floor: { label: 'FLOOR', icon: '⬛' },
             ramp:  { label: 'RAMP',  icon: '📐' },
-            stair: { label: 'STAIRS', icon: '🪜' }
+            cone:  { label: 'CONE',  icon: '🔺' }
         };
 
         function cellFloor(v) { return Math.floor(v / GRID); }
@@ -3519,23 +3602,16 @@
             return { group, panels: [{ mesh: mesh, open: false, box: null }] };
         }
 
-        function buildStairMesh(cx, cz, baseY, yaw) {
+        // A roof cap: the pyramid sits in the top half of the cell, so you can stand on it
+        // and still walk underneath it.
+        function buildConeMesh(cx, cz, baseY) {
+            const h = PIECE_H / 2;
+            const mesh = new THREE.Mesh(new THREE.ConeGeometry(GRID * Math.SQRT2 / 2, h, 4), pieceMat(0x8f5b3a, 0.95));
+            mesh.rotation.y = Math.PI / 4;
+            mesh.position.set(cx, baseY + PIECE_H - h / 2, cz);
             const group = new THREE.Group();
-            const panels = [];
-            const steps = 4;
-            const rise = PIECE_H / steps;
-            const run = GRID / steps;
-            for (let i = 0; i < steps; i++) {
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(GRID, rise, run), pieceMat(0x9c6b3f, 0.95));
-                const dz = (i + 0.5) * run - GRID / 2;
-                if (yaw === 0) mesh.position.set(cx, baseY + rise * i + rise / 2, cz + dz);
-                else if (yaw === Math.PI) mesh.position.set(cx, baseY + rise * i + rise / 2, cz - dz);
-                else if (yaw === Math.PI / 2) mesh.position.set(cx - dz, baseY + rise * i + rise / 2, cz);
-                else mesh.position.set(cx + dz, baseY + rise * i + rise / 2, cz);
-                group.add(mesh);
-                panels.push({ mesh: mesh, open: false, box: null });
-            }
-            return { group, panels };
+            group.add(mesh);
+            return { group, panels: [{ mesh: mesh, open: false, box: null }] };
         }
 
         function buildRampMesh(cx, cz, baseY, yaw) {
@@ -3551,65 +3627,68 @@
             return { group, panels: [{ mesh: mesh, open: false, box: null }] };
         }
 
+        // The grid level is absolute, but this terrain swings ten metres, so a piece rests on
+        // whichever is higher: its level plane or the ground under it. Without that, floors
+        // sink into hillsides.
         function pieceCenter(type, gx, gz, level, orient) {
             const baseY = level * PIECE_H;
             if (type === 'wall') {
                 const cz = orient === 'ns' ? gz * GRID : cellCenter(gz);
                 const cx = orient === 'ew' ? gx * GRID : cellCenter(gx);
-                return { x: cx, y: baseY, z: cz };
+                return { x: cx, y: Math.max(baseY, getTerrainHeight(cx, cz)), z: cz };
             }
-            return { x: cellCenter(gx), y: baseY, z: cellCenter(gz) };
+            const cx = cellCenter(gx), cz = cellCenter(gz);
+            return { x: cx, y: Math.max(baseY, getTerrainHeight(cx, cz)), z: cz };
         }
 
         // Where would the next piece of `type` land, given where the body stands and looks?
-        function resolvePlacement(type) {
-            const dir = camera.getWorldDirection(new THREE.Vector3());
-            const feet = feetY();
-            const orient = facingAxis();
-            const ahead = Math.min(BUILD_REACH, 4);
-            const probeX = playerPos.x + dir.x * ahead;
-            const probeZ = playerPos.z + dir.z * ahead;
-
-            let gx, gz, o = orient;
-
+        function cellFor(type, point, orient, dir) {
+            let gx, gz;
             if (type === 'wall') {
-                if (o === 'ns') {
-                    gz = Math.round(probeZ / GRID);
-                    gx = cellFloor(probeX);
-                } else {
-                    gx = Math.round(probeX / GRID);
-                    gz = cellFloor(probeZ);
-                }
+                if (orient === 'ns') { gz = Math.round(point.z / GRID); gx = cellFloor(point.x); }
+                else { gx = Math.round(point.x / GRID); gz = cellFloor(point.z); }
             } else {
-                gx = cellFloor(probeX);
-                gz = cellFloor(probeZ);
+                gx = cellFloor(point.x);
+                gz = cellFloor(point.z);
             }
+            const level = Math.max(0, levelAt(point.y));
+            const center = pieceCenter(type, gx, gz, level, orient);
+            return {
+                type, gx, gz, level, orient, key: gridKey(type, gx, gz, level, orient),
+                center, yaw: type === 'ramp' ? rampYawFor(dir) : null
+            };
+        }
 
-            // Sit a piece on whichever is higher: where the player stands, or the ground at
-            // that cell. The terrain here is analytic, so an absolute level would bury pieces
-            // on slopes and float them in valleys.
-            const probe = pieceCenter(type, gx, gz, 0, o);
-            const surface = Math.max(feet, getTerrainHeight(probe.x, probe.z));
-            const level = levelAt(surface);
-
-            const c = pieceCenter(type, gx, gz, level, o);
-            const key = gridKey(type, gx, gz, level, o);
-
-            // Reject pieces that would trap the player inside themselves.
-            const dist = Math.hypot(c.x - playerPos.x, c.z - playerPos.z);
-            if (dist > BUILD_REACH) return null;
-            if (type !== 'ramp' && type !== 'stair') {
-                const near = Math.hypot(c.x - playerPos.x, c.z - playerPos.z) < PLAYER_RADIUS + 1.2;
-                const feetInRange = level * PIECE_H < feet + PLAYER_HEIGHT && (level + 1) * PIECE_H > feet + 0.2;
-                if (type === 'wall' && near && feetInRange) return null;
-                if (type === 'floor') {
-                    const sameCell = Math.abs(c.x - playerPos.x) < GRID / 2 && Math.abs(c.z - playerPos.z) < GRID / 2;
-                    if (sameCell && Math.abs(level * PIECE_H - feet) < 0.8) return null;
-                }
+        // A piece must never enclose the body that placed it.
+        function wouldTrapPlayer(info) {
+            // A ramp you walk onto and a cone you walk under can never trap you.
+            if (info.type === 'ramp' || info.type === 'cone') return false;
+            const feet = feetY();
+            const baseY = info.center.y;
+            const near = Math.hypot(info.center.x - playerPos.x, info.center.z - playerPos.z) < PLAYER_RADIUS + 1.2;
+            const feetInRange = baseY < feet + playerHeight() && baseY + PIECE_H > feet + 0.2;
+            if (info.type === 'wall') return near && feetInRange;
+            if (info.type === 'floor') {
+                const sameCell = Math.abs(info.center.x - playerPos.x) < GRID / 2 && Math.abs(info.center.z - playerPos.z) < GRID / 2;
+                return sameCell && Math.abs(baseY - feet) < 0.8;
             }
+            return false;
+        }
 
-            const yaw = type === 'ramp' || type === 'stair' ? rampYawFor(dir) : null;
-            return { type, gx, gz, level, orient: o, key, center: c, yaw };
+        function resolvePlacement(type) {
+            const origin = camera.position;
+            const dir = camera.getWorldDirection(new THREE.Vector3());
+            const orient = facingAxis();
+            // March the reticle and take the first cell along it that will host the piece.
+            // Starting a couple of metres out keeps pieces off the body; skipping occupied
+            // cells is what lets a held click run a wall out in front of you.
+            for (let d = BUILD_PROBE_START; d <= BUILD_REACH; d += GRID / 6) {
+                const info = cellFor(type, origin.clone().addScaledVector(dir, d), orient, dir);
+                if (Math.hypot(info.center.x - playerPos.x, info.center.z - playerPos.z) > BUILD_REACH) continue;
+                if (structures.get(info.key) || wouldTrapPlayer(info)) continue;
+                return info;
+            }
+            return null;
         }
 
         function rampYawFor(dir) {
@@ -3630,12 +3709,13 @@
                 built = { group: new THREE.Group(), panels: [{ mesh, open: false, box: null }] };
                 built.group.add(mesh);
             }
-            else if (info.type === 'stair') built = buildStairMesh(info.center.x, info.center.z, info.center.y, info.yaw);
+            else if (info.type === 'cone') built = buildConeMesh(info.center.x, info.center.z, info.center.y);
             else built = buildRampMesh(info.center.x, info.center.z, info.center.y, info.yaw);
 
-            if (info.type === 'wall' || info.type === 'floor') {
-                built.group.position.set(info.center.x, 0, info.center.z);
-            }
+            // Wall panels carry their own absolute height; a floor is modelled at the group
+            // origin, so the group has to lift it to its level.
+            if (info.type === 'wall') built.group.position.set(info.center.x, 0, info.center.z);
+            else if (info.type === 'floor') built.group.position.set(info.center.x, info.center.y, info.center.z);
             scene.add(built.group);
             // Panel collider boxes are cached below, so the group's world matrix has to
             // exist before they are measured.
@@ -3656,7 +3736,7 @@
                 ? piece.panels.reduce((acc, p) => acc.union(p.box), piece.panels[0].box.clone())
                 : new THREE.Box3().setFromObject(piece.group);
 
-            if (piece.type === 'ramp' || piece.type === 'stair') {
+            if (piece.type === 'ramp') {
                 piece.rampRef = { type: piece.type, cx: info.center.x, cz: info.center.z, baseY: info.center.y, yaw: info.yaw, piece: piece, editState: 'solid' };
                 ramps.push(piece.rampRef);
             }
@@ -3713,13 +3793,25 @@
 
         function placePiece(owner = 'player') {
             if (owner !== 'player') return null;
+            if (dropPhase !== 'landed') { flashHint('not until you land'); return null; }
             const info = resolvePlacement(selectedPiece);
             if (!info) { flashHint('no space'); return null; }
             if (structures.get(info.key)) { flashHint('occupied'); return null; }
             if (player.wood < BUILD_COST) { flashHint('need wood'); return null; }
             const piece = createPiece(info, 'player', BUILD_COST);
+            lastPlaceTick = performance.now();
             if (piece) updateGhost();
             return piece;
+        }
+
+        // Silent sibling of placePiece for held LMB: no hints, just the next piece.
+        function turboBuildTick(now) {
+            if (dropPhase !== 'landed' || player.dead) return;
+            if (now - lastPlaceTick < TURBO_BUILD_MS) return;
+            const info = resolvePlacement(selectedPiece);
+            if (!info || structures.get(info.key) || player.wood < BUILD_COST) return;
+            lastPlaceTick = now;
+            createPiece(info, 'player', BUILD_COST);
         }
 
         // --- preview ghost ---
@@ -3747,9 +3839,10 @@
                     const g = new THREE.Group(); g.add(mesh);
                     built = { group: g, panels: [{ mesh, open: false, box: null }] };
                 }
-                else if (info.type === 'stair') built = buildStairMesh(info.center.x, info.center.z, info.center.y, info.yaw);
+                else if (info.type === 'cone') built = buildConeMesh(info.center.x, info.center.z, info.center.y);
                 else built = buildRampMesh(info.center.x, info.center.z, info.center.y, info.yaw);
-                if (info.type === 'wall' || info.type === 'floor') built.group.position.set(info.center.x, 0, info.center.z);
+                if (info.type === 'wall') built.group.position.set(info.center.x, 0, info.center.z);
+                else if (info.type === 'floor') built.group.position.set(info.center.x, info.center.y, info.center.z);
                 built.group.traverse(o => {
                     if (o.isMesh) {
                         o.material = new THREE.MeshBasicMaterial({ color: 0x33ccff, transparent: true, opacity: 0.32, depthWrite: false });
@@ -3785,6 +3878,14 @@
             editTarget = null;
             editMode = false;
             document.getElementById('edit-mode-badge').classList.remove('visible');
+            updateGhost();
+        }
+
+        // F edits whatever the crosshair is on, blueprint open or not.
+        function toggleEditMode() {
+            if (editMode) { exitEditMode(); return; }
+            if (dropPhase !== 'landed' || player.dead) return;
+            enterEditMode();
         }
 
         // Which tile of a wall/floor the crosshair is over, computed on the piece's plane so
@@ -3836,18 +3937,12 @@
 
         function toggleBuildMode(on) {
             const want = on === undefined ? !buildMode : on;
-            if (want && dropPhase !== 'landed') { flashHint('build after you land'); return; }
             buildMode = want;
             if (!buildMode) { exitEditMode(); disposeGhost(); }
             document.getElementById('build-bar').classList.toggle('visible', buildMode);
             document.getElementById('build-hint').classList.toggle('visible', buildMode);
             document.getElementById('mobile-piece-select').classList.toggle('visible', buildMode && gameMode === 'mobile');
-        }
-
-        function cyclePiece() {
-            const order = Object.keys(PIECE_DEFS);
-            const next = order[(order.indexOf(selectedPiece) + 1) % order.length];
-            selectPiece(next);
+            if (buildMode) renderPieceKeys();
         }
 
         function selectPiece(type) {
@@ -3867,27 +3962,68 @@
             hint.classList.add('visible');
             clearTimeout(hintTimer);
             hintTimer = setTimeout(() => {
-                if (buildMode) hint.innerHTML = 'LMB place &middot; Q piece &middot; RMB edit &middot; F harvest &middot; B exit';
+                if (buildMode) hint.innerHTML = 'LMB place &middot; C X V Z piece &middot; F edit &middot; Q exit';
             }, 900);
-        }
-
-        // --- harvesting (hold F / CHOP) ---
-
-        function harvestTick(now) {
-            if (!inputs.harvest || player.dead) return;
-            const origin = camera.position.clone();
-            const dir = camera.getWorldDirection(new THREE.Vector3());
-            const hit = raycastSolids(origin, dir, 6);
-            if (!hit) return;
-            if (!hit.solid.piece && !hit.solid.harvest) return;
-            if (now - lastHarvestTick < 120) return;
-            lastHarvestTick = now;
-            damageStructure(hit.solid, 20, true);
-            createImpactEffect(hit.point);
         }
 
         const _shotRay = new THREE.Raycaster();
         const _shotDir = new THREE.Vector3();
+
+        // First rival whose mesh the ray touches within maxDist.
+        function raycastBots(origin, dir, maxDist) {
+            _shotRay.set(origin, dir);
+            _shotRay.far = maxDist;
+            const hits = _shotRay.intersectObjects(bots.map(b => b.mesh), true);
+            if (hits.length === 0) return null;
+            const hit = hits[0];
+            const bot = bots.find(b => b.mesh === hit.object || b.mesh.children.includes(hit.object));
+            if (!bot) return null;
+            return { bot, point: hit.point, dist: hit.distance, head: hit.point.y > bot.mesh.position.y + 2.2 };
+        }
+
+        // The pickaxe is the only thing that takes builds back down, and it pays
+        // for itself in materials on every swing that connects.
+        function swingPickaxe() {
+            const now = performance.now();
+            if (now - lastPickaxeSwing < PICKAXE_RATE) return;
+            lastPickaxeSwing = now;
+
+            // Reach is measured from the body, not the camera: the third-person
+            // camera trails ~4.6m behind, so a camera-based range could never reach
+            // the cell the crosshair is sitting on.
+            const origin = playerChest(new THREE.Vector3());
+            const dir = crosshairAimPoint(60).clone().sub(origin);
+            if (dir.lengthSq() < 1e-8) camera.getWorldDirection(dir);
+            else dir.normalize();
+            createSwingEffect(dir);
+
+            const blocker = raycastSolids(origin, dir, PICKAXE_RANGE);
+            const rival = raycastBots(origin, dir, blocker ? blocker.dist : PICKAXE_RANGE);
+
+            if (rival) {
+                rival.bot.killedBy = 'player';
+                showDamage(PICKAXE_PLAYER_DAMAGE, rival.point, false);
+                createImpactEffect(rival.point);
+                damageBot(rival.bot, PICKAXE_PLAYER_DAMAGE, 'player');
+                return;
+            }
+
+            if (!blocker) return;
+            createImpactEffect(blocker.point);
+            if (blocker.solid.piece) {
+                damageStructure(blocker.solid, PICKAXE_STRUCT_DAMAGE, false);
+                player.wood += PICKAXE_WOOD_STRUCTURE;
+            } else if (blocker.solid.harvest) {
+                harvestProp(blocker.solid.harvest, PICKAXE_STRUCT_DAMAGE, false);
+                player.wood += PICKAXE_WOOD_PROP;
+            }
+            updateUI();
+        }
+
+        // The swing reads as a short streak from the hand to whatever is chopped.
+        function createSwingEffect(dir) {
+            createBulletTrail(gunTip().clone(), playerChest(new THREE.Vector3()).addScaledVector(dir, PICKAXE_RANGE));
+        }
 
         function fireRay(origin, dir, range) {
             // Structures block the shot first.
@@ -3924,8 +4060,17 @@
             }
         }
 
+        // Rate depends on what is in hand: a consumable has no stats object at all,
+        // so reading item.stats.rate straight would throw every frame.
+        function shotCooldownMs(item) {
+            if (!item || item.category !== 'weapon') return 300;
+            return (item.stats && item.stats.rate ? item.stats.rate : 0) * 1000;
+        }
+
         function shoot() {
             const item = player.inventory[player.slot];
+            if (item && item.category === 'pickaxe') { swingPickaxe(); return; }
+            if (item && item.category === 'consumable') { useHealingItem(); return; }
             if (!item || item.category !== 'weapon' || item.stats.currentMag <= 0 || player.isReloading || player.isHealing) {
                 if (!player.isReloading && item && item.category === 'weapon') reload();
                 return;
@@ -4025,15 +4170,12 @@
                     return;
                 }
             }
-            
-            // Check healing items
-            useHealingItem();
         }
 
         function giveItem(itemData) {
             if (itemData.category === 'weapon') {
                 // Find empty slot
-                for(let i = 0; i < 5; i++) {
+                for(let i = 0; i < INVENTORY_SIZE; i++) {
                     if (player.inventory[i] === null) {
                         player.inventory[i] = itemData;
                         return true;
@@ -4042,14 +4184,14 @@
                 return false;
             } else if (itemData.category === 'consumable') {
                 // Try to stack
-                for(let i = 0; i < 5; i++) {
+                for(let i = 0; i < INVENTORY_SIZE; i++) {
                     if (player.inventory[i] && player.inventory[i].name === itemData.name && player.inventory[i].count < player.inventory[i].maxStack) {
                         player.inventory[i].count = Math.min(player.inventory[i].maxStack, player.inventory[i].count + 1);
                         return true;
                     }
                 }
                 // Find empty slot
-                for(let i = 0; i < 5; i++) {
+                for(let i = 0; i < INVENTORY_SIZE; i++) {
                     if (player.inventory[i] === null) {
                         player.inventory[i] = itemData;
                         return true;
@@ -4100,8 +4242,44 @@
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: color }));
             mesh.position.set(x, y + 0.5, z);
             scene.add(mesh);
-            
+
+            // Name plate, parented to the pickup so it disappears with it.
+            const label = groundLabel(item.name.toUpperCase(), item.rarity ? item.rarity.color : '#00d2ff');
+            label.position.set(0, 1.1, 0);
+            mesh.add(label);
+
             loot.push({ mesh: mesh, data: item });
+        }
+
+        // Ground pickups advertise what they are — an AR has to look different from an SMG
+        // long before you are close enough to press E.
+        const _labelCache = new Map();
+        function groundLabel(text, color) {
+            const cacheKey = text + '|' + color;
+            let texture = _labelCache.get(cacheKey);
+            if (!texture) {
+                const canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                const font = '700 44px system-ui, sans-serif';
+                ctx.font = font;
+                canvas.width = Math.ceil(ctx.measureText(text).width) + 32;
+                canvas.height = 64;
+                ctx = canvas.getContext('2d');
+                ctx.font = font;
+                ctx.fillStyle = 'rgba(4, 8, 18, 0.65)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 2);
+                texture = new THREE.CanvasTexture(canvas);
+                texture.anisotropy = 4;
+                _labelCache.set(cacheKey, texture);
+            }
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+            sprite.scale.set(1.5 * (texture.image.width / texture.image.height), 1.5, 1);
+            sprite.renderOrder = 20;
+            return sprite;
         }
 
         function useHealingItem() {
@@ -4115,7 +4293,7 @@
             if (!item || item.category !== 'consumable' || item.count <= 0) return;
             
             let canUse = false;
-            if (item.type === 'shield' && (player.shield < 100 || player.overshield < OVER_SHIELD_MAX)) canUse = true;
+            if (item.type === 'shield' && player.shield < SHIELD_MAX) canUse = true;
             if (item.type === 'health' && player.health < 100) canUse = true;
 
             if (canUse) {
@@ -4142,15 +4320,7 @@
         
         function applyHealing(item) {
             if (item.type === 'shield') {
-                if(player.shield < 100) {
-                    const shieldNeeded = 100 - player.shield;
-                    const shieldToAdd = Math.min(shieldNeeded, item.val);
-                    player.shield += shieldToAdd;
-                } else if (player.overshield < OVER_SHIELD_MAX) {
-                    const overshieldNeeded = OVER_SHIELD_MAX - player.overshield;
-                    const overshieldToAdd = Math.min(overshieldNeeded, item.val);
-                    player.overshield += overshieldToAdd;
-                }
+                player.shield = Math.min(SHIELD_MAX, player.shield + item.val);
             } else if (item.type === 'health') {
                 player.health = Math.min(100, player.health + item.val);
             }
@@ -4175,17 +4345,6 @@
             if (amount <= 0 || player.dead) return;
             
             let remainingDmg = amount;
-            
-            if(player.overshield > 0) {
-                player.overshield -= remainingDmg;
-                if(player.overshield < 0) { 
-                    remainingDmg = -player.overshield; 
-                    player.overshield = 0; 
-                } else {
-                    remainingDmg = 0;
-                }
-                player.lastOvershieldDamage = performance.now();
-            }
 
             if (remainingDmg > 0 && player.shield > 0) {
                 player.shield -= remainingDmg;
@@ -4209,17 +4368,6 @@
                 player.dead = true;
                 handleGameOver(false);
             }
-        }
-
-        function overshieldRegen(dt) {
-             if (player.dead || player.overshield === OVER_SHIELD_MAX) return;
-
-             const timeSinceDamage = performance.now() - player.lastOvershieldDamage;
-             
-             if (timeSinceDamage >= OVER_SHIELD_REGEN_DELAY) {
-                 player.overshield = Math.min(OVER_SHIELD_MAX, player.overshield + (OVER_SHIELD_REGEN_RATE * dt));
-                 updateUI();
-             }
         }
 
         function updateCars(dt) {
@@ -4249,17 +4397,14 @@
         
         function updateUI() {
             player.health = Math.max(0, Math.min(100, player.health));
-            player.shield = Math.max(0, Math.min(100 + player.levelShieldBonus, player.shield));
-            player.overshield = Math.max(0, Math.min(OVER_SHIELD_MAX, player.overshield));
+            player.shield = Math.max(0, Math.min(SHIELD_MAX, player.shield));
             
             document.getElementById('health-value').innerText = Math.ceil(player.health);
             document.getElementById('shield-value').innerText = Math.ceil(player.shield);
-            document.getElementById('overshield-value').innerText = Math.ceil(player.overshield);
             document.getElementById('wood-value').innerText = player.wood;
             
             document.getElementById('health-bar').style.width = player.health + '%';
-            document.getElementById('shield-bar').style.width = (player.shield / (100 + player.levelShieldBonus)) * 100 + '%';
-            document.getElementById('overshield-bar').style.width = (player.overshield / OVER_SHIELD_MAX) * 100 + '%';
+            document.getElementById('shield-bar').style.width = (player.shield / SHIELD_MAX) * 100 + '%';
 
             if (buildMode) {
                 document.querySelectorAll('.build-piece').forEach(el => {
@@ -4326,7 +4471,7 @@
         }
         
         function switchSlot(idx) {
-            if (idx < 0 || idx > 4) return;
+            if (idx < 0 || idx >= INVENTORY_SIZE) return;
             
             if (player.isHealing) {
                 const currentHealingSlot = player.inventory.findIndex(i => i === player.healingItem);
@@ -4524,92 +4669,102 @@
         function setGameMode(mode) {
             gameMode = mode;
             const mobileControls = document.getElementById('mobile-controls');
+            const gear = document.getElementById('settings-hotkey');
 
             if (mode === 'mobile') {
                 if (controls) controls.enabled = false;
                 mobileControls.style.display = 'block';
+                gear.style.display = 'none';
                 document.removeEventListener('mousedown', lockPointer);
                 initMobileControls();
-            } else if (mode === 'controller') {
-                if (controls) controls.enabled = false;
-                mobileControls.style.display = 'none';
-                document.removeEventListener('mousedown', lockPointer);
             } else {
                 if (controls) controls.enabled = true;
                 mobileControls.style.display = 'none';
+                gear.style.display = 'block';
                 document.addEventListener('mousedown', lockPointer);
             }
         }
         
-        function lockPointer() {
+        // Full-screen menus own the mouse. Clicking HUD furniture — the settings gear, an
+        // inventory slot — must not take the cursor away, or nothing on screen is clickable
+        // without pressing Esc first.
+        function menuVisible() {
+            return ['start-screen', 'settings-screen', 'victory-overlay', 'game-over']
+                .some(id => {
+                    const el = document.getElementById(id);
+                    return !!el && getComputedStyle(el).display !== 'none';
+                });
+        }
+
+        function lockPointer(event) {
+            if (settingsOpen || menuVisible()) return;
+            if (event && event.target && event.target !== renderer.domElement) return;
             if (controls && gameMode === 'desktop') {
                 controls.lock();
             }
         }
 
         function setupInputs() {
-            // Keyboard controls
             document.addEventListener('keydown', (e) => {
-                if (gameMode !== 'desktop' || !controls || !controls.isLocked) return;
-                
-                switch(e.code) {
-                    case 'KeyW': inputs.w = true; break;
-                    case 'KeyS': inputs.s = true; break;
-                    case 'KeyA': inputs.a = true; break;
-                    case 'KeyD': inputs.d = true; break;
-                    case 'ShiftLeft': inputs.sprint = true; break;
-                    case 'Space': inputs.jump = true; break;
-                    case 'KeyR': reload(); break;
-                    case 'KeyE': tryInteract(); break;
-                    case 'KeyB': toggleBuildMode(); break;
-                    case 'KeyQ': cyclePiece(); break;
-                    case 'KeyF': inputs.harvest = true; break;
-                    case 'Escape': if (editMode) exitEditMode(); break;
-                    case 'Digit1': switchSlot(0); break;
-                    case 'Digit2': switchSlot(1); break;
-                    case 'Digit3': switchSlot(2); break;
-                    case 'Digit4': switchSlot(3); break;
-                    case 'Digit5': switchSlot(4); break;
-                }
-            });
-            
-            document.addEventListener('keyup', (e) => {
-                if (gameMode !== 'desktop') return;
-                
-                switch(e.code) {
-                    case 'KeyW': inputs.w = false; break;
-                    case 'KeyS': inputs.s = false; break;
-                    case 'KeyA': inputs.a = false; break;
-                    case 'KeyD': inputs.d = false; break;
-                    case 'ShiftLeft': inputs.sprint = false; break;
-                    case 'Space': inputs.jump = false; break;
-                    case 'KeyF': inputs.harvest = false; break;
-                }
-            });
-            
-            // Mouse controls
-            document.addEventListener('mousedown', (e) => {
-                if(gameMode !== 'desktop' || !controls || !controls.isLocked || player.dead) return;
-
-                if (buildMode) {
-                    if (e.button === 0) {
-                        if (editMode) editPieceTile();
-                        else placePiece();
-                    } else if (e.button === 2) {
-                        if (editMode) exitEditMode();
-                        else enterEditMode();
-                    }
+                if (rebindTarget) {
+                    if (e.code === 'Escape') { rebindTarget = null; renderBindList(); }
+                    else captureRebind(e.code);
+                    e.preventDefault();
                     return;
                 }
+                if (settingsOpen) {
+                    if (e.code === 'Escape') closeSettings();
+                    return;
+                }
+                if (gameMode !== 'desktop' || !controls || !controls.isLocked) return;
 
-                if(e.button === 0) inputs.fire = true;
-                // ADS is a click toggle: click to aim, click again to relax.
-                if(e.button === 2) setADS(!player.ads);
+                const action = actionFor(e.code);
+                if (!action) return;
+                // Tab would otherwise walk the focus ring and Space would re-trigger
+                // whichever menu button still has focus.
+                e.preventDefault();
+                if (HELD_BINDS.has(action)) {
+                    heldBinds[action] = true;
+                    applyHeldBinds();
+                } else {
+                    pressBoundAction(action);
+                }
             });
-            
+
+            document.addEventListener('keyup', (e) => {
+                const action = actionFor(e.code);
+                if (action && HELD_BINDS.has(action)) {
+                    heldBinds[action] = false;
+                    if (action === 'jump') inputs.jump = false;
+                    applyHeldBinds();
+                }
+            });
+
+            document.addEventListener('mousedown', (e) => {
+                if (rebindTarget) { captureRebind(inputId(e)); return; }
+                if (settingsOpen || gameMode !== 'desktop' || !controls || !controls.isLocked || player.dead) return;
+
+                const action = actionFor(inputId(e));
+                if (!action) return;
+
+                if (action === 'use') {
+                    if (editMode) { editPieceTile(); return; }
+                    // Held rather than fired once: turbo building and continuous
+                    // chopping both read the same flag the loop uses.
+                    heldBinds.use = true;
+                    applyHeldBinds();
+                } else if (action === 'ads') {
+                    // ADS is a click toggle: click to aim, click again to relax.
+                    pressBoundAction('ads');
+                }
+            });
+
             document.addEventListener('mouseup', (e) => {
-                if(gameMode !== 'desktop') return;
-                if(e.button === 0) inputs.fire = false;
+                if (gameMode !== 'desktop') return;
+                if (actionFor(inputId(e)) === 'use') {
+                    heldBinds.use = false;
+                    applyHeldBinds();
+                }
             });
             
             document.addEventListener('contextmenu', e => e.preventDefault());
@@ -4649,6 +4804,7 @@
             
             // Controls
             controls = new PointerLockControls(camera, document.body);
+            loadKeybinds();
             setupInputs(); 
             
             animate();
@@ -4688,14 +4844,16 @@
                 totalPoints: 0
             };
             
+            // Fortnite drops you in with health, a pickaxe and 100 wood; everything else
+            // has to be found.
             player.health = 100;
-            player.shield = 100 + player.levelShieldBonus;
-            player.overshield = 50;
-            player.wood = 150;
-            player.inventory = [null, null, null, null, null];
+            player.shield = 0;
+            player.wood = 100;
+            player.inventory = [createPickaxeItem(), null, null, null, null, null];
             player.slot = 0;
             player.eliminations = 0;
             player.dead = false;
+            player.crouching = false;
 
             solids = [];
             ramps = [];
@@ -4734,12 +4892,11 @@
             spawnBots();
             spawnCars();
 
-            // Every match starts on the battle bus.
-            player.inventory[0] = createWeaponItem('RFAR', 'COMMON');
+            // The only thing in hand on the bus is the pickaxe.
             switchSlot(0);
 
             // A second match must not inherit the previous match's closing circle.
-            stormRadius = STORM_PHASES[0].radius;
+            stormRadius = STORM_START_RADIUS;
             stormCenter.set(0, 0);
             stormDamageRate = STORM_PHASES[0].damage;
             stormPhase = 0;
@@ -4778,6 +4935,10 @@
             };
         }
 
+        function createPickaxeItem() {
+            return { category: 'pickaxe', name: 'Harvesting Tool', icon: '⛏️' };
+        }
+
         // ===============================================================
         // === GAME LOOP ============================================
         // ===============================================================
@@ -4791,6 +4952,12 @@
 
             if(!gameStarted || player.dead) {
                 renderer.clear();
+                renderer.render(scene, camera);
+                return;
+            }
+
+            // Rebinding keys should not cost you the match.
+            if (settingsOpen) {
                 renderer.render(scene, camera);
                 return;
             }
@@ -4811,27 +4978,29 @@
                 document.getElementById('healing-bar').style.width = `${percentage * 100}%`;
             }
             
-            // Overshield regen
-            overshieldRegen(dt);
-            
             // Day/night cycle
             updateDayNightCycle(dt);
 
             // In-flight rival bullets (they respect cover)
             updateProjectiles(dt);
 
-            // Harvesting with F held down
-            harvestTick(now);
 
             if(player.vehicle) {
                 updateCars(dt);
             } else if (updateDrop(dt)) {
                 // On the bus, in freefall or under glide: updateDrop owns the physics.
+            } else if (mantle) {
+                // Mid-vault: the mantle animation owns the body for a few frames.
+                updateMantle(now);
             } else {
                 // Player movement
                 if (gameMode !== 'desktop' || (controls && controls.isLocked)) {
-                    const speedMultiplier = player.ads ? 0.5 : 1.0; 
-                    const currentSpeed = (inputs.sprint ? SPRINT_SPEED : WALK_SPEED) * speedMultiplier * player.levelSpeedMultiplier;
+                    setCrouch(!!inputs.crouch);
+                    const height = playerHeight();
+                    const speedMultiplier = player.ads ? 0.5 : 1.0;
+                    const baseSpeed = inputs.crouch ? CROUCH_SPEED
+                        : (inputs.sprint ? SPRINT_SPEED : WALK_SPEED);
+                    const currentSpeed = baseSpeed * speedMultiplier * player.levelSpeedMultiplier;
                     
                     const direction = camera.getWorldDirection(new THREE.Vector3());
                     direction.y = 0;
@@ -4849,16 +5018,26 @@
 
                     player.isMoving = velocity.lengthSq() > 0.5;
 
-                    // Slide along blockers instead of walking through them.
                     const feet = feetY();
-                    moveEntity(playerPos, { y: feet }, velocity.x * dt, velocity.z * dt, PLAYER_RADIUS, PLAYER_HEIGHT);
+
+                    // Walking into a waist-high ledge vaults you onto it instead of stopping you.
+                    const push = Math.hypot(velocity.x, velocity.z);
+                    if (isGrounded && push > 0.5) {
+                        const wx = velocity.x / push, wz = velocity.z / push;
+                        if (blockedAt(playerPos.x + wx * 0.9, playerPos.z + wz * 0.9, feet, PLAYER_RADIUS, height)) {
+                            tryMantle(wx, wz);
+                        }
+                    }
+
+                    // Slide along blockers instead of walking through them.
+                    moveEntity(playerPos, { y: feet }, velocity.x * dt, velocity.z * dt, PLAYER_RADIUS, height);
 
                     velocity.y -= GRAVITY * dt; 
                     
                     const groundY = surfaceYAt(playerPos.x, playerPos.z, feet, PLAYER_RADIUS);
                     
-                    if (playerPos.y <= groundY + PLAYER_HEIGHT && velocity.y <= 0) {
-                        playerPos.y = groundY + PLAYER_HEIGHT;
+                    if (playerPos.y <= groundY + height && velocity.y <= 0) {
+                        playerPos.y = groundY + height;
                         velocity.y = 0;
                         isGrounded = true;
                     } else {
@@ -4881,9 +5060,17 @@
             updatePlayerBody(now, dt);
             updateThirdPersonCamera(dt);
 
+            // Harvesting: holding LMB with the pickaxe out swings it at whatever the
+            // crosshair is on, and every connecting swing pays out wood.
+            if (inputs.harvest && !player.vehicle && dropPhase === 'landed') swingPickaxe();
+
+            // Turbo building: holding LMB with the blueprint open lays pieces as fast as
+            // the reticle can find cells.
+            if (inputs.fire && buildMode && !editMode) turboBuildTick(now);
+
             // Shooting
-            if(inputs.fire && !player.vehicle && !player.isHealing && !buildMode && dropPhase === 'landed') {
-                if (now - lastShot > (player.inventory[player.slot]?.stats.rate * 1000 || 0)) {
+            if(inputs.fire && !buildMode && !player.vehicle && !player.isHealing && dropPhase === 'landed') {
+                if (now - lastShot > shotCooldownMs(player.inventory[player.slot])) {
                     shoot();
                 }
             }
@@ -4910,7 +5097,10 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        // Inline onclick handlers run in global scope, so anything the HUD calls has to be
+        // published here or the button silently throws.
         window.selectSlot = switchSlot;
+        window.selectPiece = selectPiece;
 
         // __DBG_BRIDGE__ — TEMPORARY test hook; this whole block is deleted before release
         window.__dbg = {
@@ -4923,7 +5113,7 @@
                 bodyYaw: +(playerBody.rotation.y * 180 / Math.PI).toFixed(1),
                 handWorld: heldWeapon ? heldWeapon.getWorldPosition(new THREE.Vector3()).toArray().map(v => +v.toFixed(2)) : null,
                 solids: solids.length, bots: bots.length, projectiles: projectiles.length,
-                structures: structures.size, wood: player.wood, hp: player.health, shield: player.shield, os: player.overshield
+                structures: structures.size, wood: player.wood, hp: player.health, shield: player.shield
             }),
             api: {
                 frame: (dt, now) => { updatePlayerBody(now || performance.now(), dt); updateThirdPersonCamera(dt); },
@@ -4932,14 +5122,28 @@
                     camera.quaternion.setFromEuler(e);
                 },
                 setPlayer: (x, y, z) => playerPos.set(x, y, z),
-                walk: (dx, dz) => moveEntity(playerPos, { y: playerPos.y - PLAYER_HEIGHT }, dx, dz, PLAYER_RADIUS, PLAYER_HEIGHT),
+                walk: (dx, dz) => moveEntity(playerPos, { y: feetY() }, dx, dz, PLAYER_RADIUS, playerHeight()),
                 setADS, placePiece, resolvePlacement, targetedPiece, shoot, fireRay, raycastSolids,
+                setCrouch, tryMantle, turboBuildTick, swingPickaxe, pressBoundAction, selectPiece,
+                toggleBuildMode, toggleEditMode, equipPickaxe, applyHeldBinds, tryInteract, spawnLoot,
+                bind: (action) => keybinds[action],
+                inputs: () => Object.assign({}, inputs),
+                held: () => Object.assign({}, heldBinds),
+                setHeld: (action, on) => { heldBinds[action] = on; applyHeldBinds(); },
+                loot: () => loot.map(l => ({ name: l.data.name, label: l.mesh.children.length })),
+                solidList: () => solids.map(s => ({ min: s.box.min.toArray().map(v => +v.toFixed(2)), max: s.box.max.toArray().map(v => +v.toFixed(2)), blocks: s.blocks })),
+                chestAt: (i) => { const c = chests[i]; return c ? c.position.toArray().map(v => +v.toFixed(1)) : null; },
+                build: () => ({ buildMode, editMode, selectedPiece, ghost: !!ghost, bar: document.getElementById('build-bar').classList.contains('visible') }),
                 hasLineOfSight, surfaceYAt, damageBot, addKillEntry, botThink, aiTick: (now, dt) => { updateBots(dt, now); updateProjectiles(dt); },
                 bots: () => bots, player, inventory: () => player.inventory, give: (i, slot) => { player.inventory[slot] = i; switchSlot(slot); },
                 createWeaponItem, THREE,
                 jump: () => { inputs.jump = true; updateDrop(0.05); inputs.jump = false; },
                 dropTick: (dt) => { for (let i = 0; i < (dt || 1); i++) updateDrop(0.05); },
-                drop: () => ({ phase: dropPhase, bus: battleBus ? battleBus.position.toArray().map(v => +v.toFixed(1)) : null, dir: busDirection.toArray().map(v => +v.toFixed(2)), feet: +feetY().toFixed(1), agl: +(feetY() - surfaceYAt(playerPos.x, playerPos.z, feetY())).toFixed(1), glider: gliderMesh ? gliderMesh.visible : false, lean: +(playerBody.rotation.x * 180 / Math.PI).toFixed(1), stormActive, bots: bots.length })
+                drop: () => ({ phase: dropPhase, bus: battleBus ? battleBus.position.toArray().map(v => +v.toFixed(1)) : null, dir: busDirection.toArray().map(v => +v.toFixed(2)), feet: +feetY().toFixed(1), agl: +(feetY() - surfaceYAt(playerPos.x, playerPos.z, feetY())).toFixed(1), glider: gliderMesh ? gliderMesh.visible : false, lean: +(playerBody.rotation.x * 180 / Math.PI).toFixed(1), stormActive, bots: bots.length }),
+                land: () => landDrop(),
+                swing: () => swingPickaxe(),
+                chop: (on) => { inputs.harvest = !!on; },
+                storm: () => ({ phase: stormPhase, radius: +stormRadius.toFixed(1), center: [stormCenter.x, stormCenter.y].map(v => +v.toFixed(1)), active: stormActive, timer: stormPhaseTimer, status: document.getElementById('storm-status').innerText, hud: document.getElementById('storm-timer').innerText })
             }
         };
 
