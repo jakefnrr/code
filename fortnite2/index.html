@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortnite Royale - Battle Bus</title>
+    <title>Fortnite</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{overflow:hidden;background:#000;font-family:'Segoe UI',Arial,sans-serif;user-select:none}
@@ -72,6 +72,16 @@
         #fp{position:absolute;top:10px;right:10px;color:#555;font-size:10px}
         #ri{position:absolute;bottom:72px;right:26px;color:#fa0;font-size:13px;font-weight:bold;display:none}
 
+        /* ===== BUILD (Fortnite build mode) ===== */
+        #bb{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;gap:4px;align-items:flex-end}
+        .bs{background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.08);border-radius:8px;padding:5px 10px 4px;min-width:74px;text-align:center;color:#888;transition:all .12s;backdrop-filter:blur(3px)}
+        .bs.ac{color:#fff;background:rgba(20,60,90,.75);border-color:#3ad0ff;transform:translateY(-4px);box-shadow:0 0 14px rgba(58,208,255,.35)}
+        .bk{font-size:9px;color:#666;display:block;letter-spacing:1px}
+        .bn{font-size:11px;font-weight:bold;display:block;letter-spacing:.5px}
+        #bmode{position:absolute;bottom:74px;left:50%;transform:translateX(-50%);color:#3ad0ff;font-size:11px;letter-spacing:2px;text-transform:uppercase;display:none;background:rgba(0,0,0,.55);padding:3px 12px;border-radius:5px}
+        #ehint{position:absolute;top:62%;left:50%;transform:translateX(-50%);color:#ffd24a;font-size:12px;display:none;background:rgba(0,0,0,.72);padding:6px 16px;border-radius:7px;border:1px solid rgba(255,210,74,.35);white-space:nowrap}
+        #ehint b{color:#fff}
+
         /* ===== VICTORY / ELIMINATED SCREEN ===== */
         #end{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column;color:#fff;overflow:hidden}
         #end-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(0,20,60,.95),rgba(0,0,0,.98));z-index:-1}
@@ -95,6 +105,7 @@
         #dt{font-size:38px;color:#fff;font-weight:900;text-shadow:0 0 30px rgba(100,200,255,.5);letter-spacing:3px}
         #ds{font-size:15px;color:#aaddff;margin-top:8px;letter-spacing:1px}
         #dp .glider-hint{font-size:12px;color:#88bbdd;margin-top:20px;animation:pulse2 1.5s infinite}
+        #dalt{font-size:13px;color:#aaddff;margin-top:10px;letter-spacing:2px;font-weight:bold;background:rgba(0,0,0,.45);padding:3px 14px;border-radius:5px}
         @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
 
         /* ===== WEAPON RARITY COLORS ===== */
@@ -119,10 +130,10 @@
             <div style="font-size:13px;font-weight:bold;color:#4e4;">BATTLE ROYALE</div>
             <div style="font-size:10px;color:#8a8;">20 Players</div>
         </div>
-        <div onclick="selMode('1v1')" id="mode-1v1" style="flex:1;padding:10px 6px;background:rgba(80,0,0,.1);border:2px solid #555;border-radius:10px;cursor:pointer;text-align:center;">
-            <div style="font-size:20px;">⚔️</div>
-            <div style="font-size:13px;font-weight:bold;color:#aaa;">1v1 ARENA</div>
-            <div style="font-size:10px;color:#888;">Duel</div>
+        <div onclick="selMode('practice')" id="mode-practice" style="flex:1;padding:10px 6px;background:rgba(0,60,80,.15);border:2px solid #555;border-radius:10px;cursor:pointer;text-align:center;">
+            <div style="font-size:20px;">🎯</div>
+            <div style="font-size:13px;font-weight:bold;color:#aaa;">PRACTICE</div>
+            <div style="font-size:10px;color:#888;">Blank map · Targets</div>
         </div>
     </div>
     <!-- MAP INFO -->
@@ -137,24 +148,16 @@
             <span style="font-size:10px;color:#f44;background:rgba(80,0,0,.3);padding:2px 6px;border-radius:4px;">💀 Boss Bunker</span>
         </div>
     </div>
-    <!-- SKIN SELECT -->
-    <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">Select Skin</div>
-        <div style="display:flex;gap:5px;justify-content:center;" id="skin-select">
-            <div onclick="selSkin(0)" class="sk-opt sel" style="width:36px;height:36px;border-radius:50%;background:#4a7a3a;border:3px solid #4e4;cursor:pointer;" title="Camo"></div>
-            <div onclick="selSkin(1)" class="sk-opt" style="width:36px;height:36px;border-radius:50%;background:#cc3333;border:3px solid #555;cursor:pointer;" title="Red Warrior"></div>
-            <div onclick="selSkin(2)" class="sk-opt" style="width:36px;height:36px;border-radius:50%;background:#3355cc;border:3px solid #555;cursor:pointer;" title="Blue Shadow"></div>
-            <div onclick="selSkin(3)" class="sk-opt" style="width:36px;height:36px;border-radius:50%;background:#ccaa22;border:3px solid #555;cursor:pointer;" title="Gold Elite"></div>
-            <div onclick="selSkin(4)" class="sk-opt" style="width:36px;height:36px;border-radius:50%;background:#8833cc;border:3px solid #555;cursor:pointer;" title="Purple Phantom"></div>
-            <div onclick="selSkin(5)" class="sk-opt" style="width:36px;height:36px;border-radius:50%;background:#222222;border:3px solid #555;cursor:pointer;" title="Black Ops"></div>
-        </div>
-        <div id="skin-name" style="font-size:11px;color:#4e4;margin-top:4px;">Camo</div>
-    </div>
     <div class="ctrl">
-        <p><span>WASD</span> Move</p><p><span>MOUSE</span> Look</p>
-        <p><span>CLICK</span> Shoot</p><p><span>R</span> Reload</p>
-        <p><span>SHIFT</span> Sprint</p><p><span>SPACE</span> Jump</p>
-        <p><span>1 2 3</span> Weapons</p><p><span>F</span> Loot</p>
+        <p><span>WASD</span> Move</p><p><span>MOUSE</span> Look / Camera</p>
+        <p><span>LEFT CLICK</span> Shoot / Place build</p><p><span>RIGHT CLICK</span> Aim / Select edit</p>
+        <p><span>SPACE</span> Jump</p><p><span>LEFT SHIFT</span> Sprint</p>
+        <p><span>LEFT CTRL</span> Crouch</p><p><span>R</span> Reload</p>
+        <p><span>E</span> Use / Interact</p><p><span>G</span> Edit building</p>
+        <p><span>Q</span> Wall</p><p><span>F1</span> Wall</p>
+        <p><span>F2</span> Floor</p><p><span>F3</span> Stairs</p>
+        <p><span>F4</span> Roof</p><p><span>SCROLL</span> Switch weapon</p>
+        <p><span>1 - 5</span> Weapon slots</p><p><span>X</span> Delete piece</p>
     </div>
     <p class="go" id="go-text">CLICK TO DROP IN</p>
 </div></div>
@@ -162,7 +165,7 @@
 <div id="hud">
     <div id="ch"><div class="chd"></div></div>
     <div id="top">
-        <div class="ts"><span class="tv" id="av">30</span><span class="tl">Alive</span></div>
+        <div class="ts"><span class="tv" id="av">30</span><span class="tl" id="av-l">Alive</span></div>
         <div class="ts"><span class="tv" id="kv">0</span><span class="tl">Eliminations</span></div>
         <div class="ts"><span class="tv" id="zv">0:00</span><span class="tl">Storm</span></div>
     </div>
@@ -175,7 +178,17 @@
         <div class="ws em" id="s0"><span class="wk">[1]</span><span class="wn">-</span><span class="wa">-</span></div>
         <div class="ws em" id="s1"><span class="wk">[2]</span><span class="wn">-</span><span class="wa">-</span></div>
         <div class="ws em" id="s2"><span class="wk">[3]</span><span class="wn">-</span><span class="wa">-</span></div>
+        <div class="ws em" id="s3"><span class="wk">[4]</span><span class="wn">-</span><span class="wa">-</span></div>
+        <div class="ws em" id="s4"><span class="wk">[5]</span><span class="wn">-</span><span class="wa">-</span></div>
     </div>
+    <div id="bb">
+        <div class="bs" id="b0"><span class="bk">[F1/Q]</span><span class="bn">Wall</span></div>
+        <div class="bs" id="b1"><span class="bk">[F2]</span><span class="bn">Floor</span></div>
+        <div class="bs" id="b2"><span class="bk">[F3]</span><span class="bn">Stairs</span></div>
+        <div class="bs" id="b3"><span class="bk">[F4]</span><span class="bn">Roof</span></div>
+    </div>
+    <div id="bmode">Build Mode</div>
+    <div id="ehint"></div>
     <div id="kf"></div>
     <div id="mm"><canvas id="mc" width="120" height="120"></canvas></div>
     <div id="fp">FPS: 60</div>
@@ -184,7 +197,7 @@
     <div id="elim-banner"><div class="eb-text"></div><div class="eb-sub"></div></div>
 </div>
 <div id="vignette"></div><div id="do"></div><div id="zo"></div>
-<div id="dp"><div id="dt">🚌 BATTLE BUS</div><div id="ds">Press SPACE to jump!</div><div class="glider-hint">Flying over the island...</div></div>
+<div id="dp"><div id="dt">🚌 BATTLE BUS</div><div id="ds">Press SPACE to jump!</div><div id="dalt">ALT 120m</div><div class="glider-hint">Flying over the island...</div></div>
 <div id="end">
     <div id="end-bg"></div>
     <div class="rays"></div>
@@ -202,32 +215,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ===== MODE & CONFIG =====
-let MODE='br'; // 'br' or '1v1'
+let MODE='br'; // 'br' or 'practice'
 let MAP=140, PLAYERS=30;
 
 function selMode(m){
     MODE=m;
-    document.getElementById('mode-br').style.borderColor=m==='br'?'#4e4':'#555';
-    document.getElementById('mode-br').style.background=m==='br'?'rgba(0,80,0,.2)':'rgba(0,0,0,.1)';
-    document.getElementById('mode-br').querySelector('div:nth-child(2)').style.color=m==='br'?'#4e4':'#aaa';
-    document.getElementById('mode-1v1').style.borderColor=m==='1v1'?'#f44':'#555';
-    document.getElementById('mode-1v1').style.background=m==='1v1'?'rgba(80,0,0,.2)':'rgba(0,0,0,.1)';
-    document.getElementById('mode-1v1').querySelector('div:nth-child(2)').style.color=m==='1v1'?'#f44':'#aaa';
-    document.getElementById('go-text').textContent=m==='br'?'CLICK TO DROP IN':'CLICK TO FIGHT';
-    if(m==='1v1'){MAP=25;PLAYERS=2;}else{MAP=140;PLAYERS=30;}
+    [['mode-br','#4e4','rgba(0,80,0,.2)'],['mode-practice','#5cf','rgba(0,60,80,.15)']].forEach(b=>{
+        const el=document.getElementById(b[0]),act=m===el.id.slice(5);
+        el.style.borderColor=act?b[1]:'#555';
+        el.style.background=act?b[2]:'rgba(0,0,0,.1)';
+        el.querySelector('div:nth-child(2)').style.color=act?b[1]:'#aaa';
+    });
+    document.getElementById('go-text').textContent=m==='br'?'CLICK TO DROP IN':'CLICK TO PRACTICE';
+    if(m==='practice'){MAP=40;PLAYERS=1;}else{MAP=140;PLAYERS=30;}
 }
 
-// ===== MAP & SKIN SELECTION =====
+// ===== MAP SELECTION =====
 let SEL_MAP='garden';
-let SEL_SKIN=0;
-const SKINS=[
-    {name:'Camo',body:0x4a7a3a,dark:0x2a4a1a,helm:0x3a5a2a,eye:0x00ff00},
-    {name:'Red Warrior',body:0xcc3333,dark:0x881818,helm:0xaa2222,eye:0xff4444},
-    {name:'Blue Shadow',body:0x3355cc,dark:0x1a2a66,helm:0x2244aa,eye:0x44aaff},
-    {name:'Gold Elite',body:0xccaa22,dark:0x886611,helm:0xddbb33,eye:0xffee44},
-    {name:'Purple Phantom',body:0x8833cc,dark:0x441a66,helm:0x6622aa,eye:0xcc66ff},
-    {name:'Black Ops',body:0x222222,dark:0x111111,helm:0x1a1a1a,eye:0xff0000},
-];
 const MAP_THEMES={
     garden:{sky:0x6aafe0,fog:0x8ec5e8,fogD:.005,ground:0x3e8a2e,sunCol:0xfff0d0,sunI:2.5,hemiSky:0x88ccff,hemiGnd:0x337722},
     desert:{sky:0xd4a050,fog:0xddbb88,fogD:.004,ground:0xd4a050,sunCol:0xffddaa,sunI:3.0,hemiSky:0xffeebb,hemiGnd:0x886633},
@@ -241,12 +245,6 @@ function selMap(m){
     document.querySelectorAll('.map-opt').forEach(el=>{el.style.borderColor='#555';el.querySelector('div:nth-child(2)').style.color='#aaa';});
     const el=document.getElementById('map-'+m);
     el.style.borderColor=cols[m];el.querySelector('div:nth-child(2)').style.color=cols[m];
-}
-function selSkin(i){
-    SEL_SKIN=i;
-    document.querySelectorAll('.sk-opt').forEach((el,j)=>{el.style.borderColor=j===i?'#fff':'#555';});
-    document.getElementById('skin-name').textContent=SKINS[i].name;
-    document.getElementById('skin-name').style.color='#'+SKINS[i].body.toString(16).padStart(6,'0');
 }
 
 const WD={
@@ -262,17 +260,41 @@ const LT=['AK-47','Shotgun','Sniper','SMG','Pistol','Heal','Shield','Ammo'];
 // ===== STATE =====
 const G={
     hp:150,mhp:150,sh:0,msh:100,
-    sl:[null,null,null],cs:0,rl:false,play:false,dead:false,
+    sl:[null,null,null,null,null],cs:0,rl:false,play:false,dead:false,
     ms:.18,ss:.30,jf:.34,gv:.014,ph:1.7,
-    k:{},v:{x:0,y:0,z:0},og:true,sp:false,
+    k:{},v:{x:0,y:0,z:0},og:true,sp:false,cr:false,
     rc:0,hb:0,hbs:0,
     kills:0,dd:0,alive:PLAYERS,
-    bots:[],pt:[],loots:[],
+    bots:[],pt:[],loots:[],tg:[],hits:0,
     ls:0,mt:0,
     zone:{cx:0,cz:0,rad:MAP*.85,ph:0,dmg:1,lt:0,tcx:0,tcz:0,ocx:0,ocz:0},
     gs:0,
 };
 let yaw=0,pitch=0,si=null,ac=null;
+
+// ===== THIRD-PERSON PLAYER RIG =====
+// C used to BE the player (first-person). Now P is the player and C only follows.
+// P.p is the FEET position; the camera orbits behind it.
+const P={
+    p:new THREE.Vector3(0,0,0),   // feet
+    g:null,                        // character group
+    hand:null,                     // group the weapon is mounted to
+    legL:null,legR:null,bootL:null,bootR:null,armL:null,armR:null,
+    hipL:null,hipR:null,shL:null,shR:null,hand:null,
+    face:0,                        // smoothed facing angle
+    crouch:0,                      // 0..1 crouch blend
+    moving:false,aiming:false,onBus:false,falling:false,gliding:false,
+};
+
+// Camera orbit state
+const CAM={
+    dist:4.6,ndist:4.6,hgt:1.55,yaw:0,
+    tp:new THREE.Vector3(0,2,0),   // smoothed look-at focus
+    cp:new THREE.Vector3(0,60,0),  // smoothed camera position
+    init:false,
+};
+const AIM={f:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Quaternion()};
+const _camQ=new THREE.Quaternion();
 
 // ===== RENDERER (HIGH QUALITY) =====
 const R=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',stencil:false,depth:true,alpha:false});
@@ -348,6 +370,150 @@ const MAT={
     sky:new THREE.MeshBasicMaterial({color:0x6aafe0,side:THREE.BackSide}),
     zone:new THREE.MeshBasicMaterial({color:0x8800ff,transparent:true,opacity:0.18,side:THREE.DoubleSide}),
 };
+
+// ===== DEFAULT SKIN =====
+const DS={
+    skin:  new THREE.MeshStandardMaterial({color:0x7a4f33,roughness:0.68}),
+    scarf: new THREE.MeshStandardMaterial({color:0xb6c093,roughness:0.82}),
+    vest:  new THREE.MeshStandardMaterial({color:0x8d955f,roughness:0.78}),
+    vestDk:new THREE.MeshStandardMaterial({color:0x6f7647,roughness:0.78}),
+    pants: new THREE.MeshStandardMaterial({color:0xc07d3a,roughness:0.8}),
+    camoDk:new THREE.MeshStandardMaterial({color:0x8a4a1c,roughness:0.82}),
+    camoLt:new THREE.MeshStandardMaterial({color:0xd69a55,roughness:0.8}),
+    belt:  new THREE.MeshStandardMaterial({color:0x4a4032,roughness:0.6,metalness:0.25}),
+    pouch: new THREE.MeshStandardMaterial({color:0xb98a52,roughness:0.8}),
+    knee:  new THREE.MeshStandardMaterial({color:0x4d4526,roughness:0.55,metalness:0.15}),
+    boot:  new THREE.MeshStandardMaterial({color:0x2a3628,roughness:0.6}),
+    hair:  new THREE.MeshStandardMaterial({color:0x241812,roughness:0.85}),
+    eye:   new THREE.MeshStandardMaterial({color:0x1a1210,roughness:0.4}),
+};
+// Per-instance clones: the death fade mutates material.opacity, so shared materials
+// would fade every character the moment one dies.
+function dsMats(){const o={};for(const k in DS)o[k]=DS[k].clone();return o;}
+
+// ===== THIRD-PERSON CHARACTER (visible player, same Default skin as bots) =====
+// Limbs hang from joint pivot groups so they can swing for walk / aim / airborne poses.
+function mkPlayer(){
+    const g=new THREE.Group(),m=dsMats();
+
+    g.add(mk2(GEO.box,m.vest,[0,1.15,0],[.7,.9,.42]));
+    g.add(mk2(GEO.box,m.skin,[0,1.65,0],[.3,.1,.25]));
+    g.add(mk2(GEO.box,m.skin,[0,1.9,0],[.38,.38,.38]));
+    g.add(mk2(GEO.box,m.eye,[-.09,1.94,.19],[.06,.04,.03]));
+    g.add(mk2(GEO.box,m.eye,[.09,1.94,.19],[.06,.04,.03]));
+    g.add(mk2(GEO.box,m.hair,[0,2.09,0],[.4,.13,.4]));
+    g.add(mk2(GEO.box,m.scarf,[0,1.6,0],[.44,.16,.34]));
+    g.add(mk2(GEO.box,m.belt,[0,.72,0],[.72,.08,.44]));
+    const strap=mk2(GEO.box,m.vestDk,[0,1.2,.24],[.1,.9,.05]);strap.rotation.z=.75;g.add(strap);
+    g.add(mk2(GEO.box,m.pouch,[.3,.62,.16],[.14,.22,.14]));
+    g.add(mk2(GEO.box,m.camoDk,[-.2,.48,.13],[.1,.12,.02]));
+    g.add(mk2(GEO.box,m.camoLt,[-.12,.66,.13],[.09,.1,.02]));
+    g.add(mk2(GEO.box,m.camoDk,[.22,.4,.13],[.11,.13,.02]));
+    g.add(mk2(GEO.box,m.camoLt,[.12,.62,.13],[.08,.1,.02]));
+    g.add(mk2(GEO.box,m.vestDk,[0,1.15,-.26],[.36,.44,.16]));
+
+    // limb(): pivot at (x,y), then stacked boxes hanging below it. segs=[skinKey,dropY,size]
+    const limb=(x,y,segs)=>{
+        const pivot=new THREE.Group();pivot.position.set(x,y,0);
+        segs.forEach(s=>pivot.add(mk2(GEO.box,DS[s[0]],[0,s[1],0],s[2])));
+        g.add(pivot);return pivot;
+    };
+    const leg=[['pants',-.25,[.24,.5,.24]],['knee',-.4,[.24,.14,.08]],['boot',-.65,[.26,.3,.28]]];
+    const arm=[['skin',-.22,[.2,.45,.2]],['skin',-.5,[.18,.35,.18]],['knee',-.66,[.19,.12,.19]]];
+    P.hipL=limb(-.18,.8,leg);P.hipR=limb(.18,.8,leg);
+    P.shL=limb(-.48,1.42,arm);P.shR=limb(.48,1.42,arm);
+
+    // Weapon mount rides with the right arm
+    P.hand=new THREE.Group();P.hand.position.set(0,-.58,.04);P.shR.add(P.hand);
+
+    g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+    return g;
+}
+
+// Pose the rig: walk cycle, aim, crouch, airborne
+let _pt=0;
+function uPlayer(dt,mov){
+    if(!P.g)return;
+    const air=!G.og&&!P.onBus;
+    _pt+=dt*(P.crouch>.4?.006:.013)*(G.sp?1.7:1);
+    const sw=Math.sin(_pt);
+
+    P.crouch+=((G.cr?1:0)-P.crouch)*Math.min(1,dt*.014);
+
+    // Facing: toward movement, or toward the camera when aiming / building / idle
+    let tf=mov&&!P.aiming&&!BLD.mode?Math.atan2(-AIM.f.x,-AIM.f.z):yaw;
+    let d=((tf-P.face+Math.PI*360)%(Math.PI*2))-Math.PI;
+    P.face+=d*Math.min(1,dt*.02);
+    P.g.rotation.y=P.face;
+
+    P.g.position.set(P.p.x,P.p.y-P.crouch*.55,P.p.z);
+
+    const ls=mov?.5:0;
+    if(air){
+        // Falling / gliding: limbs trail back and out
+        P.hipL.rotation.x=-.35+sw*.1;P.hipR.rotation.x=.45;
+        P.shL.rotation.x=-2.4;P.shR.rotation.x=-2.4;
+        P.shL.rotation.z=.9;P.shR.rotation.z=-.9;
+    }else if(P.aiming||BLD.mode){
+        P.hipL.rotation.x=0;P.hipR.rotation.x=0;
+        P.shL.rotation.x=-1.35;P.shR.rotation.x=-1.35;
+        P.shL.rotation.z=.35;P.shR.rotation.z=-.22;
+    }else{
+        P.hipL.rotation.x=sw*ls;P.hipR.rotation.x=-sw*ls;
+        P.shL.rotation.x=-sw*ls*.8;P.shR.rotation.x=sw*ls*.8;
+        P.shL.rotation.z=.08;P.shR.rotation.z=-.08;
+    }
+}
+
+// ===== THIRD-PERSON CAMERA =====
+// The camera orbits behind P.p (the character's feet) and aims along yaw/pitch,
+// so the crosshair ray stays parallel to where the character points.
+const _qA=new THREE.Quaternion(),_eA=new THREE.Euler(0,0,0,'YXZ');
+const _back=new THREE.Vector3(),_want=new THREE.Vector3();
+const camRC=new THREE.Raycaster();camRC.near=.55;
+let nearObs=[],_nearT=-1e9;
+
+function refreshNear(){
+    const bx=P.p.x,bz=P.p.z;
+    nearObs.length=0;
+    for(let i=0;i<obsCache.length;i++){
+        const o=obsCache[i];
+        if(Math.abs(o.position.x-bx)<16&&Math.abs(o.position.z-bz)<16)nearObs.push(o);
+    }
+    for(let i=0;i<BLD.list.length;i++)nearObs.push(BLD.list[i].m);
+}
+
+function uCamera(dt,now){
+    _eA.set(pitch,yaw,0,'YXZ');_qA.setFromEuler(_eA);
+    AIM.q.copy(_qA);
+    AIM.f.set(0,0,-1).applyQuaternion(_qA);
+    AIM.r.set(1,0,0).applyQuaternion(_qA);
+
+    const eye=1.55-P.crouch*.5;
+    CAM.tp.set(P.p.x,P.p.y+eye,P.p.z);
+
+    CAM.ndist=P.aiming?2.5:BLD.edit?3.2:BLD.mode?4.1:4.7;
+    CAM.dist+=(CAM.ndist-CAM.dist)*Math.min(1,dt*.012);
+    _back.set(0,0,1).applyQuaternion(_qA);
+
+    if(now-_nearT>200){refreshNear();_nearT=now;}
+    let d=CAM.dist;
+    camRC.far=d;camRC.set(CAM.tp,_back);
+    const hits=camRC.intersectObjects(nearObs,false);
+    if(hits.length)d=Math.max(.85,hits[0].distance-.3);
+
+    _want.copy(CAM.tp).addScaledVector(_back,d);
+    if(P.aiming)_want.addScaledVector(AIM.r,.5);       // shift over the right shoulder
+    _want.y=Math.max(_want.y,groundAt(_want.x,_want.z)+.55);
+
+    if(!CAM.init){CAM.cp.copy(_want);CAM.init=true;}
+    CAM.cp.lerp(_want,1-Math.exp(-dt*.022));
+    C.position.copy(CAM.cp);
+    C.quaternion.copy(_qA);
+
+    const tf=P.aiming?52:72;
+    if(Math.abs(C.fov-tf)>.2){C.fov+=(tf-C.fov)*Math.min(1,dt*.02);C.updateProjectionMatrix();}
+}
 
 // ===== INSTANCED MESH for particles (huge perf boost) =====
 const MAX_PARTS=200;
@@ -1179,27 +1345,38 @@ function build1v1Map(){
 // ===== 1V1 BOT (smarter, tougher) =====
 function spawn1v1Bot(){
     const bg=new THREE.Group();
-    const bm=new THREE.MeshStandardMaterial({color:0xcc2222,roughness:0.45});
-    const dm=new THREE.MeshStandardMaterial({color:0x881111,roughness:0.55});
-    const armMat=new THREE.MeshStandardMaterial({color:0xaa1818,roughness:0.55});
+    const m=dsMats();
 
-    bg.add(mk2(GEO.box,bm,[0,1.15,0],[.7,.9,.45]));   // 0 torso
-    bg.add(mk2(GEO.box,MAT.skin,[0,1.9,0],[.4,.4,.4])); // 1 head
-    bg.add(mk2(GEO.box,MAT.red,[-.1,1.95,.2],[.07,.07,.04])); // 2 eyeL
-    bg.add(mk2(GEO.box,MAT.red,[.1,1.95,.2],[.07,.07,.04])); // 3 eyeR
-    bg.add(mk2(GEO.box,dm,[0,2.2,0],[.48,.18,.48]));   // 4 helmet
-    bg.add(mk2(GEO.box,dm,[-.18,.33,0],[.26,.65,.26])); // 5 legL
-    bg.add(mk2(GEO.box,dm,[.18,.33,0],[.26,.65,.26]));  // 6 legR
+    bg.add(mk2(GEO.box,m.vest,[0,1.15,0],[.7,.9,.45]));    // 0 torso
+    bg.add(mk2(GEO.box,m.skin,[0,1.9,0],[.4,.4,.4]));      // 1 head
+    bg.add(mk2(GEO.box,m.eye,[-.1,1.95,.2],[.07,.05,.03])); // 2 eyeL
+    bg.add(mk2(GEO.box,m.eye,[.1,1.95,.2],[.07,.05,.03]));  // 3 eyeR
+    bg.add(mk2(GEO.box,m.hair,[0,2.16,0],[.42,.13,.42]));  // 4 hair
+    bg.add(mk2(GEO.box,m.pants,[-.18,.33,0],[.26,.65,.26])); // 5 legL
+    bg.add(mk2(GEO.box,m.pants,[.18,.33,0],[.26,.65,.26]));  // 6 legR
     bg.add(mk2(GEO.box,MAT.gun,[.5,1.05,.25],[.07,.07,.45])); // 7 gun
-    // Arms
-    bg.add(mk2(GEO.box,armMat,[-.48,1.15,0],[.22,.7,.22])); // 8 armL
-    bg.add(mk2(GEO.box,armMat,[.48,1.15,0],[.22,.7,.22]));  // 9 armR
+    // Arms (sleeveless)
+    bg.add(mk2(GEO.box,m.skin,[-.48,1.15,0],[.22,.7,.22])); // 8 armL
+    bg.add(mk2(GEO.box,m.skin,[.48,1.15,0],[.22,.7,.22]));  // 9 armR
 
     // HP bar (bigger for 1v1)
     bg.add(new THREE.Mesh(new THREE.PlaneGeometry(1.2,.1),MAT.hpBg)); // 10
     bg.children[10].position.y=2.6;
     const hb=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.1),MAT.hpGreen.clone());
     hb.position.set(0,2.6,.01);bg.add(hb); // 11
+
+    // Stop at index 20: uBots billboards children[21] and [22] for every bot,
+    // so a mesh placed there would be rotated to face the camera.
+    bg.add(mk2(GEO.box,m.scarf,[0,1.62,0],[.46,.16,.36]));      // 12 neckerchief
+    bg.add(mk2(GEO.box,m.belt,[0,.72,0],[.72,.08,.46]));        // 13 belt
+    bg.add(mk2(GEO.box,m.boot,[-.18,.1,0],[.28,.2,.3]));        // 14 bootL
+    bg.add(mk2(GEO.box,m.boot,[.18,.1,0],[.28,.2,.3]));         // 15 bootR
+    const strap=mk2(GEO.box,m.vestDk,[0,1.2,.25],[.1,.9,.05]);  // 16 chest strap
+    strap.rotation.z=.75;bg.add(strap);
+    bg.add(mk2(GEO.box,m.vestDk,[0,1.15,-.28],[.36,.44,.16]));  // 17 pack
+    bg.add(mk2(GEO.box,m.knee,[-.18,.5,.14],[.26,.14,.08]));    // 18 kneeL
+    bg.add(mk2(GEO.box,m.knee,[.18,.5,.14],[.26,.14,.08]));     // 19 kneeR
+    bg.add(mk2(GEO.box,m.camoDk,[-.22,.35,.15],[.12,.14,.02])); // 20 camo patch
 
     bg.position.set(-10,0,-10);
     S.add(bg);
@@ -1226,67 +1403,47 @@ function spawnBots(){
 }
 function mkBot(pos,id){
     const bg=new THREE.Group();
-    // Random skin from SKINS pool
-    const sk=SKINS[Math.floor(Math.random()*SKINS.length)];
-    const bm=new THREE.MeshStandardMaterial({color:sk.body,roughness:0.5,metalness:0.15});
-    const dm=new THREE.MeshStandardMaterial({color:sk.dark,roughness:0.55,metalness:0.1});
-    const helmMat=new THREE.MeshStandardMaterial({color:sk.helm,roughness:0.35,metalness:0.3});
-    const eyeMat=new THREE.MeshBasicMaterial({color:sk.eye});
-    const beltMat=new THREE.MeshStandardMaterial({color:0x444444,roughness:0.4,metalness:0.5});
-    const bootMat=new THREE.MeshStandardMaterial({color:0x333322,roughness:0.7});
-    const bpMat=new THREE.MeshStandardMaterial({color:sk.dark,roughness:0.6,metalness:0.15});
+    const m=dsMats();
 
-    // --- DETAILED BOT MODEL ---
-    // Torso (slightly tapered)
-    bg.add(mk2(GEO.box,bm,[0,1.15,0],[.7,.9,.42]));       // 0 torso
-    // Collar/neck area
-    bg.add(mk2(GEO.box,bm,[0,1.65,0],[.3,.1,.25]));        // 1 neck
-
-    // Head (rounder looking)
-    bg.add(mk2(GEO.box,MAT.skin,[0,1.9,0],[.38,.38,.38])); // 2 head
-
-    // Eyes (glowing)
-    bg.add(mk2(GEO.box,eyeMat,[-.09,1.94,.19],[.07,.05,.03])); // 3 eyeL
-    bg.add(mk2(GEO.box,eyeMat,[.09,1.94,.19],[.07,.05,.03]));  // 4 eyeR
-
-    // Helmet with visor
-    bg.add(mk2(GEO.box,helmMat,[0,2.15,0],[.46,.2,.46]));      // 5 helmet top
-    bg.add(mk2(GEO.box,helmMat,[0,2.05,.2],[.44,.08,.08]));    // 6 visor
-
-    // Legs (with boots)
-    bg.add(mk2(GEO.box,dm,[-.18,.55,0],[.24,.5,.24]));     // 7 legL upper
-    bg.add(mk2(GEO.box,dm,[.18,.55,0],[.24,.5,.24]));      // 8 legR upper
-    bg.add(mk2(GEO.box,bootMat,[-.18,.15,0],[.26,.3,.28]));// 9 bootL
-    bg.add(mk2(GEO.box,bootMat,[.18,.15,0],[.26,.3,.28])); // 10 bootR
-
-    // Arms (upper + lower)
-    bg.add(mk2(GEO.box,bm,[-.48,1.2,0],[.2,.45,.2]));      // 11 armL upper
-    bg.add(mk2(GEO.box,MAT.skin,[-.48,.85,0],[.18,.35,.18])); // 12 armL lower
-    bg.add(mk2(GEO.box,bm,[.48,1.2,0],[.2,.45,.2]));       // 13 armR upper
-    bg.add(mk2(GEO.box,MAT.skin,[.48,.85,0],[.18,.35,.18]));  // 14 armR lower
-
-    // Belt
-    bg.add(mk2(GEO.box,beltMat,[0,.72,0],[.72,.08,.44]));  // 15 belt
-
-    // Backpack
-    bg.add(mk2(GEO.box,bpMat,[0,1.15,-.28],[.4,.5,.2]));   // 16 backpack
-    bg.add(mk2(GEO.box,beltMat,[0,1.15,-.39],[.3,.08,.04]));// 17 backpack strap
-
-    // Shoulder pads (armor)
-    bg.add(mk2(GEO.box,helmMat,[-.42,1.45,0],[.22,.1,.26]));// 18 padL
-    bg.add(mk2(GEO.box,helmMat,[.42,1.45,0],[.22,.1,.26])); // 19 padR
-
-    // Gun in hand
-    bg.add(mk2(GEO.box,MAT.gun,[.5,1,.3],[.06,.06,.45]));  // 20 gun
-
-    // HP bar
-    bg.add(mk2(GEO.plane,MAT.hpBg,[0,2.55,0],[.9,.08,1]));    // 21 hp bg
+    // --- DEFAULT MODEL ---
+    bg.add(mk2(GEO.box,m.vest,[0,1.15,0],[.7,.9,.42]));        // 0 torso
+    bg.add(mk2(GEO.box,m.skin,[0,1.65,0],[.3,.1,.25]));        // 1 neck
+    bg.add(mk2(GEO.box,m.skin,[0,1.9,0],[.38,.38,.38]));       // 2 head
+    bg.add(mk2(GEO.box,m.eye,[-.09,1.94,.19],[.06,.04,.03]));  // 3 eyeL
+    bg.add(mk2(GEO.box,m.eye,[.09,1.94,.19],[.06,.04,.03]));   // 4 eyeR
+    bg.add(mk2(GEO.box,m.hair,[0,2.09,0],[.4,.13,.4]));        // 5 hair
+    bg.add(mk2(GEO.box,m.scarf,[0,1.6,0],[.44,.16,.34]));      // 6 neckerchief
+    bg.add(mk2(GEO.box,m.pants,[-.18,.55,0],[.24,.5,.24]));    // 7 legL upper
+    bg.add(mk2(GEO.box,m.pants,[.18,.55,0],[.24,.5,.24]));     // 8 legR upper
+    bg.add(mk2(GEO.box,m.boot,[-.18,.15,0],[.26,.3,.28]));     // 9 bootL
+    bg.add(mk2(GEO.box,m.boot,[.18,.15,0],[.26,.3,.28]));      // 10 bootR
+    bg.add(mk2(GEO.box,m.skin,[-.48,1.2,0],[.2,.45,.2]));      // 11 armL upper (sleeveless)
+    bg.add(mk2(GEO.box,m.skin,[-.48,.85,0],[.18,.35,.18]));    // 12 armL lower
+    bg.add(mk2(GEO.box,m.skin,[.48,1.2,0],[.2,.45,.2]));       // 13 armR upper
+    bg.add(mk2(GEO.box,m.skin,[.48,.85,0],[.18,.35,.18]));     // 14 armR lower
+    bg.add(mk2(GEO.box,m.belt,[0,.72,0],[.72,.08,.44]));       // 15 belt
+    const strap=mk2(GEO.box,m.vestDk,[0,1.2,.24],[.1,.9,.05]); // 16 chest strap
+    strap.rotation.z=.75;bg.add(strap);
+    bg.add(mk2(GEO.box,m.pouch,[.3,.62,.16],[.14,.22,.14]));   // 17 thigh pouch
+    bg.add(mk2(GEO.box,m.knee,[-.18,.7,.13],[.24,.14,.08]));   // 18 kneeL
+    bg.add(mk2(GEO.box,m.knee,[.18,.7,.13],[.24,.14,.08]));    // 19 kneeR
+    bg.add(mk2(GEO.box,MAT.gun,[.5,1,.3],[.06,.06,.45]));      // 20 gun
+    bg.add(mk2(GEO.plane,MAT.hpBg,[0,2.55,0],[.9,.08,1]));     // 21 hp bg
     const hb=mk2(GEO.plane,MAT.hpGreen.clone(),[0,2.55,.01],[.9,.08,1]);
     bg.add(hb); // 22 hp bar
+    // Camo patches + pack + gloves. Nothing past 22 is referenced by the
+    // animation or HP-bar code, so these are safe to append.
+    bg.add(mk2(GEO.box,m.camoDk,[-.2,.48,.13],[.1,.12,.02]));  // 23
+    bg.add(mk2(GEO.box,m.camoLt,[-.12,.66,.13],[.09,.1,.02])); // 24
+    bg.add(mk2(GEO.box,m.camoDk,[.22,.4,.13],[.11,.13,.02]));  // 25
+    bg.add(mk2(GEO.box,m.camoLt,[.12,.62,.13],[.08,.1,.02]));  // 26
+    bg.add(mk2(GEO.box,m.vestDk,[0,1.15,-.26],[.36,.44,.16])); // 27 pack
+    bg.add(mk2(GEO.box,m.knee,[-.48,.66,0],[.19,.12,.19]));    // 28 gloveL
+    bg.add(mk2(GEO.box,m.knee,[.48,.66,0],[.19,.12,.19]));     // 29 gloveR
 
     bg.position.copy(pos);
     // Cast shadow on main body parts
-    [0,2,5,7,8,11,13,16].forEach(i=>{if(bg.children[i])bg.children[i].castShadow=true;});
+    [0,2,5,6,7,8,11,13,16,27].forEach(i=>{if(bg.children[i])bg.children[i].castShadow=true;});
     S.add(bg);
 
     const wep=WN[Math.floor(Math.random()*5)]; // can have any weapon now
@@ -1452,7 +1609,7 @@ function pDie(){
     const isWin=G.alive<=1;
     $('pn').textContent='#'+G.alive;
     $('pn').className=isWin?'w':'l';
-    $('vr-banner').textContent=MODE==='1v1'?'1v1 ARENA':'BATTLE ROYALE';
+    $('vr-banner').textContent=MODE==='practice'?'PRACTICE RANGE':MODE==='1v1'?'1v1 ARENA':'BATTLE ROYALE';
     $('vr-sub').textContent=isWin?'VICTORY ROYALE!':'ELIMINATED';
     $('vr-sub').className=isWin?'vr-w':'vr-l';
     $('pk').textContent=G.kills;
@@ -1464,7 +1621,7 @@ function pDie(){
         'linear-gradient(135deg,rgba(30,0,0,.95),rgba(0,0,0,.98))';
     $('end').style.display='flex';
 }
-function chkWin(){if(!G.dead&&G.alive<=1)pDie();}
+function chkWin(){if(MODE==='practice')return;if(!G.dead&&G.alive<=1)pDie();}
 
 // ===== ZONE (moves each phase!) =====
 const PHASES=[
@@ -1587,6 +1744,7 @@ function shoot(){
                 if(isH&&bot.hp<=0){feed('HEADSHOT!','kh');showElim('Enemy #'+(bot.id+1),true);}
             }
         });
+        if(MODE==='practice')hitTgt(rc,wd.rng);
     }
     if(sl.a<=0)rlod();
 }
@@ -1739,85 +1897,241 @@ let fc=0,flt=performance.now();
 function uFPS(){fc++;const n=performance.now();if(n-flt>=500){$('fp').textContent='FPS: '+Math.round(fc*1000/(n-flt));fc=0;flt=n;}}
 
 // ===== DROP =====
-let dp=true,dy=60;
-// ===== BATTLE BUS DROP SYSTEM =====
-let busPhase='bus'; // 'bus', 'glide', 'done'
-let busX=-MAP, busZ=-MAP, busSpeed=1.2;
-let glideSpeed=0.15;
+let dp=true;
 
-function uDrop(){
-    if(!dp)return;
+// ===== BATTLE BUS =====
+// Procedural blimp: striped balloon + netting + rigging + open-top cabin, so the
+// player is visibly riding inside it. Travels one lane across the island.
+const BUS={g:null,balloon:null,rotor:null,glider:null,
+    x:-MAP*.9,z:-MAP*.9*.6,y:120,yaw:0,bob:0,tilt:0,
+    phase:'bus',speed:.011,floor:.35,alt:120};
+const _bw=new THREE.Vector3(),_bd=new THREE.Vector3(),_bwant=new THREE.Vector3();
 
-    if(busPhase==='bus'){
-        // Battle Bus: fly across the map
-        busX+=busSpeed;busZ+=busSpeed*0.6;
-        C.position.set(busX, 120, busZ);
-        C.lookAt(busX+20, 0, busZ+12);
-        $('dt').textContent='🚌 BATTLE BUS';
-        $('ds').textContent='Press SPACE to jump!';
+function buildBus(){
+    const g=new THREE.Group();
+    const paint=new THREE.MeshStandardMaterial({color:0x2f6fd0,roughness:.5,metalness:.25});
+    const trim=new THREE.MeshStandardMaterial({color:0xf5c542,roughness:.5,metalness:.2});
+    const glass=new THREE.MeshStandardMaterial({color:0x0d1b26,roughness:.1,metalness:.6});
+    const dark=new THREE.MeshStandardMaterial({color:0x23272b,roughness:.6,metalness:.4});
+    const tyre=new THREE.MeshStandardMaterial({color:0x15181b,roughness:.9});
+    const lamp=new THREE.MeshBasicMaterial({color:0xfff2b0});
 
-        // Auto-jump at end of path
-        if(busX>MAP){
-            busPhase='glide';
-            $('dt').textContent='🪂 GLIDING DOWN';
-            $('ds').textContent='Landing...';
-        }
-        // Player presses SPACE to jump
-        if(G.k['Space']){
-            busPhase='glide';
-            $('dt').textContent='🪂 GLIDING DOWN';
-            $('ds').textContent='Landing...';
-            G.k['Space']=false;
-        }
-    } else if(busPhase==='glide'){
-        // Glide down
-        dy-=glideSpeed;
-        C.position.y=dy;
-        // Slight drift
-        C.position.x+=Math.sin(Date.now()*.0008)*.15;
-        C.position.z+=Math.cos(Date.now()*.0008)*.15;
-        // Reset camera rotation for glide
-        C.rotation.set(0,0,0);
-        C.rotateOnWorldAxis(new THREE.Vector3(0,1,0),yaw);
-        C.rotateOnAxis(new THREE.Vector3(1,0,0),-0.3); // Look slightly down
-
-        if(dy<=G.ph){
-            busPhase='done';
-            dp=false;
-            dy=G.ph;
-            C.position.y=G.ph;
-            $('dp').style.display='none';
-            G.gs=Date.now();
-            G.sl[0]={n:'Pistol',a:15};G.cs=0;mkGun('Pistol');uWep();
-            feed('Find weapons to survive!','ky');
-            feed('Kill the BOSS for legendary loot!','kz');
-        }
+    // cabin floor + walls (open top: you stand inside)
+    g.add(mk2(GEO.box,trim,[0,.15,0],[4.2,.3,8.4]));
+    [-2.05,2.05].forEach(sx=>{
+        g.add(mk2(GEO.box,paint,[sx,1.35,0],[.3,2.5,8.2]));
+        g.add(mk2(GEO.box,glass,[sx+(sx<0?.17:-.17),1.9,0],[.06,.95,7]));
+        g.add(mk2(GEO.box,trim,[sx,1.15,0],[.34,.18,8.2]));
+    });
+    // nose, windscreen, bumper, headlights
+    g.add(mk2(GEO.box,paint,[0,1.4,-4.2],[4.2,2.4,.8]));
+    g.add(mk2(GEO.box,glass,[0,1.95,-4.66],[3.2,1.05,.12]));
+    g.add(mk2(GEO.box,trim,[0,.55,-4.58],[4,.5,.24]));
+    [-1.5,1.5].forEach(x=>g.add(mk2(GEO.sphere,lamp,[x,.8,-4.62],[.36,.36,.18])));
+    // rear deck + tail fins
+    g.add(mk2(GEO.box,paint,[0,1.1,4.3],[4.2,1.6,.5]));
+    g.add(mk2(GEO.box,trim,[0,2.5,4.55],[.26,1.5,1.1]));
+    g.add(mk2(GEO.box,trim,[0,1.35,4.75],[1.9,.18,.9]));
+    // wheels
+    [[-1.95,3.2],[1.95,3.2],[-1.95,-3.2],[1.95,-3.2]].forEach(p=>{
+        const w=mk2(GEO.cyl,tyre,[p[0],.42,p[1]],[.45,.8,.8]);
+        w.rotation.z=Math.PI/2;g.add(w);
+    });
+    // propeller
+    const rotor=new THREE.Group();rotor.position.set(0,1.5,-5);
+    const hub=mk2(GEO.cyl,dark,[0,0,0],[.3,.45,.3]);hub.rotation.x=Math.PI/2;rotor.add(hub);
+    for(let i=0;i<3;i++){
+        const b=mk2(GEO.box,new THREE.MeshStandardMaterial({color:0x3a3f45,roughness:.5,metalness:.3}),
+            [0,0,0],[.16,2.5,.06]);
+        b.rotation.z=i*Math.PI*2/3;rotor.add(b);
     }
+    g.add(rotor);BUS.rotor=rotor;
+
+    // balloon: latitude-striped envelope
+    const bg=new THREE.SphereGeometry(5.6,28,20);
+    const cols=[],pa=bg.attributes.position;
+    for(let i=0;i<pa.count;i++){
+        const yy=pa.getY(i)/5.6;
+        const c=new THREE.Color(Math.floor((yy+1)*5)%2?0x2f6fd0:0xf5c542);
+        c.lerp(new THREE.Color(0x1b4f9e),Math.max(0,1-yy)*.35);
+        cols.push(c.r,c.g,c.b);
+    }
+    bg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+    const balloon=new THREE.Mesh(bg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.55}));
+    balloon.position.set(0,9.2,0);balloon.scale.set(1,.86,1);g.add(balloon);BUS.balloon=balloon;
+    const net=new THREE.Mesh(new THREE.SphereGeometry(5.78,20,12),
+        new THREE.MeshBasicMaterial({color:0xe8e2cf,wireframe:true,transparent:true,opacity:.2}));
+    net.position.copy(balloon.position);net.scale.copy(balloon.scale);g.add(net);
+    // rigging down to the lift ring
+    [[-1.6,-1.2],[1.6,-1.2],[-1.6,1.2],[1.6,1.2]].forEach(p=>
+        g.add(mk2(GEO.cyl,dark,[p[0],4.6,p[1]],[.07,4.2,.07])));
+    g.add(mk2(GEO.cyl,trim,[0,3.2,0],[1.4,.5,1.4]));
+
+    g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+    S.add(g);BUS.g=g;
+    buildGlider();
+}
+
+// Glider wings, only visible during the glide phase
+function buildGlider(){
+    const gl=new THREE.Group();
+    const cloth=new THREE.MeshStandardMaterial({color:0x37b6c8,roughness:.6,side:THREE.DoubleSide});
+    const frame=new THREE.MeshStandardMaterial({color:0x2b2f33,roughness:.5,metalness:.4});
+    const wing=mk2(GEO.box,cloth,[0,0,0],[5.6,.08,2.2]);wing.rotation.x=-.22;gl.add(wing);
+    gl.add(mk2(GEO.box,frame,[0,-.1,.15],[5.8,.14,.18]));
+    [[-2.4,-.35,0],[2.4,-.35,0],[0,-.35,.8]].forEach(p=>gl.add(mk2(GEO.cyl,frame,p,[.06,.7,.06])));
+    gl.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+    gl.visible=false;S.add(gl);BUS.glider=gl;
+}
+
+function startDrop(){
+    BUS.phase='bus';
+    BUS.x=-MAP*.9;BUS.z=-MAP*.9*.6;BUS.y=120;
+    BUS.yaw=Math.atan2(-1,-.6);                 // local -Z points along travel
+    BUS.bob=0;BUS.tilt=0;BUS.alt=120;
+    CAM.init=false;
+    if(BUS.glider)BUS.glider.visible=false;
+    P.onBus=true;P.falling=false;P.gliding=false;
+    G.v.y=0;G.og=false;
+    $('dp').style.display='flex';
+    $('dt').textContent='🚌 BATTLE BUS';
+    $('ds').textContent='Press SPACE to jump!';
+    document.querySelector('#dp .glider-hint').textContent='Flying over the island...';
+}
+
+function jumpFromBus(){
+    if(BUS.phase!=='bus')return;
+    BUS.phase='fall';
+    P.onBus=false;P.falling=true;
+    _bd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+    P.p.set(BUS.x-_bd.x*5,BUS.y-3,BUS.z-_bd.z*5);
+    G.v.y=-.3;G.og=false;
+    CAM.init=false;
+    $('dt').textContent='🪂 FREE FALL';
+    $('ds').textContent='Steer with WASD - the glider opens automatically';
+    feed('Jumped from the Battle Bus!','ky');
+}
+
+// Ride phase: bus glides along its lane, camera chases it from behind
+function uRide(dt,now){
+    const t=now*.001;
+    BUS.x+=BUS.speed*dt;
+    BUS.z+=BUS.speed*.6*dt;
+    BUS.y=120+Math.sin(t*.35)*2.2;
+    BUS.bob=Math.sin(t*.9)*.45;
+    BUS.tilt=Math.sin(t*.4)*.03;
+    if(BUS.g){
+        BUS.g.position.set(BUS.x,BUS.y+BUS.bob,BUS.z);
+        BUS.g.rotation.set(BUS.tilt*.6,BUS.yaw+Math.sin(t*.3)*.02,BUS.tilt);
+        BUS.rotor.rotation.z+=dt*.05;
+        BUS.balloon.position.y=9.2+Math.sin(t*1.4)*.3;
+    }
+    // the player is bolted to the cabin floor
+    if(P.g){
+        _bw.set(0,BUS.floor,1.5).applyQuaternion(BUS.g.quaternion).add(BUS.g.position);
+        P.p.copy(_bw);
+        P.g.position.copy(_bw);
+        P.g.rotation.set(BUS.tilt*.6,BUS.yaw+Math.sin(t*.3)*.02,BUS.tilt);
+        P.crouch=0;
+    }
+    // chase camera orbits the bus with the mouse, so you can look around
+    _eA.set(pitch*.45,yaw,0,'YXZ');_qA.setFromEuler(_eA);
+    CAM.tp.set(BUS.x,BUS.y+5,BUS.z);
+    _bd.set(0,0,1).applyQuaternion(_qA);
+    _bwant.copy(CAM.tp).addScaledVector(_bd,17);
+    if(!CAM.init){CAM.cp.copy(_bwant);CAM.init=true;}
+    CAM.cp.lerp(_bwant,1-Math.exp(-dt*.011));
+    C.position.copy(CAM.cp);
+    C.quaternion.copy(_qA);
+    BUS.alt=BUS.y;
+    if(BUS.x>MAP||BUS.z>MAP)jumpFromBus();      // end of the lane
+}
+
+// Fall + glide phases
+function uFall(dt,now){
+    const f=dt/16.67;
+    if(BUS.phase==='fall'){
+        G.v.y=Math.max(-1.15,G.v.y-.016*f);
+        if(P.p.y<52){
+            BUS.phase='glide';P.falling=false;P.gliding=true;
+            $('dt').textContent='🪂 GLIDING';
+            $('ds').textContent='Steer with WASD';
+            document.querySelector('#dp .glider-hint').textContent='Right-click to drop faster';
+        }
+    }else{
+        // glide: slow descent, still steerable
+        G.v.y=-.24;
+        if(G.k['ControlLeft']||P.aiming)G.v.y=-.75;
+    }
+    // WASD steering through the air
+    _bd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+    let sx=0,sz=0;
+    if(G.k['KeyW']){sx+=_bd.x;sz+=_bd.z;}
+    if(G.k['KeyS']){sx-=_bd.x;sz-=_bd.z;}
+    if(G.k['KeyA']){sx+=_bd.z;sz-=_bd.x;}
+    if(G.k['KeyD']){sx-=_bd.z;sz+=_bd.x;}
+    const push=BUS.phase==='fall'?.012:.02;
+    P.p.x+=sx*push*f;P.p.z+=sz*push*f;
+    P.p.y+=G.v.y*f;
+    if(P.g){P.g.rotation.y=yaw;P.g.position.copy(P.p);}
+    if(BUS.glider){
+        BUS.glider.visible=BUS.phase==='glide';
+        if(BUS.glider.visible)BUS.glider.position.set(P.p.x,P.p.y+2.5,P.p.z);
+    }
+    // the bus keeps flying without you
+    if(BUS.g){
+        BUS.x+=BUS.speed*dt*.5;BUS.z+=BUS.speed*.6*dt*.5;
+        BUS.g.position.set(BUS.x,BUS.y+BUS.bob,BUS.z);
+        BUS.rotor.rotation.z+=dt*.05;
+    }
+    // land
+    const sup=groundAt(P.p.x,P.p.z,P.p.y+.6);
+    if(P.p.y<=sup){
+        P.p.y=sup;G.v.y=0;G.og=true;
+        dp=false;P.falling=false;P.gliding=false;
+        if(BUS.glider)BUS.glider.visible=false;
+        $('dp').style.display='none';
+        CAM.init=false;
+        G.gs=Date.now();
+        if(!G.sl[0]){G.sl[0]={n:'Pistol',a:15};G.cs=0;mkGun('Pistol');uWep();}
+        feed('Find weapons to survive!','ky');
+        feed('Kill the BOSS for legendary loot!','kz');
+        return;
+    }
+    // camera trails the falling player
+    if(BUS.phase==='fall')CAM.dist=6.4;
+    uCamera(dt,now);
+}
+
+function uDrop(dt,now){
+    if(!dp)return;
+    if(BUS.phase==='bus')uRide(dt,now);
+    else uFall(dt,now);
+    $('dalt').textContent='ALT '+Math.max(0,Math.round(BUS.phase==='bus'?BUS.y:P.p.y))+'m';
 }
 
 // ===== BOSS SYSTEM =====
 function spawnBoss(){
     if(!G.bossPos)return;
     const bg=new THREE.Group();
-    // Boss is bigger and red/black
-    const bossMat=new THREE.MeshStandardMaterial({color:0x880000,roughness:0.4,metalness:0.3});
-    const bossArmorMat=new THREE.MeshStandardMaterial({color:0x222222,roughness:0.3,metalness:0.6});
+    // Boss keeps the Default skin, just scaled up; its red HP bar stays for identifiability
+    const m=dsMats();
 
-    bg.add(mk2(GEO.box,bossMat,[0,1.4,0],[1,1.2,.55]));    // 0 torso (big)
-    bg.add(mk2(GEO.box,bossMat,[0,1,0],[.35,.1,.3]));       // 1 neck
-    bg.add(mk2(GEO.box,MAT.skin,[0,2.3,0],[.5,.5,.5]));     // 2 head
-    bg.add(mk2(GEO.box,new THREE.MeshBasicMaterial({color:0xff0000}),[-.12,2.35,.26],[.1,.07,.04])); // 3 eyeL
-    bg.add(mk2(GEO.box,new THREE.MeshBasicMaterial({color:0xff0000}),[.12,2.35,.26],[.1,.07,.04]));  // 4 eyeR
-    bg.add(mk2(GEO.box,bossArmorMat,[0,2.65,0],[.6,.25,.6])); // 5 helmet
-    bg.add(mk2(GEO.box,bossArmorMat,[0,2.55,.28],[.55,.1,.1])); // 6 visor
-    bg.add(mk2(GEO.box,bossMat,[-.22,.45,0],[.3,.8,.3]));   // 7 legL
-    bg.add(mk2(GEO.box,bossMat,[.22,.45,0],[.3,.8,.3]));    // 8 legR
-    bg.add(mk2(GEO.box,bossArmorMat,[-.22,.1,0],[.32,.2,.34]));  // 9 bootL
-    bg.add(mk2(GEO.box,bossArmorMat,[.22,.1,0],[.32,.2,.34]));   // 10 bootR
-    bg.add(mk2(GEO.box,bossMat,[-.6,1.5,0],[.28,.6,.28]));  // 11 armL
-    bg.add(mk2(GEO.box,bossMat,[.6,1.5,0],[.28,.6,.28]));   // 12 armR
-    bg.add(mk2(GEO.box,bossArmorMat,[-.55,1.8,0],[.3,.12,.35])); // 13 padL
-    bg.add(mk2(GEO.box,bossArmorMat,[.55,1.8,0],[.3,.12,.35]));  // 14 padR
+    bg.add(mk2(GEO.box,m.vest,[0,1.4,0],[1,1.2,.55]));    // 0 torso (big)
+    bg.add(mk2(GEO.box,m.skin,[0,1,0],[.35,.1,.3]));       // 1 neck
+    bg.add(mk2(GEO.box,m.skin,[0,2.3,0],[.5,.5,.5]));     // 2 head
+    bg.add(mk2(GEO.box,m.eye,[-.12,2.35,.26],[.1,.07,.04])); // 3 eyeL
+    bg.add(mk2(GEO.box,m.eye,[.12,2.35,.26],[.1,.07,.04]));  // 4 eyeR
+    bg.add(mk2(GEO.box,m.hair,[0,2.6,0],[.52,.16,.52]));     // 5 hair
+    bg.add(mk2(GEO.box,m.scarf,[0,2.05,.1],[.54,.18,.42]));  // 6 neckerchief
+    bg.add(mk2(GEO.box,m.pants,[-.22,.45,0],[.3,.8,.3]));   // 7 legL
+    bg.add(mk2(GEO.box,m.pants,[.22,.45,0],[.3,.8,.3]));    // 8 legR
+    bg.add(mk2(GEO.box,m.boot,[-.22,.1,0],[.32,.2,.34]));  // 9 bootL
+    bg.add(mk2(GEO.box,m.boot,[.22,.1,0],[.32,.2,.34]));   // 10 bootR
+    bg.add(mk2(GEO.box,m.skin,[-.6,1.5,0],[.28,.6,.28]));  // 11 armL
+    bg.add(mk2(GEO.box,m.skin,[.6,1.5,0],[.28,.6,.28]));   // 12 armR
+    bg.add(mk2(GEO.box,m.vest,[-.55,1.8,0],[.3,.12,.35])); // 13 shoulderL
+    bg.add(mk2(GEO.box,m.vest,[.55,1.8,0],[.3,.12,.35]));  // 14 shoulderR
     bg.add(mk2(GEO.box,MAT.gun,[.65,1.3,.35],[.08,.08,.6]));     // 15 gun
     // Boss HP bar (wide)
     bg.add(mk2(GEO.plane,MAT.hpBg,[0,3.1,0],[1.5,.12,1]));      // 16
@@ -1849,6 +2163,236 @@ function onBossKill(){
     feed('Full HP + Shield + All Weapons!','kl');
 }
 
+// ===== BUILDING (Fortnite-style grid building) =====
+// Pieces snap to a square grid: a cell is BS.size wide and BS.step tall, so a wall
+// built at level n always meets the floor of level n+1 exactly.
+// dir: 0=+X 1=-X 2=+Z 3=-Z (wall normal / stair rise direction)
+const BS={size:4,step:3,thick:.3,wallH:3};
+const PIECE_NAMES=['Wall','Floor','Stairs','Roof'];
+const BLD={
+    mode:false,piece:0,list:[],ghost:[],
+    sp:null,valid:false,edit:null,editSnap:null,
+    mat:null,frame:null,ghostMat:null,badMat:null,editMat:null,
+};
+const _aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const aimRC=new THREE.Raycaster();
+
+function pieceGeo(i){return i===3?new THREE.ConeGeometry(1,1,4):GEO.box;}
+
+// Where a piece sits, as world position / rotation / scale of a unit geometry
+function pieceSpec(type,cx,cz,lvl,dir){
+    const X=cx*BS.size,Z=cz*BS.size,base=lvl*BS.step,half=BS.size/2;
+    if(type===0){                                   // wall, on a cell edge
+        const alongX=dir<2;
+        const off=dir===0?[half,0,0]:dir===1?[-half,0,0]:[0,0,dir===2?half:-half];
+        return{pos:[X+off[0],base+BS.wallH/2,Z+off[2]],rot:[0,0,0],
+            sz:[alongX?BS.size:BS.thick,BS.wallH,alongX?BS.thick:BS.size]};
+    }
+    if(type===1){                                   // floor, flat in the cell
+        return{pos:[X,base+BS.thick/2,Z],rot:[0,0,0],sz:[BS.size,BS.thick,BS.size]};
+    }
+    if(type===2){                                   // stairs, ramp across the cell
+        const alongX=dir<2,sgn=(dir===0||dir===2)?1:-1;
+        const len=Math.hypot(BS.size,BS.step),ang=Math.atan2(BS.step,BS.size);
+        return alongX
+            ?{pos:[X,base+BS.step/2,Z],rot:[0,0,-sgn*ang],sz:[len,BS.thick,BS.size]}
+            :{pos:[X,base+BS.step/2,Z],rot:[sgn*ang,0,0],sz:[BS.size,BS.thick,len]};
+    }
+    // roof: pyramid sitting on the level above
+    const r=BS.size*Math.SQRT1_2;
+    return{pos:[X,base+1.5,Z],rot:[0,Math.PI/4,0],sz:[r,3,r]};
+}
+
+function mkPiece(type,cx,cz,lvl,dir){
+    const sp=pieceSpec(type,cx,cz,lvl,dir);
+    const body=mk2(pieceGeo(type),BLD.mat,sp.pos,sp.sz);
+    body.rotation.set(sp.rot[0],sp.rot[1],sp.rot[2]);
+    body.castShadow=true;body.receiveShadow=true;
+    body.userData.isO=true;body.userData.sz=sp.sz;body.userData.isBuild=true;
+    S.add(body);
+    // Walls block; floors block (they are thin); stairs and roofs never block,
+    // stairs are walked up and roofs are only stood on from below the ridge.
+    const walk=type===1||type===2;
+    const block=type===0||type===1;
+    const b={type,cx,cz,lvl,dir,m:body,body,walk,block,sz:sp.sz,
+        topY:type===1?lvl*BS.step+BS.thick:lvl*BS.step};
+    return b;
+}
+function hasAt(type,cx,cz,lvl,dir){
+    return BLD.list.some(b=>b.type===type&&b.cx===cx&&b.cz===cz&&b.lvl===lvl&&b.dir===dir);
+}
+// A wall on the +X edge of cell n is the same plank as the -X edge of cell n+1,
+// so always store the negative-side pair. Otherwise the same wall could be built twice.
+function canonWall(cx,cz,dir){
+    if(dir===0)return{cx:cx+1,cz,dir:1};
+    if(dir===2)return{cx,cz:cz+1,dir:3};
+    return{cx,cz,dir};
+}
+// Grid target under the crosshair, on the plane of the level we are standing on
+function aimCell(){
+    const lvl=Math.round(P.p.y/BS.step),planeY=lvl*BS.step;
+    _aimPlane.set(new THREE.Vector3(0,1,0),-planeY);
+    aimRC.set(C.position,AIM.f);
+    const pt=new THREE.Vector3();
+    if(!aimRC.ray.intersectPlane(_aimPlane,pt)){
+        // aiming at the sky: project straight ahead instead
+        pt.set(P.p.x+AIM.f.x*4,planeY,P.p.z+AIM.f.z*4);
+    }
+    let dx=pt.x-P.p.x,dz=pt.z-P.p.z;
+    const flat=Math.hypot(AIM.f.x,AIM.f.z);
+    const maxD=flat>.05?8:5;
+    const d=Math.hypot(dx,dz);
+    if(d>maxD&&d>0){dx=dx/d*maxD;dz=dz/d*maxD;}
+    if(d<.25){dx=AIM.f.x*3;dz=AIM.f.z*3;}
+    return{x:P.p.x+dx,z:P.p.z+dz,lvl};
+}
+function buildTarget(){
+    const a=aimCell();if(!a)return null;
+    const t=BLD.piece;
+    const cx=Math.round(a.x/BS.size),cz=Math.round(a.z/BS.size);
+    const fx=AIM.f.x,fz=AIM.f.z;
+    const aimDir=Math.abs(a.x-cx*BS.size)>Math.abs(a.z-cz*BS.size)
+        ?((a.x-cx*BS.size)>0?0:1):((a.z-cz*BS.size)>0?2:3);
+    const fwdDir=Math.abs(fx)>Math.abs(fz)?(fx>0?0:1):(fz>0?2:3);
+    if(t===0){
+        const w=canonWall(cx,cz,aimDir);
+        return{type:0,cx:w.cx,cz:w.cz,lvl:a.lvl,dir:w.dir};
+    }
+    if(t===2)return{type:2,cx,cz,lvl:a.lvl,dir:fwdDir};
+    if(t===3)return{type:3,cx,cz,lvl:a.lvl+1,dir:0};
+    return{type:1,cx,cz,lvl:a.lvl,dir:0};
+}
+function ghostInvalid(sp){
+    const{type,cx,cz,lvl,dir}=sp,pos=pieceSpec(type,cx,cz,lvl,dir).pos,sz=pieceSpec(type,cx,cz,lvl,dir).sz;
+    if(Math.abs(pos[0])>MAP||Math.abs(pos[2])>MAP)return true;
+    if(hasAt(type,cx,cz,lvl,dir))return true;
+    // never trap the player inside a piece
+    const feet=P.p.y;
+    const y0=pos[1]-sz[1]/2,y1=pos[1]+sz[1]/2;
+    if(Math.abs(P.p.x-pos[0])<sz[0]/2+.35&&Math.abs(P.p.z-pos[2])<sz[2]/2+.35&&y1>feet+.1&&y0<feet+1.6)
+        if(type!==1||lvl*BS.step>feet+.1)return true;
+    return false;
+}
+function uGhost(){
+    const show=BLD.mode&&!BLD.edit;
+    BLD.ghost.forEach((g,i)=>g.visible=show&&i===BLD.piece);
+    if(!show){BLD.sp=null;return;}
+    const sp=buildTarget();
+    BLD.sp=sp;
+    if(!sp){BLD.valid=false;return;}
+    const d=pieceSpec(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir);
+    const g=BLD.ghost[sp.type];
+    g.position.set(d.pos[0],d.pos[1],d.pos[2]);
+    g.rotation.set(d.rot[0],d.rot[1],d.rot[2]);
+    g.scale.set(d.sz[0],d.sz[1],d.sz[2]);
+    BLD.valid=!ghostInvalid(sp);
+    g.material=BLD.valid?BLD.ghostMat:BLD.badMat;
+}
+function placePiece(){
+    if(!BLD.mode||BLD.edit||!BLD.sp)return false;
+    const sp=BLD.sp;
+    if(ghostInvalid(sp)){feed('Cannot build there','kh');return false;}
+    BLD.list.push(mkPiece(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir));
+    return true;
+}
+function removePiece(b){
+    if(!b)return;
+    S.remove(b.m);
+    BLD.list=BLD.list.filter(x=>x!==b);
+    if(BLD.edit===b)endEdit(false);
+}
+// Swap a piece's type or direction in place (used by edit mode)
+function rebuildPiece(b,type,dir){
+    const t=type===undefined?b.type:type,d=dir===undefined?b.dir:dir;
+    S.remove(b.m);
+    const nb=mkPiece(t,b.cx,b.cz,b.lvl,d);
+    BLD.list=BLD.list.map(x=>x===b?nb:x);
+    BLD.edit=nb;
+    nb.body.material=BLD.editMat;
+    return nb;
+}
+function targetPiece(){
+    aimRC.set(C.position,AIM.f);aimRC.far=18;aimRC.near=0;
+    let best=null,bd=18;
+    BLD.list.forEach(b=>{
+        const hits=aimRC.intersectObject(b.m,false);
+        if(hits.length&&hits[0].distance<bd){bd=hits[0].distance;best=b;}
+    });
+    return best;
+}
+function startEdit(){
+    const t=targetPiece();
+    if(!t){feed('Nothing to edit','kh');return;}
+    BLD.edit=t;BLD.editSnap={type:t.type,dir:t.dir};
+    BLD.mode=true;
+    t.body.material=BLD.editMat;
+    $('ehint').style.display='block';
+    $('ehint').innerHTML='<b>G/LMB</b> confirm &nbsp; <b>F1-F4</b> change piece &nbsp; <b>F</b> rotate &nbsp; <b>X</b> delete &nbsp; <b>RMB</b> cancel';
+    uBuildBar();
+}
+function endEdit(keep){
+    const b=BLD.edit;
+    if(b){
+        b.body.material=BLD.mat;
+        if(keep===false&&BLD.editSnap)rebuildPiece(b,BLD.editSnap.type,BLD.editSnap.dir);
+    }
+    BLD.edit=null;BLD.editSnap=null;
+    $('ehint').style.display='none';
+    uBuildBar();
+}
+function rotateEdit(){
+    const b=BLD.edit;if(!b)return;
+    if(b.type===1||b.type===3)return;              // floor and roof are symmetric
+    rebuildPiece(b,undefined,(b.dir+1)%4);
+}
+function convertEdit(type){
+    const b=BLD.edit;if(!b)return;
+    rebuildPiece(b,type,b.dir);
+}
+function uBuildBar(){
+    $('bb').style.display=BLD.mode?'flex':'none';
+    $('bmode').style.display=BLD.mode?'block':'none';
+    $('bmode').textContent=BLD.edit?'Edit Mode':'Build Mode - '+PIECE_NAMES[BLD.piece];
+    for(let i=0;i<4;i++)$('b'+i).classList.toggle('ac',BLD.mode&&i===BLD.piece&&!BLD.edit);
+}
+function setPiece(i){
+    if(BLD.edit)convertEdit(i);
+    else{BLD.mode=true;BLD.piece=i;}
+    uBuildBar();
+}
+
+// Highest build surface at (x,z) that is not above upTo. Terrain is 0.
+function groundAt(x,z,upTo){
+    const lim=upTo===undefined?1e9:upTo;
+    let h=0;
+    for(let i=0;i<BLD.list.length;i++){
+        const b=BLD.list[i];
+        if(!b.walk)continue;
+        const X=b.cx*BS.size,Z=b.cz*BS.size;
+        if(x<X-BS.size/2||x>X+BS.size/2||z<Z-BS.size/2||z>Z+BS.size/2)continue;
+        let y=b.topY;
+        if(b.type===2){
+            const alongX=b.dir<2;
+            const s=alongX?(b.dir===0?(x-X)/BS.size:(X-x)/BS.size)
+                          :(b.dir===2?(z-Z)/BS.size:(Z-z)/BS.size);
+            y=b.lvl*BS.step+Math.max(0,Math.min(1,(s+1)/2))*BS.step;
+        }
+        if(y<=lim&&y>h)h=y;
+    }
+    return h;
+}
+
+// Ghost previews: one translucent piece per type, shown/positioned each frame
+function initBuild(){
+    BLD.mat=new THREE.MeshStandardMaterial({color:0xc0956a,roughness:.72,metalness:.05});
+    BLD.ghostMat=new THREE.MeshBasicMaterial({color:0x44ddff,transparent:true,opacity:.38,depthWrite:false});
+    BLD.badMat=new THREE.MeshBasicMaterial({color:0xff4444,transparent:true,opacity:.32,depthWrite:false});
+    BLD.editMat=new THREE.MeshBasicMaterial({color:0xffdd44,transparent:true,opacity:.35,depthWrite:false});
+    PIECE_NAMES.forEach((n,i)=>{
+        const m=mk2(pieceGeo(i),BLD.ghostMat,[0,0,0],[1,1,1]);
+        m.visible=false;S.add(m);BLD.ghost.push(m);
+    });
+}
 // ===== CONTROLS =====
 $('blocker').addEventListener('click',()=>R.domElement.requestPointerLock());
 document.addEventListener('pointerlockchange',()=>{
@@ -1856,7 +2400,14 @@ document.addEventListener('pointerlockchange',()=>{
         G.play=true;$('blocker').style.display='none';$('hud').style.display='block';
         iA();initGame();
         if(G.bots.length===0){
-            if(MODE==='1v1'){
+            if(MODE==='practice'){
+                // No drop, no loot, no storm — walk straight onto the range.
+                dp=false;C.position.set(0,G.ph,24);P.p.set(0,0,24);
+                G.sl[0]={n:'AK-47',a:30};G.sl[1]={n:'Sniper',a:5};G.sl[2]={n:'Shotgun',a:8};
+                G.cs=0;mkGun('AK-47');uWep();
+                $('av-l').textContent='Hits';$('av').textContent=G.hits;
+                feed('PRACTICE - hit targets to score, build freely','ky');
+            }else if(MODE==='1v1'){
                 // 1v1: no drop, start on ground with all weapons
                 dp=false;C.position.set(10,G.ph,10);
                 G.sl[0]={n:'AK-47',a:30};G.sl[1]={n:'Shotgun',a:8};G.sl[2]={n:'Sniper',a:5};
@@ -1962,6 +2513,8 @@ function update(now){
     if(frameMod%2===0) uBots();
     // Zone every 5th frame
     if(MODE==='br'&&frameMod%5===0) uZone();
+    // Range targets every 2nd frame
+    if(MODE==='practice'&&frameMod%2===0) uTgts(now);
     // Loot prompt every 4th frame
     if(frameMod%4===0) uLP();
 
@@ -1979,6 +2532,80 @@ function animate(now){
     uFPS();
 }
 
+// ===== PRACTICE RANGE =====
+// Blank island: one flat slab, no loot, no storm, no bots. Nothing clutters the
+// space, so it doubles as a building range. Targets are the only thing gunfire
+// reacts to here.
+const TGT_RING=[.55,.38,.22,.10].map(r=>new THREE.CircleGeometry(r,28));
+const TGT_PTS=[1,2,3,5];
+const TGT_MAT=[0xd83a2f,0xf2efe4,0xd83a2f,0xf7c21c].map(c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}));
+const TGT_BOARD=new THREE.MeshStandardMaterial({color:0xe6e0d0,roughness:.85});
+const TGT_POST=new THREE.MeshStandardMaterial({color:0x5b4a38,roughness:.9});
+
+function buildPracticeMap(){
+    const fm=new THREE.MeshStandardMaterial({color:0x6e7a5e,roughness:.92});
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(MAP*4,MAP*4),fm);
+    floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;S.add(floor);
+    spawnTargets();
+}
+
+function mkTarget(x,z,h,sway){
+    const g=new THREE.Group();g.position.set(x,0,z);S.add(g);
+    g.add(mk2(GEO.box,TGT_POST,[0,(h-.3)/2,0],[.14,h-.3,.14]));
+    const face=new THREE.Group();face.position.y=h;g.add(face);
+    face.add(mk2(GEO.plane,TGT_BOARD,[0,0,0],[1.25,1.25,1]));
+    for(let i=0;i<4;i++){
+        const ring=new THREE.Mesh(TGT_RING[i],TGT_MAT[i]);
+        ring.position.z=.014*(i+1);ring.userData.tier=i;face.add(ring);
+    }
+    G.tg.push({g,face,x,h,sway,ph:Math.random()*6.28,spin:0});
+}
+
+function spawnTargets(){
+    G.tg=[];
+    mkTarget(-8,-14,1.4,0);mkTarget(0,-16,1.6,0);mkTarget(8,-14,1.4,0);
+    mkTarget(-6,-24,1.9,5);mkTarget(6,-26,2.4,7);
+    mkTarget(-14,-32,3.4,4);mkTarget(0,-36,2.8,0);mkTarget(14,-32,3.8,6);
+}
+
+function uTgts(now){
+    G.tg.forEach(t=>{
+        if(t.sway)t.g.position.x=t.x+Math.sin(now*.0008+t.ph)*t.sway;
+        if(t.spin>0){
+            t.spin*=.87;
+            t.face.rotation.x=-t.spin*Math.PI*2;
+            if(t.spin<.01){t.spin=0;t.face.rotation.x=0;}
+        }
+    });
+}
+
+// Called once per pellet from shoot(); the frontmost ring the ray crosses sets
+// the score, so a bullseye has to be dead-on rather than merely nearby.
+function hitTgt(rc,rng){
+    for(const t of G.tg){
+        const hits=rc.intersectObjects([t.face],true);
+        if(!hits.length||hits[0].distance>rng)continue;
+        const tier=hits[0].object.userData.tier||0;
+        t.spin=1;
+        G.hits+=TGT_PTS[tier];$('av').textContent=G.hits;
+        mkPt(hits[0].point,tier===3?0xffdd44:0xffffff,tier===3?8:3);
+        pTgt(tier);
+        if(tier===3)feed('BULLSEYE! +5','kh');
+        return;
+    }
+}
+
+function pTgt(tier){
+    if(!ac)return;
+    const t=ac.currentTime,f=[620,760,920,1240][tier],len=.18+tier*.05;
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type='triangle';o.frequency.setValueAtTime(f,t);
+    o.frequency.exponentialRampToValueAtTime(f*.55,t+len);
+    g.gain.setValueAtTime(.12+tier*.03,t);
+    g.gain.exponentialRampToValueAtTime(.001,t+len);
+    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+len+.02);
+}
+
 // ===== INIT =====
 let mapBuilt=false;
 function initGame(){
@@ -1993,7 +2620,8 @@ function initGame(){
     dl.color.setHex(theme.sunCol);dl.intensity=theme.sunI;
     hemi.color.setHex(theme.hemiSky);hemi.groundColor.setHex(theme.hemiGnd);
 
-    if(MODE==='1v1') build1v1Map();
+    if(MODE==='practice') buildPracticeMap();
+    else if(MODE==='1v1') build1v1Map();
     else if(SEL_MAP==='desert') buildDesertMap();
     else if(SEL_MAP==='city') buildCityMap();
     else if(SEL_MAP==='snow') buildSnowMap();

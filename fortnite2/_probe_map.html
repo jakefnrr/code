@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>fbx probe</title></head>
+<body>
+<pre id="out">loading...</pre>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.6.9/umd/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+<script>
+window.PROBE = {started:false, done:false, error:null};
+const out = document.getElementById('out');
+function say(s){ out.textContent += "\n"+s; console.log(s); }
+(async () => {
+  window.PROBE.started = true;
+  if (!THREE.FBXLoader) { window.PROBE.error='THREE.FBXLoader missing'; say("FBXLoader did not attach"); return; }
+  try {
+    const t0 = performance.now();
+    const fbx = await new THREE.FBXLoader().loadAsync('models/map.fbx');
+    const ms = Math.round(performance.now()-t0);
+    let meshes=0, tris=0, names=[], mats=new Set();
+    fbx.traverse(o=>{
+      if (o.isMesh) {
+        meshes++;
+        const idx = o.geometry.index;
+        tris += idx ? idx.count/3 : (o.geometry.attributes.position ? o.geometry.attributes.position.count/3 : 0);
+        names.push(o.name);
+        (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
+          if(m && m.map) mats.add(m.map.image ? m.map.image.src.split('/').pop() : 'unnamed');
+        });
+      }
+    });
+    const box = new THREE.Box3().setFromObject(fbx);
+    const size = new THREE.Vector3(); box.getSize(size);
+    window.PROBE = {
+      started:true, done:true, ms, meshes, tris:Math.round(tris),
+      rootName: fbx.name, childCount: fbx.children.length,
+      size:[Math.round(size.x),Math.round(size.y),Math.round(size.z)],
+      textures:[...mats],
+      bigMeshes: names.map((n,i)=>n).filter(Boolean).slice(0,25),
+      unnamedMeshCount: names.filter(n=>!n).length
+    };
+    say("OK " + JSON.stringify(window.PROBE, null, 2));
+  } catch(e) {
+    window.PROBE.error = String(e && e.message || e);
+    say("FAILED: " + window.PROBE.error);
+  }
+})();
+</script>
+</body></html>

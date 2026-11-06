@@ -1390,6 +1390,75 @@
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // ===============================================================
+        // === REAL ASSET MODELS =========================================
+        // ===============================================================
+        // assets/models holds the converted Fortnite art. A file:// page cannot fetch
+        // binary glTF, so every builder below keeps its primitive meshes and only upgrades
+        // to the real model when the pack is actually reachable over http(s).
+        const ASSET_DIR = 'assets/models/';
+        const assetsReachable = location.protocol === 'http:' || location.protocol === 'https:';
+        const gltfLoader = assetsReachable ? new GLTFLoader() : null;
+        const modelProtos = {};
+
+        function loadProto(name) {
+            if (!assetsReachable) return Promise.resolve(null);
+            if (!modelProtos[name]) {
+                modelProtos[name] = new Promise(done => {
+                    gltfLoader.load(ASSET_DIR + name + '.glb',
+                        gltf => done(gltf.scene), undefined, () => done(null));
+                });
+            }
+            return modelProtos[name];
+        }
+
+        function modelDims(node) {
+            node.updateMatrixWorld(true);
+            return new THREE.Box3().setFromObject(node).getSize(new THREE.Vector3());
+        }
+
+        // Uniformly scale the clone until it fits inside `size`, then centre it on the
+        // parent origin (or seat its feet on bottomY). Measured, not assumed, because the
+        // pack exports each model at a different unit scale.
+        function fitModel(node, size, bottomY) {
+            const d = modelDims(node);
+            const k = Math.min(size.x / (d.x || 1), size.y / (d.y || 1), size.z / (d.z || 1));
+            node.scale.multiplyScalar(k);
+            node.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(node);
+            const c = box.getCenter(new THREE.Vector3());
+            node.position.set(-c.x, bottomY === undefined ? -c.y : bottomY - box.min.y, -c.z);
+            node.traverse(o => { if (o.isMesh) o.castShadow = true; });
+            return node;
+        }
+
+        // The three weapons each export their barrel along a different axis, so aim the
+        // longest axis wherever the primitive mesh pointed instead of trusting a constant.
+        function pointLongAxisTo(node, negativeZ) {
+            const d = modelDims(node);
+            if (d.y >= d.x && d.y >= d.z) node.rotation.x = negativeZ ? -Math.PI / 2 : Math.PI / 2;
+            else if (d.x >= d.z) node.rotation.y = negativeZ ? Math.PI / 2 : -Math.PI / 2;
+            return node;
+        }
+
+        function clearChildren(parent) {
+            while (parent.children.length) parent.remove(parent.children[0]);
+        }
+
+        // Swap a builder's primitives for the real model once it arrives; a missing or
+        // unreadable file leaves the primitives exactly as they were.
+        function upgradeModel(parent, name, prepare) {
+            loadProto(name).then(proto => {
+                if (!proto) return null;
+                const node = proto.clone(true);
+                if (prepare) prepare(node);
+                parent.add(node);
+                parent.userData.usingAsset = name;
+                return node;
+            });
+        }
 
         // ===============================================================
         // === CORE CONSTANTS AND CONFIGURATION ==========================
@@ -1418,7 +1487,7 @@
         const PIECE_HP = 100;        // structure health — two pickaxe swings
         const EDIT_TILES = 2;        // wall/floor split into EDIT_TILES x EDIT_TILES panels
         const BUILD_REACH = 11;      // how far ahead a piece may land — three cells, so a held click runs a wall out in front of you
-        const EDIT_REACH = 12;
+        const EDIT_REACH = 9;          // same envelope as BUILD_REACH, so edit aims where build aims
         const TURBO_BUILD_MS = 110;  // turbo: one piece per this interval while LMB is held
         const BUILD_PROBE_START = 4; // metres along the reticle before a cell is eligible — one full cell, so the height you aim at is read at a readable distance
         const BUILD_MAX_RISE = 3;    // how many levels above the band you stand in a piece may go
@@ -2197,10 +2266,18 @@
         }
 
         function spawnChest(x, y, z) {
-            const chest = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1, 1), new THREE.MeshStandardMaterial({ color: 0xFFD700 }));
+            // A Group so the real model can replace the box without changing anything that
+            // reads chest.position (interact range, minimap, cleanup).
+            const chest = new THREE.Group();
+            const box = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1, 1), new THREE.MeshStandardMaterial({ color: 0xFFD700 }));
+            chest.add(box);
             chest.position.set(x, y, z);
             scene.add(chest);
             chests.push(chest);
+            upgradeModel(chest, 'chest', node => {
+                clearChildren(chest);
+                fitModel(node, new THREE.Vector3(1.5, 1.1, 1.3), -0.5);
+            });
         }
 
         function spawnCars() {
@@ -2972,6 +3049,12 @@
             group.add(handNode);
 
             group.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+            group.userData.primitives = [torso, head, hair, legL, legR, armL, armR];
+            upgradeModel(group, 'skin_static', node => {
+                // handNode stays: the held weapon is parented to it.
+                for (const m of group.userData.primitives) group.remove(m);
+                fitModel(node, new THREE.Vector3(1.0, PLAYER_HEIGHT, 0.8), 0);
+            });
             return group;
         }
 
@@ -2991,12 +3074,33 @@
                 mesh.add(shaft, head);
             } else {
                 const color = item.rarity && item.rarity.color ? item.rarity.color : '#ffffff';
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.66),
+                mesh = new THREE.Group();
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.66),
                     new THREE.MeshStandardMaterial({ color: color }));
+                mesh.add(body);
+                mesh.userData.primitives = [body];
             }
             mesh.rotation.x = -0.12;
             handNode.add(mesh);
             heldWeapon = mesh;
+
+            const asset = item.category === 'pickaxe' ? 'pickaxe' : weaponModelFor(item);
+            if (asset) {
+                upgradeModel(mesh, asset, node => {
+                    clearChildren(mesh);
+                    pointLongAxisTo(node, item.category === 'pickaxe');
+                    fitModel(node, new THREE.Vector3(0.3, 0.3, item.category === 'pickaxe' ? 0.72 : 0.6));
+                });
+            }
+        }
+
+        // The pack ships one rifle and one smg body, so any other weapon borrows whichever
+        // silhouette is closest rather than showing a coloured box.
+        function weaponModelFor(item) {
+            const n = (item.name || '').toLowerCase();
+            if (/smg|pistol|micro|mini/.test(n)) return 'smg';
+            if (/rifle|ar\b|sniper|shotgun|dmr|gun/.test(n)) return 'ar';
+            return null;
         }
 
         // World position of the muzzle, used as the shot origin and flash anchor.
@@ -3151,6 +3255,11 @@
             deck.position.set(0, BUS_DECK_Y - 0.25, BUS_RIDE_Z - 2);
             g.add(deck);
 
+            // The exported balloon-and-bus sits its hull bottom where the primitive hull did.
+            upgradeModel(g, 'bus', node => {
+                clearChildren(g);
+                fitModel(node, new THREE.Vector3(8, 26, 16), -2);
+            });
             return g;
         }
 
@@ -3173,6 +3282,10 @@
                 g.add(line);
             }
 
+            upgradeModel(g, 'glider_static', node => {
+                clearChildren(g);
+                fitModel(node, new THREE.Vector3(5.4, 2.2, 7.2));
+            });
             g.position.set(0, 2.4, -1.2);
             g.visible = false;
             return g;
@@ -3642,13 +3755,15 @@
             return { x: cx, y: Math.max(baseY, getTerrainHeight(cx, cz)), z: cz };
         }
 
-        // Where would the next piece of `type` land, given where the body stands and looks?
-        // The level band is counted from the feet, not from absolute world height, and it is
-        // deliberately not floored at zero: this terrain runs from about -7 to +10, so a
-        // clamp at zero parked every piece built below sea level several metres overhead.
         function buildBaseLevel() { return levelAt(feetY() + 0.25); }
 
-        function cellFor(type, point, orient, dir) {
+        // Where would the next piece of `type` land, given where the body stands and looks?
+        // `absolute` reads the band straight off the surface the crosshair touched, which is
+        // what makes the piece land on the spot you are looking at. The body-relative band is
+        // only used when nothing is under the reticle, i.e. when you are building into open
+        // air. Neither is floored at zero: this terrain runs to about -8, and a clamp parked
+        // every piece built below sea level several metres overhead.
+        function cellFor(type, point, orient, dir, absolute) {
             let gx, gz;
             if (type === 'wall') {
                 if (orient === 'ns') { gz = Math.round(point.z / GRID); gx = cellFloor(point.x); }
@@ -3657,10 +3772,15 @@
                 gx = cellFloor(point.x);
                 gz = cellFloor(point.z);
             }
-            // One level up per PIECE_H of aim height above the feet, read a little early so a
-            // 30-degree look already reaches the next band instead of needing near-vertical.
-            const rise = Math.min(BUILD_MAX_RISE, Math.max(0, Math.floor((point.y - feetY()) / (PIECE_H * 0.75))));
-            const level = buildBaseLevel() + rise;
+            let level;
+            if (absolute) {
+                level = levelAt(point.y + 0.05);
+            } else {
+                // One level up per PIECE_H of aim height above the feet, read a little early
+                // so a 30-degree look already reaches the next band.
+                const rise = Math.min(BUILD_MAX_RISE, Math.max(0, Math.floor((point.y - feetY()) / (PIECE_H * 0.75))));
+                level = buildBaseLevel() + rise;
+            }
             const center = pieceCenter(type, gx, gz, level, orient);
             return {
                 type, gx, gz, level, orient, key: gridKey(type, gx, gz, level, orient),
@@ -3684,19 +3804,48 @@
             return false;
         }
 
+        // What the crosshair is actually pointing at inside build range: the ground or a
+        // built piece. Harvest props are skipped — you do not want the grid to snap to a
+        // tree you happen to be looking through.
+        function reticleAnchor(maxDist) {
+            const origin = camera.position.clone();
+            const dir = camera.getWorldDirection(new THREE.Vector3());
+            let best = null;
+            const piece = raycastSolids(origin, dir, maxDist);
+            if (piece && piece.solid.piece) best = { d: piece.dist, point: piece.point };
+            for (let d = 0.5; d <= maxDist; d += 0.5) {
+                const x = origin.x + dir.x * d, z = origin.z + dir.z * d;
+                const y = origin.y + dir.y * d;
+                const ground = getTerrainHeight(x, z);
+                if (y > ground) continue;
+                if (!best || d < best.d) best = { d, point: new THREE.Vector3(x, ground, z) };
+                break;
+            }
+            return best;
+        }
+
         function resolvePlacement(type) {
-            // Same direction the crosshair points, but launched from the chest: the camera
-            // trails the body by ~4.6 m, so a camera-launched probe aimed the first cell
-            // behind the player and read its height from the camera's own altitude.
-            const origin = playerChest(new THREE.Vector3());
             const dir = camera.getWorldDirection(new THREE.Vector3());
             const orient = facingAxis();
-            // March the reticle and take the first cell along it that will host the piece.
-            // Starting a full cell out keeps pieces off the body; skipping occupied cells is
-            // what lets a held click run a wall out in front of you.
+            const wanted = [];
+            const anchor = reticleAnchor(BUILD_REACH + GRID);
+            if (anchor) {
+                // The aimed-at cell first, then onward along the same ray so a held click
+                // keeps running a wall out along the surface instead of stalling on it.
+                wanted.push({ point: anchor.point, absolute: true });
+                for (let extra = GRID; extra <= BUILD_REACH; extra += GRID) {
+                    wanted.push({ point: anchor.point.clone().addScaledVector(dir, extra), absolute: true });
+                }
+            }
+            // Nothing under the reticle: aim from the chest, because the camera trails the
+            // body by ~4.6 m and a camera-launched probe aims cells behind the player.
+            const origin = playerChest(new THREE.Vector3());
             for (let d = BUILD_PROBE_START; d <= BUILD_REACH; d += GRID / 6) {
-                const info = cellFor(type, origin.clone().addScaledVector(dir, d), orient, dir);
-                if (Math.hypot(info.center.x - playerPos.x, info.center.z - playerPos.z) > BUILD_REACH) continue;
+                wanted.push({ point: origin.clone().addScaledVector(dir, d), absolute: false });
+            }
+            for (const w of wanted) {
+                const info = cellFor(type, w.point, orient, dir, w.absolute);
+                if (Math.hypot(info.center.x - playerPos.x, info.center.z - playerPos.z) > BUILD_REACH + GRID) continue;
                 if (structures.get(info.key) || wouldTrapPlayer(info)) continue;
                 return info;
             }
@@ -5148,6 +5297,7 @@
                 solidList: () => solids.map(s => ({ min: s.box.min.toArray().map(v => +v.toFixed(2)), max: s.box.max.toArray().map(v => +v.toFixed(2)), blocks: s.blocks })),
                 chestAt: (i) => { const c = chests[i]; return c ? c.position.toArray().map(v => +v.toFixed(1)) : null; },
                 build: () => ({ buildMode, editMode, selectedPiece, ghost: !!ghost, bar: document.getElementById('build-bar').classList.contains('visible') }),
+                ghostInfo: () => (ghostInfo ? { key: ghostInfo.key, lv: ghostInfo.level, y: +ghostInfo.center.y.toFixed(2), x: +ghostInfo.center.x.toFixed(1), z: +ghostInfo.center.z.toFixed(1) } : null),
                 hasLineOfSight, surfaceYAt, damageBot, addKillEntry, botThink, aiTick: (now, dt) => { updateBots(dt, now); updateProjectiles(dt); },
                 bots: () => bots, player, inventory: () => player.inventory, give: (i, slot) => { player.inventory[slot] = i; switchSlot(slot); },
                 createWeaponItem, THREE,
@@ -5157,6 +5307,39 @@
                 land: () => landDrop(),
                 swing: () => swingPickaxe(),
                 chop: (on) => { inputs.harvest = !!on; },
+                probeAsset: (want) => {
+                    const rows = [];
+                    scene.traverse(o => {
+                        if (!o.userData || o.userData.usingAsset !== want) return;
+                        o.traverse(child => {
+                            if (!child.isMesh) return;
+                            child.updateMatrixWorld(true);
+                            const b = new THREE.Box3().setFromObject(child);
+                            const s = b.getSize(new THREE.Vector3());
+                            const c = b.getCenter(new THREE.Vector3());
+                            const local = o.worldToLocal(c.clone());
+                            rows.push({ mat: (child.material && child.material.name) || '',
+                                size: s.toArray().map(v => +v.toFixed(2)),
+                                localCenter: local.toArray().map(v => +v.toFixed(2)) });
+                        });
+                    });
+                    rows.sort((a, b) => b.size[1] - a.size[1]);
+                    return rows.slice(0, 12);
+                },
+                assets: () => {
+                    const rows = [];
+                    scene.traverse(o => {
+                        if (!o.userData || !o.userData.usingAsset) return;
+                        o.updateMatrixWorld(true);
+                        const b = new THREE.Box3().setFromObject(o);
+                        const s = b.getSize(new THREE.Vector3());
+                        const c = b.getCenter(new THREE.Vector3());
+                        rows.push({ name: o.userData.usingAsset, kids: o.children.length,
+                            size: s.toArray().map(v => +v.toFixed(2)),
+                            center: c.toArray().map(v => +v.toFixed(2)) });
+                    });
+                    return rows;
+                },
                 storm: () => ({ phase: stormPhase, radius: +stormRadius.toFixed(1), center: [stormCenter.x, stormCenter.y].map(v => +v.toFixed(1)), active: stormActive, timer: stormPhaseTimer, status: document.getElementById('storm-status').innerText, hud: document.getElementById('storm-timer').innerText })
             }
         };

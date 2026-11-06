@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>glb probe</title></head>
+<body>
+<pre id="out">loading...</pre>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+const FILES = [
+  '../Fortnite/assets/models/map.glb',
+  '../Fortnite/assets/models/map_low.glb',
+  '../Fortnite/assets/models/skin.glb',
+  '../Fortnite/assets/models/skin_static.glb',
+];
+window.RESULTS = {};
+const out = document.getElementById('out');
+(async () => {
+  for (const f of FILES) {
+    const short = f.split('/').pop();
+    try {
+      const t0 = performance.now();
+      const gltf = await new THREE.GLTFLoader().loadAsync(f);
+      const root = gltf.scene;
+      let meshes = 0, tris = 0, anims = (gltf.animations || []).length, names = [];
+      root.traverse(o => {
+        if (o.isMesh) {
+          meshes++;
+          const g = o.geometry, idx = g.index;
+          tris += idx ? idx.count / 3 : (g.attributes.position ? g.attributes.position.count / 3 : 0);
+          if (o.name) names.push(o.name);
+        }
+      });
+      root.updateMatrixWorld(true);
+      const size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+      window.RESULTS[short] = {
+        ms: Math.round(performance.now() - t0), meshes, tris: Math.round(tris), animations: anims,
+        size: [Math.round(size.x), Math.round(size.y), Math.round(size.z)],
+        sampleNames: names.slice(0, 12), namedMeshes: names.length,
+      };
+      out.textContent = JSON.stringify(window.RESULTS, null, 2);
+    } catch (e) {
+      window.RESULTS[short] = { error: String(e && e.message || e) };
+      out.textContent = JSON.stringify(window.RESULTS, null, 2);
+    }
+  }
+  window.DONE = true;
+})();
+</script>
+</body></html>
