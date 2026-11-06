@@ -1441,9 +1441,7 @@
         // === GLOBAL STATE VARIABLES ====================================
         // ===============================================================
 
-        let scene, camera, renderer, controls;
-        let weaponScene, weaponCamera, viewModel;
-        
+        let scene, camera, renderer, controls;        
         // Player stats
         let player = { 
             health: 100, shield: 100, overshield: 50, wood: 0, 
@@ -1468,6 +1466,19 @@
         let isGrounded = false;
         let lastTime = performance.now();
         let lastShot = 0;
+
+        // --- THIRD PERSON RIG -------------------------------------------
+        // playerPos is the gameplay anchor (eye level, feet = playerPos.y - PLAYER_HEIGHT).
+        // The camera only ever becomes an over-shoulder view of that anchor.
+        let playerPos = new THREE.Vector3(0, 10, 0);
+        let playerBody = null;
+        let heldWeapon = null;
+        let handNode = null;
+        let camDistance = 4.6;
+        let camDistanceTarget = 4.6;
+        let camShoulder = 0.55;
+        let camHeight = 1.62;
+        let scopedView = false;
         
         // Game mode
         let gameMode = 'desktop';
@@ -1791,7 +1802,7 @@
 
             // Angle of the attacker relative to where the player is looking:
             // the arc is drawn above the crosshair, so 0 = ahead, +90 = to the right.
-            const toSource = new THREE.Vector3().subVectors(sourcePos, camera.position); toSource.y = 0;
+            const toSource = new THREE.Vector3().subVectors(sourcePos, playerPos); toSource.y = 0;
             const facing = camera.getWorldDirection(new THREE.Vector3()); facing.y = 0;
             if (toSource.lengthSq() < 1e-6 || facing.lengthSq() < 1e-6) return;
             facing.normalize();
@@ -2256,8 +2267,10 @@
                 }
 
                 if (p.targetIsPlayer && !player.dead) {
-                    if (segPointDist(from, to, camera.position) < 0.9) {
-                        takeDamage(p.damage, p.owner ? p.owner.mesh.position : camera.position);
+                    const pChest = playerChest(new THREE.Vector3());
+                    const pHead = pChest.clone().setY(feetY() + 1.72);
+                    if (segPointDist(from, to, pChest) < 1.0 || segPointDist(from, to, pHead) < 0.6) {
+                        takeDamage(p.damage, p.owner ? p.owner.mesh.position : pChest);
                         createImpactEffect(to);
                         retireProjectile(i);
                         continue;
@@ -2279,12 +2292,13 @@
         function botThink(bot, now) {
             const ignore = botIgnoreSet(bot);
             const eye = botEye(bot);
-            const playerDist = bot.mesh.position.distanceTo(camera.position);
+            const playerChestPos = playerChest(new THREE.Vector3());
+            const playerDist = bot.mesh.position.distanceTo(playerChestPos);
 
             let targetPos = null, isPlayer = false, range = Infinity;
 
-            if (!player.dead && playerDist < BOT_SIGHT_RANGE && hasLineOfSight(eye, camera.position, ignore)) {
-                targetPos = camera.position.clone();
+            if (!player.dead && playerDist < BOT_SIGHT_RANGE && hasLineOfSight(eye, playerChestPos, ignore)) {
+                targetPos = playerChestPos;
                 isPlayer = true;
                 range = playerDist;
             }
@@ -2357,7 +2371,7 @@
             if (isPlayer && beingShotAt && range < 22 && bot.wood >= BUILD_COST &&
                 now - bot.lastBuildAt > 3000 && Math.random() < BOT_BUILD_CHANCE) {
                 bot.lastBuildAt = now;
-                bot.shieldAgainst = bot.mesh.position.clone().lerp(camera.position, 0.5);
+                bot.shieldAgainst = bot.mesh.position.clone().lerp(playerPos, 0.5);
                 placeBotWallFor(bot);
             }
 
@@ -2377,7 +2391,7 @@
         // Thin wrapper so bot walls share the player piece registry.
         function placeBotWallFor(bot) {
             if (bot.wood < BUILD_COST) return;
-            const threat = bot.shieldAgainst || camera.position;
+            const threat = bot.shieldAgainst || playerPos;
             const dir = new THREE.Vector3().subVectors(bot.mesh.position, threat);
             dir.y = 0;
             if (dir.lengthSq() < 0.01) return;
@@ -2539,7 +2553,7 @@
         }
         
         function updateStorm(now) {
-            const playerPos2D = new THREE.Vector2(camera.position.x, camera.position.z);
+            const playerPos2D = new THREE.Vector2(playerPos.x, playerPos.z);
             const distToStorm = playerPos2D.distanceTo(stormCenter);
             const inStorm = stormActive && distToStorm > stormRadius;
 
@@ -2552,6 +2566,178 @@
                 }
             } 
         }
+
+        // ===============================================================
+        // === PLAYER BODY + THIRD PERSON CAMERA =========================
+        // ===============================================================
+
+        const _feetV = new THREE.Vector3();
+        const _chestV = new THREE.Vector3();
+        const _pivotV = new THREE.Vector3();
+        const _camDirV = new THREE.Vector3();
+        const _camRightV = new THREE.Vector3();
+        const _desiredV = new THREE.Vector3();
+        const _toCamV = new THREE.Vector3();
+        const _aimFromV = new THREE.Vector3();
+        const _gunTipV = new THREE.Vector3();
+
+        function feetY() { return playerPos.y - PLAYER_HEIGHT; }
+        function playerChest(out) { return (out || _chestV).set(playerPos.x, feetY() + 1.15, playerPos.z); }
+        function playerFeet(out) { return (out || _feetV).set(playerPos.x, feetY(), playerPos.z); }
+
+        // The character you actually see: primitives today, your Spitfire .glb later.
+        function createPlayerBody() {
+            const group = new THREE.Group();
+            const skin = new THREE.MeshStandardMaterial({ color: 0xe0a87e, roughness: 0.8 });
+            const jacket = new THREE.MeshStandardMaterial({ color: 0x2f6fd0, roughness: 0.75 });
+            const pants = new THREE.MeshStandardMaterial({ color: 0x24406b, roughness: 0.85 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.75, 0.34), jacket);
+            torso.position.set(0, 1.18, 0);
+            group.add(torso);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.36, 0.34), skin);
+            head.position.set(0, 1.72, 0.02);
+            group.add(head);
+
+            const hair = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.14, 0.38),
+                new THREE.MeshStandardMaterial({ color: 0x3a2a1c, roughness: 0.9 }));
+            hair.position.set(0, 1.9, 0.02);
+            group.add(hair);
+
+            const legGeo = new THREE.BoxGeometry(0.22, 0.82, 0.24);
+            const legL = new THREE.Mesh(legGeo, pants);
+            legL.position.set(-0.15, 0.41, 0);
+            const legR = new THREE.Mesh(legGeo, pants);
+            legR.position.set(0.15, 0.41, 0);
+            group.add(legL, legR);
+
+            const armGeo = new THREE.BoxGeometry(0.17, 0.66, 0.19);
+            const armL = new THREE.Mesh(armGeo, jacket);
+            armL.position.set(-0.4, 1.2, 0.1);
+            const armR = new THREE.Mesh(armGeo, jacket);
+            armR.position.set(0.4, 1.2, 0.1);
+            group.add(armL, armR);
+
+            // Right hand of a +Z facing body sits at local -X.
+            handNode = new THREE.Object3D();
+            handNode.position.set(-0.42, 1.02, 0.34);
+            group.add(handNode);
+
+            group.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+            return group;
+        }
+
+        function setHeldWeapon(item) {
+            if (heldWeapon && handNode) handNode.remove(heldWeapon);
+            heldWeapon = null;
+            if (!handNode || !item) return;
+
+            let mesh;
+            if (item.category === 'pickaxe') {
+                mesh = new THREE.Group();
+                const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.7),
+                    new THREE.MeshStandardMaterial({ color: 0x6b4a2a }));
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.12),
+                    new THREE.MeshStandardMaterial({ color: 0xb8b8c8, metalness: 0.6, roughness: 0.4 }));
+                head.position.set(0, 0.04, -0.36);
+                mesh.add(shaft, head);
+            } else {
+                const color = item.rarity && item.rarity.color ? item.rarity.color : '#ffffff';
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.66),
+                    new THREE.MeshStandardMaterial({ color: color }));
+            }
+            mesh.rotation.x = -0.12;
+            handNode.add(mesh);
+            heldWeapon = mesh;
+        }
+
+        // World position of the muzzle, used as the shot origin and flash anchor.
+        function gunTip() {
+            if (heldWeapon) {
+                heldWeapon.getWorldPosition(_gunTipV);
+                camera.getWorldDirection(_camDirV);
+                return _gunTipV.addScaledVector(_camDirV, 0.4);
+            }
+            return playerChest(_gunTipV).addScaledVector(camera.getWorldDirection(_camDirV), 0.6);
+        }
+
+        // The crosshair is the centre of the screen, so a shot must land wherever that ray
+        // ends. The gun sits below/behind it, so every hitscan is re-aimed from the muzzle
+        // to this point instead of firing parallel to the camera.
+        const _aimRaycaster = new THREE.Raycaster();
+        const _aimPoint = new THREE.Vector3();
+        function crosshairAimPoint(range) {
+            camera.getWorldDirection(_camDirV);
+            _aimRaycaster.set(camera.position, _camDirV);
+            _aimRaycaster.far = range;
+            const blocker = raycastSolids(camera.position, _camDirV, range);
+            if (blocker) _aimRaycaster.far = Math.min(_aimRaycaster.far, blocker.dist);
+            const hits = _aimRaycaster.intersectObjects(bots.map(b => b.mesh), true);
+            if (hits.length > 0) return _aimPoint.copy(hits[0].point);
+            if (blocker) return _aimPoint.copy(blocker.point);
+            return _aimPoint.copy(camera.position).addScaledVector(_camDirV, range);
+        }
+
+        function updateThirdPersonCamera(dt) {
+            if (scopedView) {
+                camera.position.copy(playerPos);
+                return;
+            }
+            camera.getWorldDirection(_camDirV);
+            _pivotV.set(playerPos.x, feetY() + camHeight, playerPos.z);
+
+            // Shoulder offset along the ground-plane right vector.
+            _camRightV.set(_camDirV.z, 0, -_camDirV.x).normalize();
+
+            camDistance += (camDistanceTarget - camDistance) * Math.min(1, dt * 12);
+
+            _desiredV.copy(_pivotV).addScaledVector(_camDirV, -camDistance).addScaledVector(_camRightV, camShoulder);
+            _desiredV.y += 0.2;
+
+            // Never clip through a wall: pull the arm in when something blocks the pivot.
+            _toCamV.copy(_desiredV).sub(_pivotV);
+            const want = _toCamV.length();
+            if (want > 0.01) {
+                _toCamV.divideScalar(want);
+                const block = raycastSolids(_pivotV, _toCamV, want);
+                if (block && block.dist < want - 0.3) {
+                    const clamped = Math.max(0.85, block.dist - 0.3);
+                    _desiredV.copy(_pivotV).addScaledVector(_toCamV, clamped).addScaledVector(_camRightV, camShoulder);
+                }
+            }
+
+            // Keep the view above the ground.
+            const floor = surfaceYAt(_desiredV.x, _desiredV.z, _desiredV.y - 1.2, 0.3) + 0.5;
+            if (_desiredV.y < floor) _desiredV.y = floor;
+
+            const smooth = 1 - Math.exp(-18 * dt);
+            camera.position.lerp(_desiredV, smooth);
+        }
+
+        // Face where the camera aims, and fake a walk cycle.
+        function updatePlayerBody(now, dt) {
+            if (!playerBody) return;
+            playerFeet(_feetV);
+            playerBody.position.copy(_feetV);
+            camera.getWorldDirection(_camDirV);
+            const yaw = Math.atan2(_camDirV.x, _camDirV.z);
+            playerBody.rotation.y += (yaw - playerBody.rotation.y) * Math.min(1, dt * 20);
+
+            const speed = Math.hypot(velocity.x, velocity.z);
+            const stride = speed > 0.6 ? Math.sin(now / 110) * Math.min(0.7, speed / 22) : Math.sin(now / 900) * 0.05;
+            const parts = playerBody.children;   // 0 torso, 1 head, 2 hair, 3/4 legs, 5/6 arms, 7 hand
+            if (parts[3]) parts[3].rotation.x = stride;
+            if (parts[4]) parts[4].rotation.x = -stride;
+            if (!isGrounded) {
+                if (parts[3]) parts[3].rotation.x = -0.35;
+                if (parts[4]) parts[4].rotation.x = 0.25;
+            }
+            // Right arm tucked forward to hold the weapon.
+            if (parts[6]) parts[6].rotation.x = -1.15 + (player.ads ? -0.2 : 0);
+        }
+
+
 
         // ===============================================================
         // === STORM VISUAL + MINIMAP ====================================
@@ -2586,9 +2772,12 @@
 
             ctx.clearRect(0, 0, size, size);
 
+            // The map follows the body, not the camera that hovers behind it.
+            const camX = playerPos.x, camZ = playerPos.z;
+
             // Safe-zone circle
-            const scx = toPx(stormCenter.x, camera.position.x);
-            const scz = toPx(stormCenter.y, camera.position.z);
+            const scx = toPx(stormCenter.x, camX);
+            const scz = toPx(stormCenter.y, camZ);
             const sr = (stormRadius / view) * (size / 2);
             ctx.beginPath();
             ctx.arc(scx, scz, sr, 0, Math.PI * 2);
@@ -2599,8 +2788,8 @@
             // Loot worth navigating to
             ctx.fillStyle = '#ffd700';
             for (const c of chests) {
-                const x = toPx(c.position.x, camera.position.x);
-                const y = toPx(c.position.z, camera.position.z);
+                const x = toPx(c.position.x, camX);
+                const y = toPx(c.position.z, camZ);
                 if (x < 0 || y < 0 || x > size || y > size) continue;
                 ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
             }
@@ -2609,19 +2798,19 @@
             ctx.fillStyle = 'rgba(156, 107, 63, 0.9)';
             for (const piece of structures.values()) {
                 if (piece.owner !== 'player') continue;
-                const x = toPx(piece.center.x, camera.position.x);
-                const y = toPx(piece.center.z, camera.position.z);
+                const x = toPx(piece.center.x, camX);
+                const y = toPx(piece.center.z, camZ);
                 if (x < 0 || y < 0 || x > size || y > size) continue;
                 ctx.fillRect(x - 2, y - 2, 4, 4);
             }
 
             // Rivals only show up when they are making noise: firing, or close enough to hear.
             for (const bot of bots) {
-                const d = bot.mesh.position.distanceTo(camera.position);
+                const d = Math.hypot(bot.mesh.position.x - camX, bot.mesh.position.z - camZ);
                 const justFired = performance.now() - bot.lastShotTime < BOT_FIRE_INTERVAL;
                 if (!justFired && d > 45) continue;
-                const x = toPx(bot.mesh.position.x, camera.position.x);
-                const y = toPx(bot.mesh.position.z, camera.position.z);
+                const x = toPx(bot.mesh.position.x, camX);
+                const y = toPx(bot.mesh.position.z, camZ);
                 if (x < 0 || y < 0 || x > size || y > size) continue;
                 ctx.beginPath();
                 ctx.arc(x, y, justFired ? 4 : 3, 0, Math.PI * 2);
@@ -2649,35 +2838,27 @@
         // === GAME LOGIC ================================================
         // ===============================================================
 
-        function toggleADS(bool) {
-            player.ads = bool;
+        function setADS(on) {
+            player.ads = on;
             const item = player.inventory[player.slot];
-            const isClassicScope = item && item.category === 'weapon' && item.stats.scope === 'classic';
-            const isRedDotScope = item && item.category === 'weapon' && item.stats.scope === 'red_dot';
-            
+            const scope = item && item.category === 'weapon' ? item.stats.scope : null;
+
+            // A classic scope is the one case that goes first person, like the real game.
+            scopedView = !!(on && scope === 'classic');
+            if (playerBody) playerBody.visible = !scopedView;
+
+            camDistanceTarget = on ? (scope ? 2.1 : 2.7) : 4.6;
+            camShoulder = on ? 0.3 : 0.55;
+
             const scopeOverlay = document.getElementById('scope-overlay');
             const redDotScope = document.getElementById('red-dot-scope');
             const crosshair = document.getElementById('crosshair');
 
-            scopeOverlay.style.display = 'none';
-            redDotScope.style.display = 'none';
-            
-            const isScoped = isClassicScope || isRedDotScope;
-            
-            if (bool && isScoped) {
-                crosshair.style.display = 'none';
-                if (isClassicScope) {
-                    scopeOverlay.style.display = 'block';
-                    camera.fov = 10;
-                } else if (isRedDotScope) {
-                    redDotScope.style.display = 'block';
-                    camera.fov = 25;
-                }
-            } else {
-                crosshair.style.display = 'block';
-                camera.fov = 75;
-            }
+            scopeOverlay.style.display = scopedView ? 'block' : 'none';
+            redDotScope.style.display = (on && scope === 'red_dot') ? 'block' : 'none';
+            crosshair.style.display = on ? 'none' : 'block';
 
+            camera.fov = scopedView ? 12 : (on ? 58 : 75);
             camera.updateProjectionMatrix();
         }
 
@@ -2710,6 +2891,7 @@
             if (controls && controls.isLocked) controls.unlock(); 
             disposeGhost();
             exitEditMode();
+            setADS(false);
             document.getElementById('build-bar').classList.remove('visible');
             document.getElementById('build-hint').classList.remove('visible');
             document.getElementById('minimap').classList.remove('visible');
@@ -2889,14 +3071,14 @@
             return { x: cellCenter(gx), y: baseY, z: cellCenter(gz) };
         }
 
-        // Where would the next piece of `type` land, given the camera?
+        // Where would the next piece of `type` land, given where the body stands and looks?
         function resolvePlacement(type) {
             const dir = camera.getWorldDirection(new THREE.Vector3());
-            const feet = camera.position.y - PLAYER_HEIGHT;
+            const feet = feetY();
             const orient = facingAxis();
             const ahead = Math.min(BUILD_REACH, 4);
-            const probeX = camera.position.x + dir.x * ahead;
-            const probeZ = camera.position.z + dir.z * ahead;
+            const probeX = playerPos.x + dir.x * ahead;
+            const probeZ = playerPos.z + dir.z * ahead;
 
             let gx, gz, o = orient;
 
@@ -2924,14 +3106,14 @@
             const key = gridKey(type, gx, gz, level, o);
 
             // Reject pieces that would trap the player inside themselves.
-            const dist = Math.hypot(c.x - camera.position.x, c.z - camera.position.z);
+            const dist = Math.hypot(c.x - playerPos.x, c.z - playerPos.z);
             if (dist > BUILD_REACH) return null;
             if (type !== 'ramp' && type !== 'stair') {
-                const near = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) < PLAYER_RADIUS + 1.2;
+                const near = Math.hypot(c.x - playerPos.x, c.z - playerPos.z) < PLAYER_RADIUS + 1.2;
                 const feetInRange = level * PIECE_H < feet + PLAYER_HEIGHT && (level + 1) * PIECE_H > feet + 0.2;
                 if (type === 'wall' && near && feetInRange) return null;
                 if (type === 'floor') {
-                    const sameCell = Math.abs(c.x - camera.position.x) < GRID / 2 && Math.abs(c.z - camera.position.z) < GRID / 2;
+                    const sameCell = Math.abs(c.x - playerPos.x) < GRID / 2 && Math.abs(c.z - playerPos.z) < GRID / 2;
                     if (sameCell && Math.abs(level * PIECE_H - feet) < 0.8) return null;
                 }
             }
@@ -3259,9 +3441,12 @@
             
             if (player.isHealing) finishHealing();
 
-            const origin = camera.position.clone();
-            const baseDir = camera.getWorldDirection(new THREE.Vector3());
-            createMuzzleFlash(origin.clone().add(baseDir.clone().multiplyScalar(2)));
+            const origin = gunTip();
+            const baseDir = crosshairAimPoint(item.stats.range).clone().sub(origin);
+            if (baseDir.lengthSq() < 1e-8) camera.getWorldDirection(baseDir);
+            else baseDir.normalize();
+            camera.getWorldDirection(_camDirV);
+            createMuzzleFlash(origin.clone().add(_camDirV.clone().multiplyScalar(0.6)));
             
             const pellets = item.stats.pellets || 1;
             const spread = item.stats.spread || 0;
@@ -3282,7 +3467,7 @@
         }
 
         function tryInteract() {
-            const pos = camera.position;
+            const pos = playerPos;
             
             // Check Chests
             for(let i = chests.length - 1; i >= 0; i--) {
@@ -3339,7 +3524,7 @@
                     if(player.vehicle) {
                         player.vehicle.driving = false;
                         player.vehicle = null;
-                        camera.position.y += 2;
+                        playerPos.y += 2;
                     } else {
                         if (player.isHealing) finishHealing();
                         player.vehicle = c;
@@ -3524,8 +3709,8 @@
                 player.health -= remainingDmg;
             }
             
-            showDamage(amount, camera.position);
-            if (sourcePoint && sourcePoint !== camera.position) showDamageDirection(sourcePoint);
+            showDamage(amount, playerChest(new THREE.Vector3()));
+            if (sourcePoint) showDamageDirection(sourcePoint);
             updateUI();
             
             if(player.health <= 0) {
@@ -3561,7 +3746,7 @@
                     const h = getTerrainHeight(car.mesh.position.x, car.mesh.position.z);
                     car.mesh.position.y = h;
 
-                    camera.position.copy(car.mesh.position).add(new THREE.Vector3(0, PLAYER_HEIGHT + 1, 0));
+                    playerPos.copy(car.mesh.position).add(new THREE.Vector3(0, PLAYER_HEIGHT + 1, 0));
                 }
             }
         }
@@ -3618,7 +3803,7 @@
             });
             
             // Update interact prompt
-            const pos = camera.position;
+            const pos = playerPos;
             const showInteract = chests.some(c => pos.distanceTo(c.position) < 4) || 
                                 loot.some(l => pos.distanceTo(l.mesh.position) < 4) ||
                                 cars.some(c => pos.distanceTo(c.mesh.position) < 5) ||
@@ -3664,17 +3849,8 @@
                 el.classList.toggle('active', i === idx);
             });
             
-            if(viewModel) weaponScene.remove(viewModel);
-            const item = player.inventory[idx];
-            
-            if(item && item.category === 'weapon') {
-                const geo = new THREE.BoxGeometry(0.1, 0.1, 0.4);
-                const color = item.rarity && item.rarity.color ? item.rarity.color : '#FFFFFF'; 
-                const mat = new THREE.MeshStandardMaterial({ color: color });
-                viewModel = new THREE.Mesh(geo, mat);
-                viewModel.position.set(0.2, -0.2, -0.5);
-                weaponScene.add(viewModel);
-            }
+            setHeldWeapon(player.inventory[idx]);
+            if (player.ads) setADS(true);
             
             updateUI(); 
         }
@@ -3803,11 +3979,11 @@
             
             document.getElementById('btn-ads').addEventListener('touchstart', (e) => { 
                 e.preventDefault(); 
-                toggleADS(true); 
+                setADS(true); 
             });
             document.getElementById('btn-ads').addEventListener('touchend', (e) => { 
                 e.preventDefault(); 
-                toggleADS(false); 
+                setADS(false); 
             });
             
             document.getElementById('btn-interact').addEventListener('touchstart', (e) => { 
@@ -3935,13 +4111,13 @@
                 }
 
                 if(e.button === 0) inputs.fire = true;
-                if(e.button === 2) toggleADS(true);
+                // ADS is a click toggle: click to aim, click again to relax.
+                if(e.button === 2) setADS(!player.ads);
             });
             
             document.addEventListener('mouseup', (e) => {
                 if(gameMode !== 'desktop') return;
                 if(e.button === 0) inputs.fire = false;
-                if(e.button === 2 && !buildMode) toggleADS(false);
             });
             
             document.addEventListener('contextmenu', e => e.preventDefault());
@@ -3961,14 +4137,10 @@
             initDayNightCycle();
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            
-            weaponScene = new THREE.Scene();
-            weaponCamera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 100);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-            renderer.autoClear = false; 
             document.getElementById('game-container').appendChild(renderer.domElement);
             
             // Lighting
@@ -3979,8 +4151,9 @@
             directionalLight.position.set(100, 200, 100);
             directionalLight.castShadow = true;
             scene.add(directionalLight);
-            
-            weaponScene.add(ambient.clone());
+
+            playerBody = createPlayerBody();
+            scene.add(playerBody);
             
             // Controls
             controls = new PointerLockControls(camera, document.body);
@@ -4066,7 +4239,14 @@
             spawnBots();
             spawnCars();
 
-            camera.position.set(0, getTerrainHeight(0, 0) + PLAYER_HEIGHT + 2, 0);
+            playerPos.set(0, getTerrainHeight(0, 0) + PLAYER_HEIGHT, 0);
+            velocity.set(0, 0, 0);
+            isGrounded = true;
+            camDistance = camDistanceTarget = 4.6;
+            playerBody.position.set(playerPos.x, feetY(), playerPos.z);
+            camera.position.set(0, playerPos.y, camDistance);
+            camera.lookAt(playerPos.x, feetY() + camHeight, playerPos.z);
+            camera.rotation.z = 0;
 
             // A second match must not inherit the previous match's closing circle.
             stormRadius = STORM_PHASES[0].radius;
@@ -4079,15 +4259,11 @@
             player.lastStormDamage = 0;
 
             startStormTimer(); 
+            player.inventory[0] = createWeaponItem('RFAR', 'COMMON');
             switchSlot(0);
             updateAliveCount();
             document.getElementById('minimap').classList.add('visible');
             
-            updateUI();
-            
-            // Give starting weapon
-            const starterWeapon = createWeaponItem('RFAR', 'COMMON');
-            player.inventory[0] = starterWeapon;
             updateUI();
         };
 
@@ -4163,34 +4339,32 @@
                     const speedMultiplier = player.ads ? 0.5 : 1.0; 
                     const currentSpeed = (inputs.sprint ? SPRINT_SPEED : WALK_SPEED) * speedMultiplier * player.levelSpeedMultiplier;
                     
-                    const direction = new THREE.Vector3();
-                    direction.setFromMatrixColumn(camera.matrix, 0); 
-                    direction.crossVectors(camera.up, direction);
+                    const direction = camera.getWorldDirection(new THREE.Vector3());
                     direction.y = 0;
                     direction.normalize();
-                    
+
                     const right = new THREE.Vector3(-direction.z, 0, direction.x);
 
                     const yVelocity = velocity.y; 
                     velocity.set(0, yVelocity, 0); 
 
-                    if(inputs.w) velocity.add(direction.clone().multiplyScalar(currentSpeed));
-                    if(inputs.s) velocity.add(direction.clone().multiplyScalar(-currentSpeed));
-                    if(inputs.a) velocity.add(right.clone().multiplyScalar(-currentSpeed));
-                    if(inputs.d) velocity.add(right.clone().multiplyScalar(currentSpeed));
+                    if(inputs.w) velocity.addScaledVector(direction, currentSpeed);
+                    if(inputs.s) velocity.addScaledVector(direction, -currentSpeed);
+                    if(inputs.a) velocity.addScaledVector(right, -currentSpeed);
+                    if(inputs.d) velocity.addScaledVector(right, currentSpeed);
 
                     player.isMoving = velocity.lengthSq() > 0.5;
 
                     // Slide along blockers instead of walking through them.
-                    const feet = camera.position.y - PLAYER_HEIGHT;
-                    moveEntity(camera.position, { y: feet }, velocity.x * dt, velocity.z * dt, PLAYER_RADIUS, PLAYER_HEIGHT);
+                    const feet = feetY();
+                    moveEntity(playerPos, { y: feet }, velocity.x * dt, velocity.z * dt, PLAYER_RADIUS, PLAYER_HEIGHT);
 
                     velocity.y -= GRAVITY * dt; 
                     
-                    const groundY = surfaceYAt(camera.position.x, camera.position.z, feet, PLAYER_RADIUS);
+                    const groundY = surfaceYAt(playerPos.x, playerPos.z, feet, PLAYER_RADIUS);
                     
-                    if (camera.position.y <= groundY + PLAYER_HEIGHT && velocity.y <= 0) {
-                        camera.position.y = groundY + PLAYER_HEIGHT;
+                    if (playerPos.y <= groundY + PLAYER_HEIGHT && velocity.y <= 0) {
+                        playerPos.y = groundY + PLAYER_HEIGHT;
                         velocity.y = 0;
                         isGrounded = true;
                     } else {
@@ -4203,12 +4377,15 @@
                         inputs.jump = false;
                     }
                     
-                    camera.position.y += velocity.y * dt;
+                    playerPos.y += velocity.y * dt;
                 } else {
                     velocity.x = 0; 
                     velocity.z = 0;
                 }
             }
+
+            updatePlayerBody(now, dt);
+            updateThirdPersonCamera(dt);
 
             // Shooting
             if(inputs.fire && !player.vehicle && !player.isHealing && !buildMode) {
@@ -4228,10 +4405,7 @@
             updateAliveCount();
 
             // Render
-            renderer.clear();
             renderer.render(scene, camera);
-            renderer.clearDepth();
-            renderer.render(weaponScene, weaponCamera);
             
             updateUI();
         }
@@ -4239,13 +4413,38 @@
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            weaponCamera.aspect = window.innerWidth / window.innerHeight;
-            weaponCamera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
         window.selectSlot = switchSlot;
 
+        // __DBG_BRIDGE__ — TEMPORARY test hook; this whole block is deleted before release
+        window.__dbg = {
+            state: () => ({
+                playerPos: playerPos.toArray().map(v => +v.toFixed(2)),
+                cam: camera.position.toArray().map(v => +v.toFixed(2)),
+                camDist: +camDistance.toFixed(2), camDistTarget: camDistanceTarget,
+                shoulder: camShoulder, scoped: scopedView, ads: player.ads, fov: camera.fov,
+                bodyVisible: playerBody.visible, bodyY: +playerBody.position.y.toFixed(2),
+                bodyYaw: +(playerBody.rotation.y * 180 / Math.PI).toFixed(1),
+                handWorld: heldWeapon ? heldWeapon.getWorldPosition(new THREE.Vector3()).toArray().map(v => +v.toFixed(2)) : null,
+                solids: solids.length, bots: bots.length, projectiles: projectiles.length,
+                structures: structures.size, wood: player.wood, hp: player.health, shield: player.shield, os: player.overshield
+            }),
+            api: {
+                frame: (dt, now) => { updatePlayerBody(now || performance.now(), dt); updateThirdPersonCamera(dt); },
+                setLook: (yawDeg, pitchDeg) => {
+                    const e = new THREE.Euler((pitchDeg||0)*Math.PI/180, (yawDeg||0)*Math.PI/180, 0, 'YXZ');
+                    camera.quaternion.setFromEuler(e);
+                },
+                setPlayer: (x, y, z) => playerPos.set(x, y, z),
+                walk: (dx, dz) => moveEntity(playerPos, { y: playerPos.y - PLAYER_HEIGHT }, dx, dz, PLAYER_RADIUS, PLAYER_HEIGHT),
+                setADS, placePiece, resolvePlacement, targetedPiece, shoot, fireRay, raycastSolids,
+                hasLineOfSight, surfaceYAt, damageBot, addKillEntry, botThink, aiTick: (now, dt) => { updateBots(dt, now); updateProjectiles(dt); },
+                bots: () => bots, player, inventory: () => player.inventory, give: (i, slot) => { player.inventory[slot] = i; switchSlot(slot); },
+                createWeaponItem, THREE
+            }
+        };
 
         init();
     </script>
