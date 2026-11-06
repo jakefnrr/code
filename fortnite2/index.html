@@ -288,13 +288,12 @@ const P={
 
 // Camera orbit state
 const CAM={
-    dist:4.6,ndist:4.6,hgt:1.55,yaw:0,
+    dist:4.6,ndist:4.6,yaw:0,
     tp:new THREE.Vector3(0,2,0),   // smoothed look-at focus
     cp:new THREE.Vector3(0,60,0),  // smoothed camera position
     init:false,
 };
 const AIM={f:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Quaternion()};
-const _camQ=new THREE.Quaternion();
 
 // ===== RENDERER (HIGH QUALITY) =====
 const R=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',stencil:false,depth:true,alpha:false});
@@ -942,8 +941,10 @@ function mkLoot(x,z,type){
 }
 
 function chkLoot(){
-    if(!G.k['KeyF'])return;
-    const pp=new THREE.Vector3(C.position.x,0,C.position.z);
+    // E is Fortnite's interact key; F still works so the old bind keeps working.
+    if(BLD.edit)return;
+    if(!G.k['KeyE']&&!G.k['KeyF'])return;
+    const pp=new THREE.Vector3(P.p.x,0,P.p.z);
     let cl=null,cd=2.5;
     G.loots.forEach(l=>{const d=pp.distanceTo(new THREE.Vector3(l.m.position.x,0,l.m.position.z));if(d<cd){cl=l;cd=d;}});
     if(!cl)return;
@@ -956,7 +957,7 @@ function chkLoot(){
         let idx=G.sl.findIndex(s=>s===null);if(idx===-1)idx=G.cs;
         G.sl[idx]={n:t,a:def.ma};G.cs=idx;mkGun(t);uWep();feed('Got '+t,'ky');
     }
-    S.remove(cl.m);G.loots=G.loots.filter(l=>l!==cl);G.k['KeyF']=false;
+    S.remove(cl.m);G.loots=G.loots.filter(l=>l!==cl);G.k['KeyF']=false;G.k['KeyE']=false;
 }
 
 // ===== DESERT MAP 🏜️ =====
@@ -1454,7 +1455,7 @@ function mkBot(pos,id){
 function mk2(geo,mat,pos,scl){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scl)m.scale.set(...scl);return m;}
 
 function uBots(){
-    const pp=new THREE.Vector3(C.position.x,0,C.position.z);
+    const pp=new THREE.Vector3(P.p.x,0,P.p.z);
     const ab=G.bots.filter(b=>b.alive);
 
     G.bots.forEach(bot=>{
@@ -1675,7 +1676,7 @@ function uZone(){
         }
     }
 
-    const px=C.position.x,pz=C.position.z;
+    const px=P.p.x,pz=P.p.z;
     const pd=Math.sqrt((px-G.zone.cx)**2+(pz-G.zone.cz)**2);
     const out=pd>G.zone.rad;
     $('zw').style.display=out?'block':'none';
@@ -1686,7 +1687,7 @@ function uZone(){
 // ===== GUN MODEL =====
 let gg,mf;
 function mkGun(name){
-    if(gg)C.remove(gg);
+    if(gg&&gg.parent)gg.parent.remove(gg);
     gg=new THREE.Group();
     const M=new THREE.MeshLambertMaterial({color:0x222222});
     const W=new THREE.MeshLambertMaterial({color:0x8B4513});
@@ -1720,7 +1721,8 @@ function mkGun(name){
 
     mf=new THREE.Mesh(GEO.sphere,new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:0}));
     mf.position.set(0,.02,-.8);mf.scale.set(.07,.07,.12);gg.add(mf);
-    gg.position.set(.28,-.28,-.5);C.add(gg);if(!C.parent)S.add(C);
+    gg.position.set(0,-.05,-.2);gg.rotation.set(0,0,0);
+    if(P.hand)P.hand.add(gg);else C.add(gg);
 }
 
 // ===== SHOOTING =====
@@ -1755,7 +1757,18 @@ function rlod(){
     G.rl=true;$('ri').style.display='block';pRl();
     setTimeout(()=>{sl.a=wd.ma;G.rl=false;$('ri').style.display='none';uWep();},wd.rl);
 }
-function swSlot(i){if(i===G.cs||G.rl||!G.sl[i])return;G.cs=i;mkGun(G.sl[i].n);uWep();}
+function swSlot(i){
+    if(i<0||i>=G.sl.length||i===G.cs||G.rl||!G.sl[i])return;
+    if(BLD.mode&&!BLD.edit){BLD.mode=false;uBuildBar();}   // drawing a weapon leaves build mode
+    G.cs=i;mkGun(G.sl[i].n);uWep();
+}
+// Scroll wheel walks through the owned slots only
+function cycSlot(dir){
+    for(let n=1;n<=G.sl.length;n++){
+        const i=(G.cs+dir*n+G.sl.length*2)%G.sl.length;
+        if(G.sl[i]){swSlot(i);return;}
+    }
+}
 
 // ===== PARTICLES (simplified) =====
 function mkPt(pos,col,n){
@@ -1784,7 +1797,7 @@ const RARITY={'Pistol':'common','SMG':'uncommon','AK-47':'rare','Shotgun':'epic'
 const RARITY_COLORS={'common':'#aaa','uncommon':'#44cc44','rare':'#44aaff','epic':'#bb44ff','legendary':'#ffaa00'};
 
 function uWep(){
-    for(let i=0;i<3;i++){
+    for(let i=0;i<G.sl.length;i++){
         const el=$('s'+i),s=G.sl[i];
         // Remove old rarity bar
         const oldBar=el.querySelector('.rarity-bar');
@@ -1827,6 +1840,14 @@ function feed(t,c){const f=$('kf'),m=document.createElement('div');m.className='
 const mCtx=$('mc').getContext('2d');
 function dMM(){
     const w=120,h=120,sc=w/(MAP*2.5);
+    if(MODE==='practice'){
+        mCtx.fillStyle='rgba(15,28,15,.8)';mCtx.fillRect(0,0,w,h);
+        mCtx.fillStyle='#fd4';
+        G.tg.forEach(t=>mCtx.fillRect(w/2+t.g.position.x*sc-1.5,h/2+t.g.position.z*sc-1.5,3,3));
+        const qx=w/2+P.p.x*sc,qy=h/2+P.p.z*sc;
+        mCtx.fillStyle='#4f4';mCtx.beginPath();mCtx.arc(qx,qy,3,0,Math.PI*2);mCtx.fill();
+        return;
+    }
     mCtx.fillStyle='rgba(15,28,15,.8)';mCtx.fillRect(0,0,w,h);
 
     // Next zone target (white dashed circle)
@@ -1851,9 +1872,9 @@ function dMM(){
     mCtx.restore();
 
     // Player (green dot + direction)
-    const px=w/2+C.position.x*sc,py=h/2+C.position.z*sc;
+    const px=w/2+P.p.x*sc,py=h/2+P.p.z*sc;
     mCtx.fillStyle='#4f4';mCtx.beginPath();mCtx.arc(px,py,3,0,Math.PI*2);mCtx.fill();
-    const dir=_nFwd.clone().applyQuaternion(C.quaternion);
+    const dir=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
     mCtx.strokeStyle='#4f4';mCtx.lineWidth=1.5;mCtx.beginPath();mCtx.moveTo(px,py);mCtx.lineTo(px+dir.x*8,py+dir.z*8);mCtx.stroke();
 
     // Bots (red dots)
@@ -1865,18 +1886,30 @@ function dMM(){
 }
 
 // ===== COLLISION =====
-function chkCol(nx,nz){
+// feetY makes collision vertical-aware: an object only blocks you if its span
+// crosses your body. Grounded play matches the old behaviour exactly, but a floor
+// overhead or a wall you are standing on no longer traps you.
+function chkCol(nx,nz,feetY){
     if(Math.abs(nx)>MAP*1.05||Math.abs(nz)>MAP*1.05)return true;
+    const fy=feetY===undefined?0:feetY;
     for(let i=0;i<obsCache.length;i++){
         const o=obsCache[i],s=o.userData.sz;
-        if(Math.abs(nx-o.position.x)<(s[0]/2+.35)&&Math.abs(nz-o.position.z)<(s[2]/2+.35))return true;
+        if(Math.abs(nx-o.position.x)<s[0]/2+.35&&Math.abs(nz-o.position.z)<s[2]/2+.35)
+            if(o.position.y+s[1]/2>fy+.35&&o.position.y-s[1]/2<fy+1.6)return true;
+    }
+    for(let i=0;i<BLD.list.length;i++){
+        const b=BLD.list[i];
+        if(!b.block)continue;
+        const p=b.m.position;
+        if(Math.abs(nx-p.x)<b.sz[0]/2+.35&&Math.abs(nz-p.z)<b.sz[2]/2+.35)
+            if(p.y+b.sz[1]/2>fy+.35&&p.y-b.sz[1]/2<fy+1.6)return true;
     }
     return false;
 }
 
 // ===== LOOT PROMPT =====
 function uLP(){
-    const pp=new THREE.Vector3(C.position.x,0,C.position.z);
+    const pp=new THREE.Vector3(P.p.x,0,P.p.z);
     let nr=false;
     const descs={
         'AK-47':'AK-47 (Auto Rifle)','Shotgun':'Shotgun (Close Range)','Sniper':'Sniper (One Shot Kill)',
@@ -2402,79 +2435,138 @@ document.addEventListener('pointerlockchange',()=>{
         if(G.bots.length===0){
             if(MODE==='practice'){
                 // No drop, no loot, no storm — walk straight onto the range.
-                dp=false;C.position.set(0,G.ph,24);P.p.set(0,0,24);
+                dp=false;P.p.set(0,0,24);P.onBus=false;G.og=true;CAM.init=false;
                 G.sl[0]={n:'AK-47',a:30};G.sl[1]={n:'Sniper',a:5};G.sl[2]={n:'Shotgun',a:8};
                 G.cs=0;mkGun('AK-47');uWep();
                 $('av-l').textContent='Hits';$('av').textContent=G.hits;
                 feed('PRACTICE - hit targets to score, build freely','ky');
             }else if(MODE==='1v1'){
                 // 1v1: no drop, start on ground with all weapons
-                dp=false;C.position.set(10,G.ph,10);
+                dp=false;P.p.set(10,0,10);P.onBus=false;G.og=true;CAM.init=false;
                 G.sl[0]={n:'AK-47',a:30};G.sl[1]={n:'Shotgun',a:8};G.sl[2]={n:'Sniper',a:5};
                 G.cs=0;mkGun('AK-47');uWep();
                 spawn1v1Bot();spawnLoots();
                 feed('1v1 - Eliminate your opponent!','ky');
             }else{
-                $('dp').style.display='flex';
                 spawnBots();spawnLoots();mkZone();spawnBoss();
+                startDrop();
             }
         }
     }else if(!G.dead){$('blocker').style.display='flex';$('hud').style.display='none';}
 });
-document.addEventListener('mousemove',e=>{if(!G.play||dp)return;yaw-=e.movementX*.002;pitch=Math.max(-1.2,Math.min(1.2,pitch-e.movementY*.002));});
-document.addEventListener('mousedown',e=>{if(!G.play||e.button!==0||dp)return;shoot();const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);});
-document.addEventListener('mouseup',()=>{clearInterval(si);si=null;});
-document.addEventListener('keydown',e=>{G.k[e.code]=true;if(e.code==='KeyR')rlod();if(e.code==='Digit1')swSlot(0);if(e.code==='Digit2')swSlot(1);if(e.code==='Digit3')swSlot(2);if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=true;});
-document.addEventListener('keyup',e=>{G.k[e.code]=false;if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=false;});
+// Mouse look also works while riding / falling, so you can look around the bus.
+document.addEventListener('mousemove',e=>{
+    if(!G.play||G.dead)return;
+    yaw-=e.movementX*.0022;
+    pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
+});
+document.addEventListener('mousedown',e=>{
+    if(!G.play||G.dead)return;
+    if(dp){
+        if(BUS.phase==='bus')jumpFromBus();
+        return;
+    }
+    if(e.button===0){                                    // LMB: place / confirm / shoot
+        if(BLD.edit){endEdit(true);return;}
+        if(BLD.mode){placePiece();return;}
+        shoot();
+        const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);
+    }else if(e.button===2){                              // RMB: aim, or pick a build to edit
+        if(BLD.edit){endEdit(false);return;}
+        if(BLD.mode){startEdit();return;}
+        P.aiming=true;
+    }
+});
+document.addEventListener('mouseup',e=>{if(e.button===0){clearInterval(si);si=null;}if(e.button===2)P.aiming=false;});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('wheel',e=>{
+    if(!G.play||G.dead||dp||BLD.mode)return;
+    cycSlot(e.deltaY>0?1:-1);
+},{passive:true});
+
+const FBIND={'F1':0,'F2':1,'F3':2,'F4':3};
+document.addEventListener('keydown',e=>{
+    G.k[e.code]=true;
+    // Keys the browser would otherwise eat (function keys, Ctrl shortcuts, scroll)
+    if(FBIND[e.code]!==undefined||e.code==='ControlLeft'||e.code==='Space')e.preventDefault();
+    if(e.code==='Space'&&dp&&BUS.phase==='bus'){jumpFromBus();return;}   // SPACE: jump out of the bus
+
+    if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=true;
+    if(e.code==='ControlLeft'||e.code==='ControlRight')G.cr=true;
+    if(e.code==='KeyR')rlod();
+    if(e.code==='Digit1')swSlot(0);
+    if(e.code==='Digit2')swSlot(1);
+    if(e.code==='Digit3')swSlot(2);
+    if(e.code==='Digit4')swSlot(3);
+    if(e.code==='Digit5')swSlot(4);
+    if(e.code==='KeyQ')setPiece(0);                       // Q = wall
+    if(FBIND[e.code]!==undefined)setPiece(FBIND[e.code]);  // F1-F4 = wall/floor/stairs/roof
+    if(e.code==='KeyG')BLD.edit?endEdit(true):startEdit();  // G = edit building
+    if(e.code==='KeyF'&&BLD.edit)rotateEdit();             // F = rotate while editing
+    if(e.code==='KeyX'){                                   // X = delete a piece
+        const t=BLD.edit||targetPiece();
+        if(t)removePiece(t);
+    }
+    if(e.code==='Escape'){
+        if(BLD.edit)endEdit(false);
+        else if(BLD.mode){BLD.mode=false;uBuildBar();}
+    }
+});
+document.addEventListener('keyup',e=>{
+    G.k[e.code]=false;
+    if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=false;
+    if(e.code==='ControlLeft'||e.code==='ControlRight')G.cr=false;
+});
 
 // ===== OBSTACLE CACHE =====
 let obsCache=[];
 function cacheObs(){obsCache=S.children.filter(c=>c.userData&&c.userData.isO);}
 
 // Pre-allocate vectors (avoids GC)
-const _up=new THREE.Vector3(0,1,0);
 const _fwd=new THREE.Vector3();
 const _rgt=new THREE.Vector3();
-const _xAxis=new THREE.Vector3(1,0,0);
-const _nFwd=new THREE.Vector3(0,0,-1);
 
 // ===== MAIN LOOP =====
 let lastUp=0,frameMod=0;
 function update(now){
     if(!G.play)return;
-    if(dp){uDrop();return;}
+    const dt=Math.min(50,lastUp?now-lastUp:16.7);lastUp=now;
+    if(dp){uDrop(dt,now);return;}
     if(G.dead)return;
     frameMod++;
 
-    // Camera
-    C.rotation.set(0,0,0);
-    C.rotateOnWorldAxis(_up,yaw);
-    C.rotateOnAxis(_xAxis,pitch);
+    // Movement: WASD is relative to where the camera is pointing
+    const crouch=G.cr&&G.og;
+    const spd=crouch?.085:(G.sp?G.ss:G.ms);
+    _fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+    _rgt.set(Math.cos(yaw),0,-Math.sin(yaw));
+    let mov=false,mx=P.p.x,mz=P.p.z;
+    if(G.k['KeyW']){mx+=_fwd.x*spd;mz+=_fwd.z*spd;mov=true;}
+    if(G.k['KeyS']){mx-=_fwd.x*spd;mz-=_fwd.z*spd;mov=true;}
+    if(G.k['KeyA']){mx-=_rgt.x*spd;mz-=_rgt.z*spd;mov=true;}
+    if(G.k['KeyD']){mx+=_rgt.x*spd;mz+=_rgt.z*spd;mov=true;}
+    if(!chkCol(mx,mz,P.p.y)){P.p.x=mx;P.p.z=mz;}
+    else if(!chkCol(mx,P.p.z,P.p.y))P.p.x=mx;
+    else if(!chkCol(P.p.x,mz,P.p.y))P.p.z=mz;
+    P.moving=mov;
 
-    // Movement
-    const spd=G.sp?G.ss:G.ms;
-    _fwd.set(0,0,-1).applyQuaternion(C.quaternion);_fwd.y=0;_fwd.normalize();
-    _rgt.set(1,0,0).applyQuaternion(C.quaternion);_rgt.y=0;_rgt.normalize();
-    const fwd=_fwd,rgt=_rgt;
-    let mov=false,mx=C.position.x,mz=C.position.z;
-    if(G.k['KeyW']){mx+=fwd.x*spd;mz+=fwd.z*spd;mov=true;}
-    if(G.k['KeyS']){mx-=fwd.x*spd;mz-=fwd.z*spd;mov=true;}
-    if(G.k['KeyA']){mx-=rgt.x*spd;mz-=rgt.z*spd;mov=true;}
-    if(G.k['KeyD']){mx+=rgt.x*spd;mz+=rgt.z*spd;mov=true;}
-    if(!chkCol(mx,mz)){C.position.x=mx;C.position.z=mz;}
-    else if(!chkCol(mx,C.position.z))C.position.x=mx;
-    else if(!chkCol(C.position.x,mz))C.position.z=mz;
-
+    // Jump + gravity. Builds are floors: ramps and floors hold you up.
     if(G.k['Space']&&G.og){G.v.y=G.jf;G.og=false;}
-    G.v.y-=G.gv;C.position.y+=G.v.y;
-    if(C.position.y<=G.ph){C.position.y=G.ph;G.v.y=0;G.og=true;}
+    G.v.y-=G.gv;P.p.y+=G.v.y;
+    const sup=groundAt(P.p.x,P.p.z,P.p.y+.6);
+    if(P.p.y<=sup){P.p.y=sup;G.v.y=0;G.og=true;}
+    if(mov&&G.og)G.hbs+=.15;
 
-    if(mov&&G.og){G.hbs+=.15;C.position.y+=Math.sin(G.hbs)*.025;}
+    uPlayer(dt,G.og&&mov);
+    uCamera(dt,now);
+    if(mov&&G.og)C.position.y+=Math.sin(G.hbs)*.03*(crouch?.4:1);
+    uGhost();
 
-    // Gun
+    // Gun: recoil and sway now live on the hand mount
     if(gg){
-        if(G.rc>0){G.rc*=.78;gg.position.z=-.5+G.rc;gg.rotation.x=-G.rc*3;if(G.rc<.0003){G.rc=0;gg.position.z=-.5;gg.rotation.x=0;}}
-        if(mov){gg.position.x=.28+Math.sin(now*.005)*.003;gg.position.y=-.28+Math.sin(now*.01)*.002;}
+        if(G.rc>.0003){G.rc*=.78;gg.position.z=-.2+G.rc*2;gg.rotation.x=-G.rc*3;}
+        else if(G.rc){G.rc=0;gg.position.z=-.2;gg.rotation.x=0;}
+        if(mov)gg.position.x=Math.sin(now*.005)*.012;
         if(mf&&mf.material.opacity>0)mf.material.opacity-=.22;
     }
 
@@ -2626,6 +2718,10 @@ function initGame(){
     else if(SEL_MAP==='city') buildCityMap();
     else if(SEL_MAP==='snow') buildSnowMap();
     else buildMap();
+    // Third-person rig, build ghosts and the Battle Bus are created once the map exists
+    if(!P.g){P.g=mkPlayer();S.add(P.g);}
+    initBuild();
+    if(MODE==='br')buildBus();
     cacheObs();
 }
 animate(0);
