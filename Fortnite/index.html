@@ -1185,7 +1185,7 @@
     <div id="ui-layer">
         <!-- FPS Counter -->
         <div id="fps-counter">FPS: 60</div>
-        <button id="settings-hotkey" title="Settings" onclick="openSettings(true)">&#9881;</button>
+        <button id="settings-hotkey" title="Settings" onclick="openSettings()">&#9881;</button>
         
         <!-- Day/Night Indicator -->
         <div id="day-night-indicator">
@@ -1667,7 +1667,7 @@
             renderBindList();
         }
 
-        window.openSettings = function (fromMatch) {
+        window.openSettings = function () {
             settingsOpen = true;
             rebindTarget = null;
             heldBinds = {};
@@ -1675,14 +1675,12 @@
             if (controls && controls.isLocked) controls.unlock();
             renderBindList();
             document.getElementById('settings-screen').classList.add('visible');
-            document.getElementById('start-screen').style.visibility = fromMatch ? 'hidden' : '';
         };
 
         window.closeSettings = function () {
             settingsOpen = false;
             rebindTarget = null;
             document.getElementById('settings-screen').classList.remove('visible');
-            document.getElementById('start-screen').style.visibility = '';
         };
 
         window.resetBinds = function () {
