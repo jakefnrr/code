@@ -169,9 +169,10 @@
         <p><span>SPACE</span> Jump</p><p><span>LEFT SHIFT</span> Sprint</p>
         <p><span>LEFT CTRL</span> Crouch</p><p><span>R</span> Reload</p>
         <p><span>E</span> Pick up / Use</p><p><span>Q</span> Toggle build mode</p>
-        <p><span>F</span> Edit building</p><p><span>G</span> Delete building</p>
+        <p><span>F</span> Edit (blue tiles)</p><p><span>G</span> Pickaxe</p>
         <p><span>X</span> Wall</p><p><span>C</span> Floor</p>
-        <p><span>B</span> Stairs</p><p><span>V</span> Cone</p>
+        <p><span>B</span> Ramp</p><p><span>V</span> Cone / Roof</p>
+        <p><span>HOLD LMB</span> Turbo build</p><p><span>R</span> Rotate while editing</p>
         <p><span>SCROLL</span> Switch weapon</p><p><span>1 - 5</span> Weapon slots</p>
     </div>
     <p class="go" id="go-text">CLICK TO DROP IN</p>
@@ -199,7 +200,7 @@
     <div id="bb">
         <div class="bs" id="b0"><span class="bk">[X]</span><span class="bn">Wall</span></div>
         <div class="bs" id="b1"><span class="bk">[C]</span><span class="bn">Floor</span></div>
-        <div class="bs" id="b2"><span class="bk">[B]</span><span class="bn">Stairs</span></div>
+        <div class="bs" id="b2"><span class="bk">[B]</span><span class="bn">Ramp</span></div>
         <div class="bs" id="b3"><span class="bk">[V]</span><span class="bn">Cone</span></div>
     </div>
     <div id="bmode">Build Mode</div>
@@ -476,6 +477,8 @@ function poseGun(skipArms){
     _gq.setFromAxisAngle(_axX,Math.PI-(pitch+G.rc*3)).multiply(_qHalf);
     gg.position.copy(GUN_POS);
     gg.quaternion.copy(_gq);
+    // A pickaxe swing is a rotation on top of the held pose, so the hands stay put.
+    if(BLD.pick&&BLD.sw>0)gg.rotateZ(Math.sin(BLD.sw*Math.PI)*1.15);
     if(skipArms||!P.shR)return;
     const hd=gg.userData.hold;
     aimLimb(P.shR,.48,1.42,_gpv.copy(hd.g).applyQuaternion(_gq).add(GUN_POS));
@@ -553,7 +556,7 @@ function uCamera(dt,now){
     const eye=1.55-P.crouch*.5;
     CAM.tp.set(P.p.x,P.p.y+eye,P.p.z);
 
-    CAM.ndist=P.aiming?2.5:BLD.edit?3.2:BLD.mode?4.1:4.7;
+    CAM.ndist=P.aiming?2.5:BLD.edit?3.2:(BLD.mode||BLD.pick)?4.1:4.7;
     CAM.dist+=(CAM.ndist-CAM.dist)*Math.min(1,dt*.012);
     _back.set(0,0,1).applyQuaternion(_qA);
 
@@ -569,10 +572,21 @@ function uCamera(dt,now){
     _want.copy(CAM.tp).addScaledVector(AIM.r,side);
     camRC.far=d;camRC.set(_want,_back);
     const hits=camRC.intersectObjects(nearObs,false);
-    if(hits.length)d=Math.max(.85,hits[0].distance-.3);
+    // A build above your head is not an occluder. You are under it looking up, and
+    // pulling the lens in to its underside buries the camera inside the plank.
+    const myLvl=Math.round(P.p.y/BS.step);
+    let hit=null;
+    for(let i=0;i<hits.length;i++){
+        const o=hits[i].object;
+        if(o.userData.isBuild&&hits[i].point.y>P.p.y+1.5&&o.userData.lvl>myLvl)continue;
+        hit=hits[i];break;
+    }
+    if(hit)d=Math.max(.85,hit.distance-.3);
 
     _want.addScaledVector(_back,d);
-    _want.y=Math.max(_want.y,groundAt(_want.x,_want.z)+.55);
+    // Only climb onto ground you could actually be standing on, otherwise a floor
+    // three levels up drags the whole camera into the sky with it.
+    _want.y=Math.max(_want.y,groundAt(_want.x,_want.z,P.p.y+.1)+.55);
 
     if(!CAM.init){CAM.cp.copy(_want);CAM.init=true;}
     CAM.cp.lerp(_want,1-Math.exp(-dt*.022));
@@ -1803,6 +1817,26 @@ function mkGun(name){
     if(P.g)P.g.add(gg);else C.add(gg);
 }
 
+// The pickaxe is held like a tool, not a gun: both hands on the shaft, head forward,
+// so the same arm solver that tracks a rifle barrel tracks the handle instead.
+function mkPick(){
+    if(gg&&gg.parent)gg.parent.remove(gg);
+    gg=new THREE.Group();
+    const H=new THREE.MeshLambertMaterial({color:0x6b4a2a,roughness:.85});
+    const M=new THREE.MeshLambertMaterial({color:0x9aa4ad,roughness:.35,metalness:.75});
+    const D=new THREE.MeshLambertMaterial({color:0x2b2b2b,roughness:.6});
+    gg.add(mk2(GEO.box,H,[0,0,.05],[.05,.05,.55]));            // shaft
+    gg.add(mk2(GEO.box,D,[0,-.02,.26],[.06,.07,.12]));          // butt grip
+    gg.add(mk2(GEO.box,M,[0,.03,-.24],[.07,.07,.14]));          // head socket
+    gg.add(mk2(GEO.box,M,[-.15,.05,-.24],[.24,.05,.06]));       // left arm
+    gg.add(mk2(GEO.box,M,[.15,.05,-.24],[.24,.05,.06]));        // right arm
+    gg.add(mk2(GEO.box,M,[-.33,.05,-.24],[.12,.045,.05]));      // left spike
+    gg.add(mk2(GEO.box,M,[.33,.05,-.24],[.12,.045,.05]));       // right spike
+    gg.userData.hold={g:new THREE.Vector3(0,-.04,.2),tip:-.39};
+    mf=null;                                                    // no muzzle flash on a tool
+    if(P.g)P.g.add(gg);else C.add(gg);
+}
+
 // ===== SHOOTING =====
 // Aiming tightens each gun by its own factor instead of one flat number: the sniper is
 // already precise so it gains little, while the shotgun throws 7 pellets and would become
@@ -1845,8 +1879,9 @@ function rlod(){
 }
 function swSlot(i){
     if(i<0||i>=G.sl.length||i===G.cs||G.rl||!G.sl[i])return;
+    if(BLD.pick)BLD.pick=false;                            // drawing a weapon puts the pickaxe away
     if(BLD.mode&&!BLD.edit){BLD.mode=false;uBuildBar();}   // drawing a weapon leaves build mode
-    G.cs=i;mkGun(G.sl[i].n);uWep();
+    G.cs=i;mkGun(G.sl[i].n);uWep();uBuildBar();
 }
 // Scroll wheel walks through the owned slots only
 function cycSlot(dir){
@@ -1986,9 +2021,11 @@ function chkCol(nx,nz,feetY){
     for(let i=0;i<BLD.list.length;i++){
         const b=BLD.list[i];
         if(!b.block)continue;
-        const p=b.m.position;
-        if(Math.abs(nx-p.x)<b.sz[0]/2+.35&&Math.abs(nz-p.z)<b.sz[2]/2+.35)
-            if(p.y+b.sz[1]/2>fy+.35&&p.y-b.sz[1]/2<fy+1.6)return true;
+        // Walls, floors, ramps and roofs are all solid, tile by tile, so a cut
+        // doorway is walkable and an intact plank stops you dead.
+        if(b.type===0){if(wallBlocks(b,nx,nz,fy))return true;}
+        else if(b.type===1){if(floorBlocks(b,nx,nz,fy))return true;}
+        else if(slopeBlocks(b,nx,nz,fy))return true;
     }
     return false;
 }
@@ -2293,57 +2330,149 @@ function onBossKill(){
 // ===== BUILDING (Fortnite-style grid building) =====
 // Pieces snap to a square grid: a cell is BS.size wide and BS.step tall, so a wall
 // built at level n always meets the floor of level n+1 exactly.
-// dir: 0=+X 1=-X 2=+Z 3=-Z (wall normal / stair rise direction)
-const BS={size:8,step:6,thick:.6,wallH:6};
-const PIECE_NAMES=['Wall','Floor','Stairs','Cone'];
+// dir: 0=+X 1=-X 2=+Z 3=-Z (wall normal / ramp rise direction)
+const BS={size:8,step:6,thick:.16,wallH:6};
+const PIECE_NAMES=['Wall','Floor','Ramp','Cone'];
+// Edit-mode sub-tiles: a wall is 3x3, floor and cone 2x2, a stair is 3x3 seen from
+// above, whose middle cell is the handle you drag to flip the stair rather than a
+// tile you can cut.
+const TILES=[9,4,9,4];
+// Which grid index each overlay pane stands for. The stair keeps all nine cells on
+// screen, but bit 4 is never a hole: pieceGeo skips it, paint flips the piece instead.
+const TILE_IDX=[[0,1,2,3,4,5,6,7,8],[0,1,2,3],[0,1,2,3,4,5,6,7,8],[0,1,2,3]];
 const BLD={
     mode:false,piece:0,list:[],ghost:[],
     sp:null,valid:false,edit:null,editSnap:null,
-    mat:null,frame:null,ghostMat:null,badMat:null,editMat:null,badFloorMat:null,
+    pick:false,sw:0,tile:-1,tiles:[],tileEdges:[],lastBad:0,paint:0,painted:false,
+    mat:null,ghostMat:null,badMat:null,editMat:null,badFloorMat:null,tileMat:null,tileHotMat:null,
+    cutMat:null,edgeMat:null,edgeHotMat:null,edgeCutMat:null,
 };
 const _aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const _aimPt=new THREE.Vector3();
 const aimRC=new THREE.Raycaster();
+const _DOWN=new THREE.Vector3(0,-1,0);
+const _terRC=new THREE.Raycaster();
+const _terY=new Map();
+const _lp=new THREE.Vector3();
+const _m4=new THREE.Matrix4();
+let _terObs=null;
 
-function pieceGeo(i){return i===3?new THREE.ConeGeometry(1,1,4):GEO.box;}
+// ---- tile geometry -------------------------------------------------------------
+// Every piece is assembled from its own sub-tiles instead of one scaled cube, so an
+// edit that cuts a tile leaves a real hole you can walk through and see past.
+function orientTris(tris){
+    let cx=0,cy=0,cz=0,n=0;
+    tris.forEach(t=>t.forEach(v=>{cx+=v[0];cy+=v[1];cz+=v[2];n++;}));
+    cx/=n;cy/=n;cz/=n;
+    return tris.map(t=>{
+        const a=t[0],b=t[1],c=t[2];
+        const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2];
+        const vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+        const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+        const mx=(a[0]+b[0]+c[0])/3-cx,my=(a[1]+b[1]+c[1])/3-cy,mz=(a[2]+b[2]+c[2])/3-cz;
+        return nx*mx+ny*my+nz*mz<0?[a,c,b]:t;
+    });
+}
+function geoFromTris(tris){
+    const g=new THREE.BufferGeometry();
+    const p=new Float32Array(Math.max(1,tris.length)*9);
+    for(let i=0;i<tris.length;i++)for(let k=0;k<3;k++){const v=tris[i][k];p[i*9+k*3]=v[0];p[i*9+k*3+1]=v[1];p[i*9+k*3+2]=v[2];}
+    g.setAttribute('position',new THREE.BufferAttribute(p,3));
+    g.computeVertexNormals();
+    return g;
+}
+function boxTris(x0,x1,y0,y1,z0,z1){
+    const c=[[x0,y0,z0],[x1,y0,z0],[x0,y1,z0],[x1,y1,z0],[x0,y0,z1],[x1,y0,z1],[x0,y1,z1],[x1,y1,z1]];
+    const f=[[0,2,3],[0,3,1],[4,5,7],[4,7,6],[0,1,4],[1,5,4],[2,6,3],[3,6,7],[0,4,2],[2,4,6],[1,3,5],[5,3,7]];
+    return orientTris(f.map(t=>[c[t[0]],c[t[1]],c[t[2]]]));
+}
+// Local frames: wall x=normal, y=up, z=along the panel. Floor and cone x,z across the
+// cell. Ramp x=up the slope, z=across it, y=thickness perpendicular to the slope.
+function tileTris(type,idx){
+    const S2=BS.size/2,tw=BS.thick/2;
+    if(type===0){
+        const j=(idx/3)|0,i=idx%3,rh=BS.wallH/3,rw=BS.size/3;
+        const y0=-BS.wallH/2+j*rh,z0=-S2+i*rw;
+        return boxTris(-tw,tw,y0,y0+rh,z0,z0+rw);
+    }
+    if(type===1){
+        const xi=idx%2,zi=(idx/2)|0;
+        return boxTris(xi?0:-S2,xi?S2:0,-tw,tw,zi?0:-S2,zi?S2:0);
+    }
+    if(type===2){
+        // Stair: the footprint seen from above, cut into nine cells. +x is up-slope.
+        const L=Math.hypot(BS.size,BS.step),W=BS.size,r=(idx/3)|0,c=idx%3;
+        return boxTris(-L/2+r*(L/3),-L/2+(r+1)*(L/3),-tw,tw,-W/2+c*(W/3),-W/2+(c+1)*(W/3));
+    }
+    // Cone: four slant faces, one per tile, meeting at the apex. No base cap, so
+    // from below it is an open roof and the floor underneath is the real bottom.
+    const h=BS.wallH/2,P4=[[-S2,-S2],[S2,-S2],[S2,S2],[-S2,S2]];
+    const a=P4[idx&3],b=P4[(idx+1)&3];
+    return orientTris([[[a[0],0,a[1]],[b[0],0,b[1]],[0,h,0]]]);
+}
+function pieceGeo(type,cut){
+    const tris=[],list=TILE_IDX[type];
+    for(let k=0;k<list.length;k++){
+        const i=list[k];
+        if(cut&(1<<i))continue;
+        tileTris(type,i).forEach(t=>tris.push(t));
+    }
+    if(!tris.length)tileTris(type,list[0]).forEach(t=>tris.push(t));   // never fully empty
+    return geoFromTris(tris);
+}
+// Ramps need tilt-then-turn, so every piece rotation is composed in 'YZX' order.
+function applyRot(obj,rot){
+    obj.quaternion.setFromEuler(new THREE.Euler(rot[0],rot[1],rot[2],'YZX'));
+}
 
-// Where a piece sits, as world position / rotation / scale of a unit geometry
+// Where a piece sits, as world position / rotation / bounding size.
 function pieceSpec(type,cx,cz,lvl,dir){
     const X=cx*BS.size,Z=cz*BS.size,base=lvl*BS.step,half=BS.size/2;
     if(type===0){                                   // wall, on a cell edge
-        const onXEdge=dir<2;                        // an X-edge panel runs along Z, a Z-edge panel along X
-        const off=dir===0?[half,0,0]:dir===1?[-half,0,0]:[0,0,dir===2?half:-half];
-        return{pos:[X+off[0],base+BS.wallH/2,Z+off[2]],rot:[0,0,0],
-            sz:[onXEdge?BS.thick:BS.size,BS.wallH,onXEdge?BS.size:BS.thick]};
+        const onX=dir===1;                          // -X face: the panel runs along Z
+        return{pos:[X+(onX?-half:0),base+BS.wallH/2,Z+(onX?0:-half)],
+            rot:[0,onX?0:Math.PI/2,0],sz:[BS.thick,BS.wallH,BS.size]};
     }
-    if(type===1){                                   // floor, flat in the cell
-        return{pos:[X,base+BS.thick/2,Z],rot:[0,0,0],sz:[BS.size,BS.thick,BS.size]};
+    if(type===1)return{pos:[X,base+BS.thick/2,Z],rot:[0,0,0],sz:[BS.size,BS.thick,BS.size]};
+    if(type===2){                                   // ramp: rises toward dir
+        const L=Math.hypot(BS.size,BS.step),ang=Math.atan2(BS.step,BS.size);
+        const rotY=dir===0?0:dir===1?Math.PI:dir===2?-Math.PI/2:Math.PI/2;
+        return{pos:[X,base+BS.step/2,Z],rot:[0,rotY,ang],sz:[BS.size,BS.step,BS.size]};
     }
-    if(type===2){                                   // stairs, ramp across the cell
-        const alongX=dir<2,sgn=(dir===1||dir===3)?1:-1;
-        const len=Math.hypot(BS.size,BS.step),ang=Math.atan2(BS.step,BS.size);
-        return alongX
-            ?{pos:[X,base+BS.step/2,Z],rot:[0,0,-sgn*ang],sz:[len,BS.thick,BS.size]}
-            :{pos:[X,base+BS.step/2,Z],rot:[sgn*ang,0,0],sz:[BS.size,BS.thick,len]};
+    const h=BS.wallH/2;
+    return{pos:[X,base+h/2,Z],rot:[0,0,0],sz:[BS.size,h,BS.size]};
+}
+// World-aligned box of a piece, which the rotated ramp and the two wall faces need
+// instead of reading sz straight off the mesh.
+function boundsOf(type,cx,cz,lvl,dir){
+    const X=cx*BS.size,Z=cz*BS.size,base=lvl*BS.step,half=BS.size/2;
+    if(type===0){
+        // Must match pieceSpec: a dir1 wall is the -X edge of the cell, a dir3 wall the -Z edge.
+        return dir===1?{x0:X-half-BS.thick,x1:X-half+BS.thick,y0:base,y1:base+BS.wallH,z0:Z-half,z1:Z+half}
+                      :{x0:X-half,x1:X+half,y0:base,y1:base+BS.wallH,z0:Z-half-BS.thick,z1:Z-half+BS.thick};
     }
-    // cone/roof: pyramid on the level above, rising only half as high as a wall
-    const r=BS.size*Math.SQRT1_2,h=BS.wallH/2;
-    return{pos:[X,base+h/2,Z],rot:[0,Math.PI/4,0],sz:[r,h,r]};
+    if(type===1)return{x0:X-half,x1:X+half,y0:base,y1:base+BS.thick,z0:Z-half,z1:Z+half};
+    if(type===2)return{x0:X-half,x1:X+half,y0:base,y1:base+BS.step,z0:Z-half,z1:Z+half};
+    return{x0:X-half,x1:X+half,y0:base,y1:base+BS.wallH/2,z0:Z-half,z1:Z+half};
 }
 
-function mkPiece(type,cx,cz,lvl,dir){
+function mkPiece(type,cx,cz,lvl,dir,cut){
     const sp=pieceSpec(type,cx,cz,lvl,dir);
-    const body=mk2(pieceGeo(type),BLD.mat,sp.pos,sp.sz);
-    body.rotation.set(sp.rot[0],sp.rot[1],sp.rot[2]);
+    const body=new THREE.Mesh(pieceGeo(type,cut||0),BLD.mat);
+    body.position.set(sp.pos[0],sp.pos[1],sp.pos[2]);
+    applyRot(body,sp.rot);
     body.castShadow=true;body.receiveShadow=true;
-    body.userData.isO=true;body.userData.sz=sp.sz;body.userData.isBuild=true;
+    body.userData.isO=true;body.userData.sz=sp.sz;body.userData.isBuild=true;body.userData.lvl=lvl;
+    body.userData.piece=null;
     S.add(body);
-    // Walls block; floors block (they are thin); stairs and roofs never block,
-    // stairs are walked up and roofs are only stood on from below the ridge.
-    const walk=type===1||type===2;
-    const block=type===0||type===1;
-    const b={type,cx,cz,lvl,dir,m:body,body,walk,block,sz:sp.sz,
+    // Walls block movement, floors block from the side, ramps and roofs are walked
+    // on rather than through.
+    // Every piece is solid from every side: you may stand on one or crawl under one,
+    // but you never walk through the plank itself.
+    const walk=type===1||type===2||type===3;
+    const b={type,cx,cz,lvl,dir,cut:cut||0,m:body,body,walk,block:true,sz:sp.sz,nodes:nodeSet(type,cx,cz,lvl,dir),
         topY:type===1?lvl*BS.step+BS.thick:lvl*BS.step};
+    body.userData.piece=b;
     return b;
 }
 function hasAt(type,cx,cz,lvl,dir){
@@ -2356,63 +2485,147 @@ function canonWall(cx,cz,dir){
     if(dir===2)return{cx,cz:cz+1,dir:3};
     return{cx,cz,dir};
 }
-// The cell the crosshair points at. Real geometry (map buildings, hills, our own
-// builds) is tested first so the ghost lands on the surface we are looking at; only
-// if the ray hits nothing do we fall back to the plane of our own level. The result
-// is clamped to the couple of cells in front of us, so a distant mountain can never
-// drag the ghost away, and a surface behind us is ignored.
-function aimCell(){
-    const lvl=Math.round(P.p.y/BS.step);
-    aimRC.set(C.position,AIM.f);aimRC.near=0;aimRC.far=BS.size*3;
-    let px,pz;
-    const hits=aimRC.intersectObjects(nearObs,false);
-    if(hits.length){px=hits[0].point.x;pz=hits[0].point.z;}
-    else{
-        _aimPlane.set(new THREE.Vector3(0,1,0),-lvl*BS.step);
-        if(!aimRC.ray.intersectPlane(_aimPlane,_aimPt))
-            _aimPt.set(P.p.x+AIM.f.x*BS.size,lvl*BS.step,P.p.z+AIM.f.z*BS.size);
-        px=_aimPt.x;pz=_aimPt.z;
+// ---- the grid lattice every piece hangs from -----------------------------------
+// A node is a cell corner at a level: (ax, az, l) in half-cell integers, so the
+// shared edge between two cells is one number and pieces that touch share it exactly.
+function nodeSet(type,cx,cz,lvl,dir){
+    const a0=2*cx-1,a1=2*cx+1,c0=2*cz-1,c1=2*cz+1,hi=lvl+1;
+    if(type===0){
+        return dir===1
+            ?[[a0,c0,lvl],[a0,c1,lvl],[a0,c0,hi],[a0,c1,hi]]
+            :[[a0,c0,lvl],[a1,c0,lvl],[a0,c0,hi],[a1,c0,hi]];
     }
-    let dx=px-P.p.x,dz=pz-P.p.z;
-    if(dx*AIM.f.x+dz*AIM.f.z<0){dx=AIM.f.x*BS.size;dz=AIM.f.z*BS.size;}   // behind us: aim ahead
-    const d=Math.hypot(dx,dz),maxD=BS.size*1.75;
-    if(d>maxD&&d>0){dx=dx/d*maxD;dz=dz/d*maxD;}
-    return{cx:Math.round((P.p.x+dx)/BS.size),cz:Math.round((P.p.z+dz)/BS.size),lvl};
+    if(type===1||type===3)return[[a0,c0,lvl],[a1,c0,lvl],[a0,c1,lvl],[a1,c1,lvl]];
+    if(dir===0)return[[a0,c0,lvl],[a0,c1,lvl],[a1,c0,hi],[a1,c1,hi]];
+    if(dir===1)return[[a1,c0,lvl],[a1,c1,lvl],[a0,c0,hi],[a0,c1,hi]];
+    if(dir===2)return[[a0,c0,lvl],[a1,c0,lvl],[a0,c1,hi],[a1,c1,hi]];
+    return[[a0,c1,lvl],[a1,c1,lvl],[a0,c0,hi],[a1,c0,hi]];
 }
+function nodesShare(a,b){
+    for(let i=0;i<a.length;i++)for(let k=0;k<b.length;k++)
+        if(a[i][0]===b[k][0]&&a[i][1]===b[k][1]&&a[i][2]===b[k][2])return true;
+    return false;
+}
+// Terrain height under a lattice corner, raycast once per corner and kept forever
+// because the map does not move.
+function terrainAt(ax,az){
+    const k=ax+'_'+az;
+    let v=_terY.get(k);
+    if(v!==undefined)return v;
+    if(!_terObs)_terObs=obsCache.filter(o=>!o.userData.isBuild);
+    _terRC.set(new THREE.Vector3(ax*BS.size/2,400,az*BS.size/2),_DOWN);
+    _terRC.near=0;_terRC.far=800;
+    const h=_terRC.intersectObjects(_terObs,false);
+    v=h.length?h[0].point.y:0;
+    _terY.set(k,v);
+    return v;
+}
+function anchored(nodes){
+    for(let i=0;i<nodes.length;i++){
+        const n=nodes[i];
+        if(terrainAt(n[0],n[1])>=n[2]*BS.step-0.45)return true;
+    }
+    return false;
+}
+// Nothing floats: a piece is legal only if it sits on the map or shares a grid corner
+// with a piece that does. Looking straight up from a ramp and pressing B is refused,
+// because that ramp in the air touches nothing.
+function supported(type,cx,cz,lvl,dir,self){
+    const n=nodeSet(type,cx,cz,lvl,dir);
+    if(anchored(n))return true;
+    for(let i=0;i<BLD.list.length;i++){
+        const o=BLD.list[i];
+        if(o===self||o===BLD.edit)continue;
+        if(nodesShare(n,o.nodes))return true;
+    }
+    return false;
+}
+// One block, no further. Everything is measured from the cell you are standing in:
+// a wall lands on the far edge of that cell, and a floor/ramp/roof lands either in
+// your own cell or in one of the eight around it. A distant mountain cannot drag the
+// ghost away because the aim point is clamped before it is ever rounded to a cell.
+function playerCell(){return{cx:Math.round(P.p.x/BS.size),cz:Math.round(P.p.z/BS.size)};}
+function cellLvl(){return Math.floor((P.p.y+0.2)/BS.step);}
 function fwdDir(){
     return Math.abs(AIM.f.x)>Math.abs(AIM.f.z)?(AIM.f.x>0?0:1):(AIM.f.z>0?2:3);
 }
-// Which edge of that cell carries the wall: the far side as seen from us. That keeps
-// the wall between us and the point we are looking at instead of flipping to a side
-// edge when the crosshair lands near a cell corner.
-function wallEdge(cx,cz){
-    const dx=cx*BS.size-P.p.x,dz=cz*BS.size-P.p.z;
-    if(Math.abs(dx)<BS.size/2&&Math.abs(dz)<BS.size/2)return fwdDir();   // our own cell
-    return Math.abs(dx)>Math.abs(dz)?(dx>0?0:1):(dz>0?2:3);
+// Cell offset for each dir, so "the cell I am facing" is one lookup.
+const DIR_STEP=[[1,0],[-1,0],[0,1],[0,-1]];
+function aimCell(p,lvl){
+    aimRC.set(C.position,AIM.f);aimRC.near=0;aimRC.far=BS.size*6;
+    _aimPlane.set(new THREE.Vector3(0,1,0),-lvl*BS.step);
+    if(!aimRC.ray.intersectPlane(_aimPlane,_aimPt))
+        _aimPt.set(P.p.x+AIM.f.x*BS.size,lvl*BS.step,P.p.z+AIM.f.z*BS.size);
+    return{
+        cx:Math.max(p.cx-1,Math.min(p.cx+1,Math.round(_aimPt.x/BS.size))),
+        cz:Math.max(p.cz-1,Math.min(p.cz+1,Math.round(_aimPt.z/BS.size))),
+    };
 }
 function buildTarget(){
-    const a=aimCell();if(!a)return null;
-    const t=BLD.piece;
+    const t=BLD.piece,p=playerCell(),L=cellLvl();
+    const up=AIM.f.y>0.45,down=AIM.f.y<-0.45;
     if(t===0){
-        const w=canonWall(a.cx,a.cz,wallEdge(a.cx,a.cz));
-        return{type:0,cx:w.cx,cz:w.cz,lvl:a.lvl,dir:w.dir};
+        const w=canonWall(p.cx,p.cz,fwdDir());
+        return{type:0,cx:w.cx,cz:w.cz,lvl:up?L+1:L,dir:w.dir};
     }
-    if(t===2)return{type:2,cx:a.cx,cz:a.cz,lvl:a.lvl,dir:fwdDir()};
-    if(t===3)return{type:3,cx:a.cx,cz:a.cz,lvl:a.lvl+1,dir:0};
-    return{type:1,cx:a.cx,cz:a.cz,lvl:a.lvl,dir:0};
+    const lvl=up?L+1:L,c=aimCell(p,lvl);
+    if(t===2){
+        // Stairs chain along the way you face. Looking up from a ramp means the next
+        // one, so try the cell ahead at the level above first: its low edge lands on
+        // the top nodes of the ramp under you and you never have to jump to climb.
+        const d=fwdDir(),s=DIR_STEP[d];
+        const cands=up?[{type:2,cx:p.cx+s[0],cz:p.cz+s[1],lvl:L+1,dir:d},
+                        {type:2,cx:p.cx,cz:p.cz,lvl:L+1,dir:d},
+                        {type:2,cx:c.cx,cz:c.cz,lvl:L+1,dir:d}]
+                      :[{type:2,cx:c.cx,cz:c.cz,lvl:L,dir:d},
+                        {type:2,cx:p.cx+s[0],cz:p.cz+s[1],lvl:L,dir:d},
+                        {type:2,cx:p.cx,cz:p.cz,lvl:L,dir:d}];
+        for(const q of cands)if(!ghostInvalid(q))return q;
+        return cands[0];
+    }
+    // A cone on flat ground sits at the level a floor would. Look up and it climbs:
+    // first over your own cell, which is how it caps a wall box or lands on the ramp
+    // you are standing on with its base on the ramp's top edge; then over the cell you
+    // are aiming at, which is how it sits on the stair in front of you.
+    if(t===3){
+        if(!up||(!G.og&&down))return{type:3,cx:c.cx,cz:c.cz,lvl:L,dir:0};
+        const cands=[{type:3,cx:p.cx,cz:p.cz,lvl:L+1,dir:0},
+                     {type:3,cx:c.cx,cz:c.cz,lvl:L+1,dir:0}];
+        for(const q of cands)if(!ghostInvalid(q))return q;
+        return cands[0];
+    }
+    return{type:1,cx:c.cx,cz:c.cz,lvl,dir:0};
 }
 function ghostInvalid(sp){
-    const{type,cx,cz,lvl,dir}=sp,{pos,sz}=pieceSpec(type,cx,cz,lvl,dir);
-    if(Math.abs(pos[0])>MAP||Math.abs(pos[2])>MAP)return true;
+    if(!sp)return true;
+    const{type,cx,cz,lvl,dir}=sp;
+    if(lvl<0||lvl>8)return true;
+    const b=boundsOf(type,cx,cz,lvl,dir);
+    if(Math.abs((b.x0+b.x1)/2)>MAP||Math.abs((b.z0+b.z1)/2)>MAP)return true;
     if(hasAt(type,cx,cz,lvl,dir))return true;
-    // never trap the player inside a piece
+    if(!supported(type,cx,cz,lvl,dir,null))return true;
+    // Never trap the player inside a piece - except the drops you do on purpose:
+    // a floor laid at your own feet, and a ramp under you while looking down. That
+    // ramp is entered deliberately: walk back and you climb onto it, walk forward
+    // and you slide out underneath.
     const feet=P.p.y;
-    const y0=pos[1]-sz[1]/2,y1=pos[1]+sz[1]/2;
-    if(Math.abs(P.p.x-pos[0])<sz[0]/2+.35&&Math.abs(P.p.z-pos[2])<sz[2]/2+.35&&y1>feet+.1&&y0<feet+1.6)
-        if(type!==1||lvl*BS.step>feet+.1)return true;
+    if(b.x1>P.p.x-.35&&b.x0<P.p.x+.35&&b.z1>P.p.z-.35&&b.z0<P.p.z+.35&&b.y1>feet+.1&&b.y0<feet+1.6){
+        if(type===1&&lvl*BS.step<=feet+.1)return false;
+        if(type===2&&AIM.f.y<-0.45&&lvl*BS.step<=feet+.1)return false;
+        return true;
+    }
     return false;
 }
-// A cone is always placeable, but it can be placeable over empty air — nothing at the
+// Why the ghost is red, for the feed. Duplicates stay silent because turbo build hits
+// the same cell every frame while you hold the button.
+function ghostReason(sp){
+    if(!sp)return 'nothing';
+    const{type,cx,cz,lvl,dir}=sp;
+    if(hasAt(type,cx,cz,lvl,dir))return 'dup';
+    if(!supported(type,cx,cz,lvl,dir,null))return 'Not connected to anything';
+    return 'Cannot build there';
+}
+// A cone is placeable over empty air when a ramp or wall holds it up — nothing at the
 // level below reaches its base line. The player then gets the red floor marker in
 // uGhost so the gap is obvious instead of a roof silently floating above a ramp.
 function coneSupported(cx,cz,lvl){
@@ -2427,17 +2640,15 @@ function coneSupported(cx,cz,lvl){
     return groundAt(cx*BS.size,cz*BS.size,y+.05)>=y-.05;      // terrain or map geometry
 }
 function uGhost(){
-    const show=BLD.mode&&!BLD.edit;
+    const show=BLD.mode&&!BLD.edit&&!BLD.pick;
     BLD.ghost.forEach((g,i)=>g.visible=show&&i===BLD.piece);
     if(!show){BLD.sp=null;return;}
-    const sp=buildTarget();
-    BLD.sp=sp;
+    const sp=BLD.sp=buildTarget();
     if(!sp){BLD.valid=false;return;}
     const d=pieceSpec(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir);
     const g=BLD.ghost[sp.type];
     g.position.set(d.pos[0],d.pos[1],d.pos[2]);
-    g.rotation.set(d.rot[0],d.rot[1],d.rot[2]);
-    g.scale.set(d.sz[0],d.sz[1],d.sz[2]);
+    applyRot(g,d.rot);
     BLD.valid=!ghostInvalid(sp);
     g.material=BLD.valid?BLD.ghostMat:BLD.badMat;
     // A cone over empty air is still legal, so show exactly what is missing: the floor
@@ -2447,85 +2658,364 @@ function uGhost(){
         const f=pieceSpec(1,sp.cx,sp.cz,sp.lvl-1,0);
         fg.visible=true;
         fg.position.set(f.pos[0],f.pos[1],f.pos[2]);
-        fg.rotation.set(0,0,0);
-        fg.scale.set(f.sz[0],f.sz[1],f.sz[2]);
+        applyRot(fg,f.rot);
         fg.material=BLD.badFloorMat;
     }
 }
 function placePiece(){
-    if(!BLD.mode||BLD.edit)return false;
+    if(!BLD.mode||BLD.edit||BLD.pick)return false;
     const sp=buildTarget();
-    if(!sp||ghostInvalid(sp)){feed('Cannot build there','kh');return false;}
+    if(!sp)return false;
+    // Turbo build calls this every frame with the button held, so the cell that is
+    // already built fails quietly instead of filling the feed with errors.
+    if(hasAt(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir))return false;
+    if(ghostInvalid(sp)){
+        const r=ghostReason(sp),now=performance.now();
+        if(r!=='dup'&&now-BLD.lastBad>600){feed(r,'kh');BLD.lastBad=now;}
+        return false;
+    }
     BLD.list.push(mkPiece(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir));
-    if(sp.type===3&&!coneSupported(sp.cx,sp.cz,sp.lvl))feed('Cone has no floor under it','kh');
+    if(sp.type===3&&!coneSupported(sp.cx,sp.cz,sp.lvl))feed('No floor under that cone - edit one in','kh');
     return true;
 }
 function removePiece(b){
     if(!b)return;
     S.remove(b.m);
+    b.m.geometry.dispose();
+    b.m.userData.piece=null;
     BLD.list=BLD.list.filter(x=>x!==b);
     if(BLD.edit===b)endEdit(false);
 }
-// Swap a piece's type or direction in place (used by edit mode)
-function rebuildPiece(b,type,dir){
-    const t=type===undefined?b.type:type,d=dir===undefined?b.dir:dir;
-    S.remove(b.m);
-    const nb=mkPiece(t,b.cx,b.cz,b.lvl,d);
+// Swap a piece's type, direction or cut tiles in place (used by edit mode)
+function rebuildPiece(b,type,dir,cut){
+    const t=type===undefined?b.type:type,d=dir===undefined?b.dir:dir,c=cut===undefined?b.cut:cut;
+    S.remove(b.m);b.m.geometry.dispose();b.m.userData.piece=null;
+    const nb=mkPiece(t,b.cx,b.cz,b.lvl,d,c);
     BLD.list=BLD.list.map(x=>x===b?nb:x);
-    BLD.edit=nb;
-    nb.body.material=BLD.editMat;
+    if(BLD.edit===b){BLD.edit=nb;nb.body.material=BLD.editMat;}
     return nb;
 }
+// ---- breaking builds: pull the anchor and everything hanging off it goes ----
+// Flood fill from the pieces that touch the map, out along shared grid corners.
+// Anything the wave never reaches was only ever held up by the piece you hit.
+function settleBuilds(){
+    const all=BLD.list.slice(),keep=[];
+    all.forEach(o=>{if(anchored(o.nodes))keep.push(o);});
+    let grew=true;
+    while(grew){
+        grew=false;
+        for(const o of all){
+            if(keep.indexOf(o)>=0)continue;
+            for(const k of keep){if(nodesShare(o.nodes,k.nodes)){keep.push(o);grew=true;break;}}
+        }
+    }
+    const drop=all.filter(o=>keep.indexOf(o)<0);
+    drop.forEach(o=>{const p=o.m.position.clone();mkPt(p,0xc0956a,4);removePiece(o);});
+    return drop.length;
+}
+function breakPiece(b){
+    if(!b)return false;
+    const p=b.m.position.clone();
+    removePiece(b);
+    mkPt(p,0x8a6a45,6);
+    const extra=settleBuilds();
+    pPick();
+    if(extra)feed('Broke '+PIECE_NAMES[b.type]+' and '+extra+' more','kh');
+    return true;
+}
+const EDIT_R=BS.size*1.6;
 function targetPiece(){
-    aimRC.set(C.position,AIM.f);aimRC.far=18;aimRC.near=0;
-    let best=null,bd=18;
-    BLD.list.forEach(b=>{
+    aimRC.set(C.position,AIM.f);aimRC.far=EDIT_R;aimRC.near=0;
+    let best=null,bd=EDIT_R;
+    for(let i=0;i<BLD.list.length;i++){
+        const b=BLD.list[i];
         const hits=aimRC.intersectObject(b.m,false);
         if(hits.length&&hits[0].distance<bd){bd=hits[0].distance;best=b;}
-    });
+    }
     return best;
+}
+// ---- edit mode: the blue tiles ----
+// Outward normal of one tile in the piece's own local frame. The tile meshes reuse
+// the piece's real geometry, so only the normal is needed to float them proud.
+const _ln=new THREE.Vector3(),_cd=new THREE.Vector3(),_op=new THREE.Vector3();
+// Outward horizontal direction of each cone face, matching tileTris.
+const FACE_OUT=[[0,-1],[1,0],[0,1],[-1,0]];
+function tileNormal(type,idx){
+    if(type===0)return[1,0,0];
+    if(type===1||type===2)return[0,1,0];
+    const o=FACE_OUT[idx&3];
+    return[o[0]*BS.size/2,BS.wallH/2,o[1]*BS.size/2];
+}
+// Pull a tile's corners toward their own centre so the edit overlay reads as separate
+// panes with dark seams between them, the way the real edit grid looks.
+function insetTris(tris,k){
+    let cx=0,cy=0,cz=0,n=0;
+    tris.forEach(t=>t.forEach(v=>{cx+=v[0];cy+=v[1];cz+=v[2];n+=3;}));
+    cx/=n;cy/=n;cz/=n;
+    return tris.map(t=>t.map(v=>[cx+(v[0]-cx)*k,cy+(v[1]-cy)*k,cz+(v[2]-cz)*k]));
+}
+// The flat pane for one tile, without the piece's thickness: this is what the blue
+// edit pane and its white border are drawn from, so a wall reads as nine flat panes
+// and a floor as four, exactly like the real edit grid.
+function tileFaceTris(type,idx){
+    const S2=BS.size/2,tw=BS.thick/2;
+    if(type===0){
+        const j=(idx/3)|0,i=idx%3,rh=BS.wallH/3,rw=BS.size/3;
+        const y0=-BS.wallH/2+j*rh,z0=-S2+i*rw;
+        return[[[-tw,y0,z0],[-tw,y0+rh,z0],[-tw,y0+rh,z0+rw]],
+               [[-tw,y0,z0],[-tw,y0+rh,z0+rw],[-tw,y0,z0+rw]]];
+    }
+    if(type===1){
+        const xi=idx%2,zi=(idx/2)|0,x0=xi?0:-S2,z0=zi?0:-S2;
+        return[[[x0,tw,z0],[x0+S2,tw,z0],[x0+S2,tw,z0+S2]],
+               [[x0,tw,z0],[x0+S2,tw,z0+S2],[x0,tw,z0+S2]]];
+    }
+    if(type===2){
+        const L=Math.hypot(BS.size,BS.step),W=BS.size,r=(idx/3)|0,c=idx%3;
+        const x0=-L/2+r*(L/3),z0=-W/2+c*(W/3);
+        return[[[x0,tw,z0],[x0+L/3,tw,z0],[x0+L/3,tw,z0+W/3]],
+               [[x0,tw,z0],[x0+L/3,tw,z0+W/3],[x0,tw,z0+W/3]]];
+    }
+    const h=BS.wallH/2,P4=[[-S2,-S2],[S2,-S2],[S2,S2],[-S2,S2]];
+    const a=P4[idx&3],b=P4[(idx+1)&3];
+    return[[[a[0],0,a[1]],[b[0],0,b[1]],[0,h,0]]];
+}
+// Only the edges used by one triangle are the pane's outline, so a quad drawn as two
+// triangles gets a border round the outside and no line across the middle.
+function edgeGeo(tris,extra){
+    const key=v=>v[0].toFixed(3)+','+v[1].toFixed(3)+','+v[2].toFixed(3);
+    const seen=new Map();
+    tris.forEach(t=>{
+        for(let i=0;i<3;i++){
+            const a=t[i],b=t[(i+1)%3],ka=key(a),kb=key(b),k=ka<kb?ka+'|'+kb:kb+'|'+ka;
+            const r=seen.get(k)||{n:0,a:a,b:b};
+            r.n++;seen.set(k,r);
+        }
+    });
+    const pos=[];
+    seen.forEach(r=>{if(r.n===1)pos.push(r.a[0],r.a[1],r.a[2],r.b[0],r.b[1],r.b[2]);});
+    (extra||[]).forEach(s=>pos.push(s[0][0],s[0][1],s[0][2],s[1][0],s[1][1],s[1][2]));
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    return g;
+}
+// The two middle-side stair cells carry an arrow pointing up the slope, which is how
+// the real grid tells you which way the stair climbs.
+function stairArrow(type,idx,L,W,tw){
+    if(type!==2||idx===4)return null;
+    const r=(idx/3)|0,c=idx%3;
+    if(r!==1)return null;
+    const zc=-W/2+c*(W/3)+W/6,d=W/9;
+    return[[[-d,tw,zc-d],[d,tw,zc]],[[d,tw,zc],[-d,tw,zc+d]]];
+}
+function makeTiles(b){
+    const list=TILE_IDX[b.type],L=Math.hypot(BS.size,BS.step),W=BS.size,tw=BS.thick/2;
+    for(let i=0;i<BLD.tiles.length;i++){
+        const m=BLD.tiles[i],e=BLD.tileEdges[i];
+        if(i<list.length){
+            const idx=list[i],tris=insetTris(tileFaceTris(b.type,idx),.86);
+            if(m.geometry)m.geometry.dispose();
+            if(e.geometry)e.geometry.dispose();
+            m.geometry=geoFromTris(tris);
+            e.geometry=edgeGeo(tileFaceTris(b.type,idx),stairArrow(b.type,idx,L,W,tw));
+            m.visible=e.visible=true;
+        }else m.visible=e.visible=false;
+    }
+}
+function uTiles(b){
+    if(!b)return;
+    const list=TILE_IDX[b.type];
+    b.m.updateMatrixWorld();
+    // Each pane's own geometry already carries its offset inside the piece, so the
+    // mesh goes at the piece origin - placing it at the tile centre would double the
+    // offset and spread the four floor panes twice as far apart as the slab.
+    b.m.getWorldPosition(_op);
+    for(let i=0;i<list.length;i++){
+        const idx=list[i],m=BLD.tiles[i],e=BLD.tileEdges[i];
+        const t=tileNormal(b.type,idx);
+        _ln.set(t[0],t[1],t[2]).normalize().transformDirection(b.m.matrixWorld);
+        if(_ln.dot(_cd.copy(C.position).sub(_op))<0)_ln.negate();
+        const cut=idx===4?false:(b.cut&(1<<idx))!==0,hot=idx===BLD.tile;
+        m.position.copy(_op).addScaledVector(_ln,.07);
+        e.position.copy(m.position);
+        m.quaternion.copy(b.m.quaternion);
+        e.quaternion.copy(m.quaternion);
+        m.material=cut?BLD.cutMat:(hot?BLD.tileHotMat:BLD.tileMat);
+        e.material=cut?BLD.edgeCutMat:(hot?BLD.edgeHotMat:BLD.edgeMat);
+    }
+}
+// Which tile the crosshair is on, in the piece's local frame.
+function hitTile(b){
+    aimRC.set(C.position,AIM.f);aimRC.near=0;aimRC.far=EDIT_R;
+    const hits=aimRC.intersectObject(b.m,false);
+    if(!hits.length)return -1;
+    b.m.updateMatrixWorld();
+    _m4.copy(b.m.matrixWorld).invert();
+    _lp.copy(hits[0].point).applyMatrix4(_m4);
+    const S2=BS.size/2;
+    if(b.type===0){
+        const j=Math.floor((_lp.y+BS.wallH/2)/(BS.wallH/3)),i=Math.floor((_lp.z+S2)/(BS.size/3));
+        return(j<0||j>2||i<0||i>2)?-1:j*3+i;
+    }
+    if(b.type===1)return((_lp.z>0)?2:0)+((_lp.x>0)?1:0);
+    if(b.type===3){
+        const ax=Math.abs(_lp.x),az=Math.abs(_lp.z);
+        return ax>az?(_lp.x>0?1:3):(_lp.z>0?2:0);
+    }
+    // Stair: nine cells seen from above, indexed along-slope then across. The middle
+    // one is the flip handle, so it reports 4 instead of being a cuttable tile.
+    const L=Math.hypot(BS.size,BS.step),W=BS.size;
+    const r=Math.floor((_lp.x+L/2)/(L/3)),c=Math.floor((_lp.z+W/2)/(W/3));
+    if(r<0||r>2||c<0||c>2)return -1;
+    return r*3+c;
+}
+// Editing is a drag: the first tile you press sets whether you are erasing or
+// restoring, every tile the crosshair crosses while the button is down follows it,
+// and letting go commits.
+function setTileCut(b,idx,cut){
+    const bit=1<<idx;
+    if(((b.cut&bit)!==0)===cut)return false;
+    const nb=rebuildPiece(b,undefined,undefined,cut?(b.cut|bit):(b.cut&~bit));
+    makeTiles(nb);
+    return true;
+}
+function paintTile(){
+    const b=BLD.edit;
+    if(!b||BLD.tile<0||!BLD.paint)return;
+    if(BLD.tile===4){
+        // The stair's centre cell is the drag handle: pulling it across flips the
+        // stair the other way instead of cutting a hole in it.
+        if(b.type===2&&!BLD.painted){
+            BLD.painted=true;
+            makeTiles(rebuildPiece(b,undefined,(b.dir+2)%4,b.cut));
+            pEdit();
+        }
+        return;
+    }
+    if(setTileCut(b,BLD.tile,BLD.paint===1)){BLD.painted=true;pEdit();}
+}
+function beginPaint(){
+    if(BLD.tile<0)return;
+    BLD.paint=((BLD.edit.cut&(1<<BLD.tile))!==0)?2:1;   // 1 = cut away, 2 = restore
+    BLD.painted=false;
+    paintTile();
+}
+function commitEdit(){
+    const drag=BLD.paint;
+    BLD.paint=0;
+    if(BLD.edit)endEdit(true);
+    return drag;
 }
 function startEdit(){
     const t=targetPiece();
     if(!t){feed('Nothing to edit','kh');return;}
-    BLD.edit=t;BLD.editSnap={type:t.type,dir:t.dir};
-    BLD.mode=true;
+    if(BLD.pick)equipPick(false);
+    BLD.edit=t;BLD.editSnap={type:t.type,dir:t.dir,cut:t.cut};
+    BLD.mode=true;BLD.tile=-1;
     t.body.material=BLD.editMat;
+    makeTiles(t);
     $('ehint').style.display='block';
-    $('ehint').innerHTML='<b>LMB/F</b> confirm &nbsp; <b>X C B V</b> change piece &nbsp; <b>R</b> rotate &nbsp; <b>G</b> delete &nbsp; <b>RMB</b> cancel';
+    $('ehint').innerHTML='<b>Hold LMB</b> drag over tiles &nbsp; <b>release</b> to confirm &nbsp; <b>X C B V</b> whole piece &nbsp; <b>R</b> rotate &nbsp; <b>RMB/Esc</b> cancel';
     uBuildBar();
 }
 function endEdit(keep){
     const b=BLD.edit;
+    BLD.tiles.forEach(m=>m.visible=false);
+    BLD.tileEdges.forEach(m=>m.visible=false);
+    BLD.paint=0;
     if(b){
         b.body.material=BLD.mat;
-        if(keep===false&&BLD.editSnap)rebuildPiece(b,BLD.editSnap.type,BLD.editSnap.dir);
+        if(keep===false&&BLD.editSnap)rebuildPiece(b,BLD.editSnap.type,BLD.editSnap.dir,BLD.editSnap.cut);
     }
-    BLD.edit=null;BLD.editSnap=null;
+    BLD.edit=null;BLD.editSnap=null;BLD.tile=-1;
     $('ehint').style.display='none';
     uBuildBar();
 }
 function rotateEdit(){
     const b=BLD.edit;if(!b)return;
     if(b.type===1||b.type===3)return;              // floor and roof are symmetric
-    rebuildPiece(b,undefined,(b.dir+1)%4);
+    const nb=rebuildPiece(b,undefined,(b.dir+1)%4,0);
+    makeTiles(nb);
 }
 function convertEdit(type){
     const b=BLD.edit;if(!b)return;
-    rebuildPiece(b,type,b.dir);
+    const nb=rebuildPiece(b,type,b.dir,0);
+    makeTiles(nb);
 }
 function uBuildBar(){
     $('bb').style.display=BLD.mode?'flex':'none';
-    $('bmode').style.display=BLD.mode?'block':'none';
-    $('bmode').textContent=BLD.edit?'Edit Mode':'Build Mode - '+PIECE_NAMES[BLD.piece];
+    $('bmode').style.display=(BLD.mode||BLD.pick)?'block':'none';
+    $('bmode').textContent=BLD.pick?'Pickaxe - LMB breaks builds'
+        :BLD.edit?'Edit Mode':'Build Mode - '+PIECE_NAMES[BLD.piece];
     for(let i=0;i<4;i++)$('b'+i).classList.toggle('ac',BLD.mode&&i===BLD.piece&&!BLD.edit);
 }
 function setPiece(i){
     if(BLD.edit)convertEdit(i);
-    else{BLD.mode=true;BLD.piece=i;}
+    else{if(BLD.pick)equipPick(false);BLD.mode=true;BLD.piece=i;}
     uBuildBar();
 }
+// ---- pickaxe ----
+function equipPick(on){
+    if(on===BLD.pick)return;
+    BLD.pick=on;
+    clearInterval(si);si=null;                     // an auto rifle must keep firing after G
+    if(on){
+        if(BLD.edit)endEdit(false);
+        BLD.mode=false;
+        mkPick();
+    }else mkGun(G.sl[G.cs]?G.sl[G.cs].n:'Pistol');
+    uBuildBar();
+}
+function swingPick(){
+    BLD.sw=1;
+    const t=targetPiece();
+    if(!t){feed('Nothing in reach','kh');return;}
+    breakPiece(t);
+}
+function pPick(){
+    if(!ac)return;
+    const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type='square';o.frequency.setValueAtTime(220,t);
+    o.frequency.exponentialRampToValueAtTime(60,t+.12);
+    g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);
+    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.16);
+}
+function pEdit(){
+    if(!ac)return;
+    const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type='triangle';o.frequency.setValueAtTime(900,t);
+    g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.07);
+    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.08);
+}
 
+// Surface height of one build at (x,z), or null when that point is outside the cell
+// or is a hole (a cut floor quadrant, a ramp quad with both triangles gone, a cut
+// roof quarter). One function feeds both walking and blocking, so they cannot drift.
+function pieceSurf(b,x,z){
+    const X=b.cx*BS.size,Z=b.cz*BS.size,S2=BS.size/2;
+    if(x<X-S2||x>X+S2||z<Z-S2||z>Z+S2)return null;
+    if(b.type===1)return (b.cut&(1<<((z>Z?2:0)+(x>X?1:0))))?null:b.lvl*BS.step+BS.thick;
+    if(b.type===2){
+        const alongX=b.dir<2;
+        // s = fraction up the slope, ac = the across coordinate in the piece's own
+        // frame, so the cell test below matches hitTile's exactly.
+        const s=alongX?(b.dir===0?(x-X)/BS.size:(X-x)/BS.size)
+                      :(b.dir===2?(z-Z)/BS.size:(Z-z)/BS.size);
+        const ac=alongX?(b.dir===0?(z-Z):(Z-z)):(b.dir===2?(X-x):(x-X));
+        const q=Math.max(0,Math.min(1,s+0.5));
+        const r=Math.max(0,Math.min(2,Math.floor(q*3)));
+        const c=Math.max(0,Math.min(2,Math.floor(ac/BS.size*3+1.5)));
+        if((r!==1||c!==1)&&(b.cut&(1<<(r*3+c))))return null;
+        return b.lvl*BS.step+q*BS.step;
+    }
+    // A cut cone face is a hole you can see and walk through, so the tile test uses
+    // the same nearest-edge rule as hitTile().
+    const ax=Math.abs(x-X),az=Math.abs(z-Z);
+    const face=ax>az?(x>X?1:3):(z>Z?2:0);
+    if(b.cut&(1<<face))return null;
+    const d=Math.max(ax,az);
+    return b.lvl*BS.step+BS.wallH/2*(1-Math.min(1,d/S2));
+}
 // Highest build surface at (x,z) that is not above upTo. Terrain is 0.
 function groundAt(x,z,upTo){
     const lim=upTo===undefined?1e9:upTo;
@@ -2533,32 +3023,83 @@ function groundAt(x,z,upTo){
     for(let i=0;i<BLD.list.length;i++){
         const b=BLD.list[i];
         if(!b.walk)continue;
-        const X=b.cx*BS.size,Z=b.cz*BS.size;
-        if(x<X-BS.size/2||x>X+BS.size/2||z<Z-BS.size/2||z>Z+BS.size/2)continue;
-        let y=b.topY;
-        if(b.type===2){
-            const alongX=b.dir<2;
-            const s=alongX?(b.dir===0?(x-X)/BS.size:(X-x)/BS.size)
-                          :(b.dir===2?(z-Z)/BS.size:(Z-z)/BS.size);
-            y=b.lvl*BS.step+Math.max(0,Math.min(1,s+0.5))*BS.step;
-        }
-        if(y<=lim&&y>h)h=y;
+        const y=pieceSurf(b,x,z);
+        if(y!==null&&y<=lim&&y>h)h=y;
     }
     return h;
 }
+// How tall a step the walk can lift you over in one frame - matches the +.6 reach
+// used by the ground snap in update(), so nothing ever blocks you that you could
+// simply climb.
+const BUILD_STEP=.6;
+// Ramps are plates, not walls: you climb onto a low edge, you crawl under a high
+// one, and in between the plate stops you. The one exception is the ramp you built
+// under your own feet - while its surface is over your head you are inside it, and
+// walking either way out is allowed (back onto the stair, forward out underneath).
+// A cone is a solid pyramid when it stands on your level, and a roof when it does not.
+function slopeBlocks(b,nx,nz,fy){
+    const y=pieceSurf(b,nx,nz);
+    if(y===null)return false;
+    if(b.type===3){
+        if(b.lvl*BS.step>=fy+1.6)return false;      // overhead roof: walk under it
+        return y>fy+BUILD_STEP;
+    }
+    if(y<=fy+BUILD_STEP||y>=fy+1.6)return false;
+    const here=pieceSurf(b,P.p.x,P.p.z);
+    if(here!==null&&here>fy+1.6)return false;       // phasing out of the ramp you are in
+    return true;
+}
+// A wall only blocks the tile column you are actually against, and only where a tile
+// is still solid - a cut door is a doorway, not a wall.
+function wallBlocks(b,nx,nz,fy){
+    const X=b.cx*BS.size,Z=b.cz*BS.size,S2=BS.size/3,base=b.lvl*BS.step,edge=BS.size/2;
+    let nrm,along;
+    if(b.dir===1){nrm=Math.abs(nx-(X-edge));along=nz-Z;}
+    else{nrm=Math.abs(nz-(Z-edge));along=nx-X;}
+    if(nrm>BS.thick/2+0.35||Math.abs(along)>BS.size/2)return false;
+    let col=Math.floor((along+BS.size/2)/S2);
+    col=Math.max(0,Math.min(2,col));
+    const rh=BS.wallH/3;
+    let j0=Math.floor(Math.max(0,fy+0.35-base)/rh),j1=Math.floor(Math.min(BS.wallH,fy+1.6-base)/rh);
+    j0=Math.max(0,Math.min(2,j0));j1=Math.max(0,Math.min(2,j1));
+    for(let j=j0;j<=j1;j++)if(!(b.cut&(1<<(j*3+col))))return true;
+    return false;
+}
+function floorBlocks(b,nx,nz,fy){
+    const X=b.cx*BS.size,Z=b.cz*BS.size,S2=BS.size/2,base=b.lvl*BS.step;
+    if(Math.abs(nx-X)>S2+0.35||Math.abs(nz-Z)>S2+0.35)return false;
+    if(b.cut&(1<<((nz>Z?2:0)+(nx>X?1:0))))return false;
+    return base+BS.thick>fy+0.35&&base<fy+1.6;
+}
 
-// Ghost previews: one translucent piece per type, shown/positioned each frame
+// Ghost previews: one translucent piece per type, built from the same tile geometry
+// as the real piece, so the ghost is exactly what you get.
 function initBuild(){
+    if(BLD.ghost.length)return;
     BLD.mat=new THREE.MeshStandardMaterial({color:0xc0956a,roughness:.72,metalness:.05});
     BLD.ghostMat=new THREE.MeshBasicMaterial({color:0x44ddff,transparent:true,opacity:.38,depthWrite:false});
     BLD.badMat=new THREE.MeshBasicMaterial({color:0xff4444,transparent:true,opacity:.32,depthWrite:false});
-    BLD.editMat=new THREE.MeshBasicMaterial({color:0xffdd44,transparent:true,opacity:.35,depthWrite:false});
+    BLD.editMat=new THREE.MeshBasicMaterial({color:0xbfd6e6,transparent:true,opacity:.3,depthWrite:false});
     // Semi-transparent so a player standing in the cell can still read the red slab.
     BLD.badFloorMat=new THREE.MeshBasicMaterial({color:0xff4444,transparent:true,opacity:.55,depthTest:false,side:THREE.DoubleSide});
+    BLD.tileMat=new THREE.MeshBasicMaterial({color:0x2f9bff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide});
+    BLD.tileHotMat=new THREE.MeshBasicMaterial({color:0x9fdcff,transparent:true,opacity:.85,depthWrite:false,side:THREE.DoubleSide});
+    // A cut tile goes grey: the pane stays on screen as the hole you made, framed in
+    // grey instead of the bright blue of a tile that is still there.
+    BLD.cutMat=new THREE.MeshBasicMaterial({color:0x4a5057,transparent:true,opacity:.45,depthWrite:false,side:THREE.DoubleSide});
+    BLD.edgeMat=new THREE.LineBasicMaterial({color:0xeaf7ff,transparent:true,opacity:.95,depthWrite:false});
+    BLD.edgeHotMat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:1,depthWrite:false});
+    BLD.edgeCutMat=new THREE.LineBasicMaterial({color:0x8d949c,transparent:true,opacity:.6,depthWrite:false});
     PIECE_NAMES.forEach((n,i)=>{
-        const m=mk2(pieceGeo(i),BLD.ghostMat,[0,0,0],[1,1,1]);
+        const m=mk2(pieceGeo(i,0),BLD.ghostMat,[0,0,0]);
         m.visible=false;S.add(m);BLD.ghost.push(m);
     });
+    for(let i=0;i<9;i++){
+        const m=new THREE.Mesh(new THREE.BufferGeometry(),BLD.tileMat);
+        m.visible=false;m.renderOrder=3;S.add(m);BLD.tiles.push(m);
+        const e=new THREE.LineSegments(new THREE.BufferGeometry(),BLD.edgeMat);
+        e.visible=false;e.renderOrder=4;S.add(e);BLD.tileEdges.push(e);
+    }
 }
 // ===== CONTROLS =====
 $('blocker').addEventListener('click',()=>R.domElement.requestPointerLock());
@@ -2599,26 +3140,32 @@ document.addEventListener('mousemove',e=>{
 const ADS_KEY='KeyT';
 let aimLock=false;
 function uAim(){P.aiming=aimLock;}
+let lmb=false;
 document.addEventListener('mousedown',e=>{
     if(!G.play||G.dead)return;
     if(dp){
         if(BUS.phase==='bus')jumpFromBus();
         return;
     }
-    if(e.button===0){                                    // LMB: place / confirm / shoot
-        if(BLD.edit){endEdit(true);return;}
+    if(e.button===0){                                    // LMB: break / cut tile / place / shoot
+        lmb=true;
+        if(BLD.pick){swingPick();return;}
+        if(BLD.edit){BLD.tile=hitTile(BLD.edit);beginPaint();return;}
         if(BLD.mode){placePiece();return;}
         shoot();
         const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);
     }else if(e.button===2){                              // RMB: edit a build, or latch the aim
         if(BLD.edit){endEdit(false);return;}
-        if(BLD.mode){startEdit();return;}
+        if(BLD.mode||BLD.pick){startEdit();return;}
         aimLock=!aimLock;uAim();
     }
 });
 document.addEventListener('mouseup',e=>{
     if(e.button===0){
+        lmb=false;
         clearInterval(si);si=null;
+        // Releasing the button is the confirm - the drag you just made is the edit.
+        if(BLD.paint)commitEdit();
     }
 });
 document.addEventListener('contextmenu',e=>e.preventDefault());
@@ -2627,7 +3174,7 @@ document.addEventListener('wheel',e=>{
     cycSlot(e.deltaY>0?1:-1);
 },{passive:true});
 
-const PBIND={'KeyX':0,'KeyC':1,'KeyB':2,'KeyV':3};   // wall / floor / stairs / cone
+const PBIND={'KeyX':0,'KeyC':1,'KeyB':2,'KeyV':3};   // wall / floor / ramp / cone
 document.addEventListener('keydown',e=>{
     G.k[e.code]=true;
     if(e.code==='ControlLeft'||e.code==='Space')e.preventDefault();
@@ -2643,15 +3190,14 @@ document.addEventListener('keydown',e=>{
     if(e.code==='Digit5')swSlot(4);
     if(e.code==='KeyQ'){                              // Q toggles build mode
         if(BLD.edit)endEdit(true);
-        else{BLD.mode=!BLD.mode;uBuildBar();}
+        else{if(BLD.pick)equipPick(false);BLD.mode=!BLD.mode;uBuildBar();}
     }
     if(PBIND[e.code]!==undefined)setPiece(PBIND[e.code]);              // X/C/B/V piece (and convert while editing)
     if(e.code===ADS_KEY){aimLock=!aimLock;uAim();return;}               // T toggles the aim zoom
-    if(e.code==='KeyF')BLD.edit?endEdit(true):startEdit();             // F edit building
-    if(e.code==='KeyG'){                                               // G delete a build
-        const t=BLD.edit||targetPiece();
-        if(t)removePiece(t);
+    if(e.code==='KeyF'){                                               // F opens the grid, and closes it when you are done
+        if(BLD.edit)commitEdit();else startEdit();
     }
+    if(e.code==='KeyG')equipPick(!BLD.pick);                           // G: pickaxe in hand
     if(e.code==='Escape'){
         if(BLD.edit)endEdit(false);
         else if(BLD.mode){BLD.mode=false;uBuildBar();}
@@ -2707,6 +3253,12 @@ function update(now){
     uCamera(dt,now);
     if(mov&&G.og)C.position.y+=Math.sin(G.hbs)*.03*(crouch?.4:1);
     uGhost();
+
+    // Turbo build: with the button held the selected piece keeps going down every
+    // frame, so spinning draws a box and a piece key pressed mid-hold lands at once.
+    if(lmb&&BLD.mode&&!BLD.edit&&!BLD.pick&&!dp)placePiece();
+    if(BLD.edit){BLD.tile=hitTile(BLD.edit);if(BLD.paint)paintTile();uTiles(BLD.edit);}
+    if(BLD.sw>0)BLD.sw=Math.max(0,BLD.sw-.18);
 
     // Gun: recoil feeds the barrel lift inside poseGun(); only the flash fades here.
     if(gg){
