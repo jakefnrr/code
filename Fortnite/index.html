@@ -991,6 +991,24 @@
             white-space: nowrap;
         }
         #build-hint.visible { display: block; }
+        #drop-banner {
+            position: absolute;
+            top: 92px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 14px;
+            background: rgba(0, 18, 34, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.45);
+            border-radius: 6px;
+            color: #9fe8ff;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 6px #000;
+            z-index: 1200;
+            display: none;
+            white-space: nowrap;
+        }
+        #drop-banner.visible { display: block; }
         #edit-mode-badge {
             position: absolute;
             top: 64px;
@@ -1178,6 +1196,7 @@
             </div>
         </div>
         <div id="build-hint">LMB place &middot; Q piece &middot; RMB edit &middot; F harvest &middot; B exit</div>
+        <div id="drop-banner"></div>
         <div id="edit-mode-badge">EDIT MODE &mdash; LMB toggle tile &middot; RMB exit</div>
 
         <!-- HUD Container -->
@@ -1479,6 +1498,13 @@
         let camShoulder = 0.55;
         let camHeight = 1.62;
         let scopedView = false;
+
+        // --- DROP (battle bus -> skydive -> glider -> landing) -----------
+        // Until 'landed' the normal ground physics in animate() are bypassed.
+        let dropPhase = 'landed';   // 'bus' | 'skydive' | 'glider' | 'landed'
+        let battleBus = null;
+        let gliderMesh = null;
+        let busDirection = new THREE.Vector3(0, 0, -1);
         
         // Game mode
         let gameMode = 'desktop';
@@ -2297,7 +2323,8 @@
 
             let targetPos = null, isPlayer = false, range = Infinity;
 
-            if (!player.dead && playerDist < BOT_SIGHT_RANGE && hasLineOfSight(eye, playerChestPos, ignore)) {
+            // Nobody shoots at the bus, so the drop is a genuine head start.
+            if (!player.dead && dropPhase === 'landed' && playerDist < BOT_SIGHT_RANGE && hasLineOfSight(eye, playerChestPos, ignore)) {
                 targetPos = playerChestPos;
                 isPlayer = true;
                 range = playerDist;
@@ -2588,6 +2615,7 @@
         // The character you actually see: primitives today, your Spitfire .glb later.
         function createPlayerBody() {
             const group = new THREE.Group();
+            group.rotation.order = 'YXZ';    // yaw first, so the dive lean is a local pitch
             const skin = new THREE.MeshStandardMaterial({ color: 0xe0a87e, roughness: 0.8 });
             const jacket = new THREE.MeshStandardMaterial({ color: 0x2f6fd0, roughness: 0.75 });
             const pants = new THREE.MeshStandardMaterial({ color: 0x24406b, roughness: 0.85 });
@@ -2735,9 +2763,236 @@
             }
             // Right arm tucked forward to hold the weapon.
             if (parts[6]) parts[6].rotation.x = -1.15 + (player.ads ? -0.2 : 0);
+
+            // Skydiving pitches the whole body head-first; the glider ride stays upright.
+            let lean = 0;
+            if (dropPhase === 'skydive') lean = 1.25;
+            else if (dropPhase === 'glider') lean = 0.2;
+            playerBody.rotation.x += (lean - playerBody.rotation.x) * Math.min(1, dt * 10);
+            if (dropPhase === 'skydive' || dropPhase === 'glider') {
+                const gliderHold = dropPhase === 'glider' ? -1.6 : -0.3;   // arms up to the straps
+                if (parts[3]) parts[3].rotation.x = -0.15;
+                if (parts[4]) parts[4].rotation.x = 0.15;
+                if (parts[5]) parts[5].rotation.x = gliderHold;
+                if (parts[6]) parts[6].rotation.x = gliderHold;
+            }
         }
 
 
+
+        // ===============================================================
+        // === BATTLE BUS DROP ============================================
+        // ===============================================================
+
+        const DROP_ALTITUDE = 138;        // height the bus flies at
+        const BUS_SPEED = 30;             // m/s ground speed
+        const SKYDIVE_TERMINAL = 38;      // m/s, feet-first freefall
+        const SKYDIVE_STEER = 16;
+        const GLIDER_FALL_SPEED = 10;     // m/s steady descent once open
+        const GLIDER_STEER = 22;
+        const GLIDER_AUTO_DEPLOY = 45;    // metres above ground it opens itself
+        const BUS_DECK_Y = -1.95;         // top of the rear platform, bus-local
+        const BUS_RIDE_Z = -11;           // where the rider stands, bus-local
+
+        const _dropFV = new THREE.Vector3();
+        const _dropRV = new THREE.Vector3();
+
+        function createBattleBus() {
+            const g = new THREE.Group();
+            const blue = new THREE.MeshStandardMaterial({ color: 0x2f6fd0, flatShading: true });
+            const navy = new THREE.MeshStandardMaterial({ color: 0x1b3b6b, flatShading: true });
+            const glass = new THREE.MeshStandardMaterial({ color: 0xa8dcff, emissive: 0x2a6ea8, flatShading: true });
+
+            const balloon = new THREE.Mesh(new THREE.SphereGeometry(8, 20, 14), new THREE.MeshStandardMaterial({ color: 0x3f8fe0, flatShading: true }));
+            balloon.position.y = 14;
+            balloon.scale.set(1, 1.15, 1.4);
+            g.add(balloon);
+
+            const stripe = new THREE.Mesh(new THREE.SphereGeometry(8.1, 20, 14), navy);
+            stripe.position.y = 14;
+            stripe.scale.set(1, 1.15, 0.3);
+            g.add(stripe);
+
+            const tether = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 9, 6), navy);
+            tether.position.y = 6.5;
+            g.add(tether);
+
+            const hull = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 15), blue);
+            g.add(hull);
+
+            const windows = new THREE.Mesh(new THREE.BoxGeometry(7.3, 1.3, 11), glass);
+            windows.position.y = 0.7;
+            g.add(windows);
+
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.7, 15.4), navy);
+            roof.position.y = 2.35;
+            g.add(roof);
+
+            const deck = new THREE.Mesh(new THREE.BoxGeometry(7, 0.5, 6.5), navy);
+            deck.position.set(0, BUS_DECK_Y - 0.25, BUS_RIDE_Z - 2);
+            g.add(deck);
+
+            return g;
+        }
+
+        // Child of playerBody, so it follows the body's yaw and lean.
+        function createGliderMesh() {
+            const g = new THREE.Group();
+            const canopy = new THREE.Mesh(
+                new THREE.SphereGeometry(2.7, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2.4),
+                new THREE.MeshStandardMaterial({ color: 0x21c2ff, flatShading: true, side: THREE.DoubleSide })
+            );
+            canopy.scale.set(1, 0.5, 1.45);
+            canopy.position.y = 1.5;
+            g.add(canopy);
+
+            const cord = new THREE.MeshBasicMaterial({ color: 0x1b2a3a });
+            for (const dx of [-1.7, 1.7]) {
+                const line = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.1, 4), cord);
+                line.position.set(dx * 0.6, 0.45, 0);
+                line.rotation.z = dx * 0.4;
+                g.add(line);
+            }
+
+            g.position.set(0, 2.4, -1.2);
+            g.visible = false;
+            return g;
+        }
+
+        function syncPlayerToBus() {
+            if (!battleBus) return;
+            playerPos.copy(battleBus.position).addScaledVector(busDirection, BUS_RIDE_Z);
+            playerPos.y = battleBus.position.y + BUS_DECK_Y + PLAYER_HEIGHT;
+        }
+
+        function beginDrop() {
+            dropPhase = 'bus';
+            if (gliderMesh) gliderMesh.visible = false;
+
+            battleBus = createBattleBus();
+            const a = Math.random() * Math.PI * 2;
+            battleBus.position.set(Math.cos(a) * WORLD_SIZE * 0.3, DROP_ALTITUDE, Math.sin(a) * WORLD_SIZE * 0.3);
+            busDirection.copy(battleBus.position).setY(0).normalize().multiplyScalar(-1);
+            _dropRV.set(-busDirection.z, 0, busDirection.x);
+            busDirection.addScaledVector(_dropRV, (Math.random() - 0.5) * 0.6).normalize();
+            battleBus.rotation.y = Math.atan2(busDirection.x, busDirection.z);
+            scene.add(battleBus);
+
+            syncPlayerToBus();
+            velocity.set(0, 0, 0);
+            isGrounded = true;
+            camDistance = camDistanceTarget = 4.6;
+            camShoulder = 0.55;
+            camera.fov = 75;
+            camera.updateProjectionMatrix();
+            const yaw = Math.atan2(busDirection.x, busDirection.z);
+            camera.quaternion.setFromEuler(new THREE.Euler(-0.3, Math.atan2(-busDirection.x, -busDirection.z), 0, 'YXZ'));
+            playerBody.rotation.set(0, yaw, 0);
+            playerBody.position.set(playerPos.x, feetY(), playerPos.z);
+            camera.position.set(playerPos.x - busDirection.x * 4.6, playerPos.y - 0.4, playerPos.z - busDirection.z * 4.6);
+
+            flashHint('space = jump from the bus');
+        }
+
+        function jumpFromBus() {
+            dropPhase = 'skydive';
+            velocity.copy(busDirection).multiplyScalar(14);
+            velocity.y = -4;
+            flashHint('space = deploy glider');
+        }
+
+        function deployGlider() {
+            if (dropPhase !== 'skydive') return;
+            dropPhase = 'glider';
+            if (!gliderMesh) {
+                gliderMesh = createGliderMesh();
+                playerBody.add(gliderMesh);
+            }
+            gliderMesh.visible = true;
+            velocity.y = Math.min(velocity.y, -GLIDER_FALL_SPEED);
+        }
+
+        function landDrop() {
+            dropPhase = 'landed';
+            isGrounded = true;
+            velocity.set(0, 0, 0);
+            if (gliderMesh) gliderMesh.visible = false;
+            playerPos.y = surfaceYAt(playerPos.x, playerPos.z, feetY()) + PLAYER_HEIGHT;
+            // The circle only starts moving once everyone is on the ground.
+            startStormTimer();
+            updateDropBanner();
+        }
+
+        function updateDropBanner() {
+            const el = document.getElementById('drop-banner');
+            if (dropPhase === 'landed') { el.classList.remove('visible'); return; }
+            const agl = Math.max(0, Math.round(feetY() - surfaceYAt(playerPos.x, playerPos.z, feetY())));
+            el.textContent = dropPhase === 'bus' ? 'BATTLE BUS — SPACE TO JUMP'
+                : dropPhase === 'skydive' ? `SKYDIVE ${agl}m — SPACE FOR GLIDER`
+                : `GLIDER ${agl}m`;
+            el.classList.add('visible');
+        }
+
+        // How far the bus has drifted from the middle of the island, ignoring altitude.
+        function busGroundDistance() {
+            return Math.hypot(battleBus.position.x - stormCenter.x, battleBus.position.z - stormCenter.y);
+        }
+
+        function updateDrop(dt) {
+            if (dropPhase === 'landed') return false;
+
+            if (battleBus) {
+                battleBus.position.addScaledVector(busDirection, BUS_SPEED * dt);
+                if (dropPhase === 'bus') {
+                    syncPlayerToBus();
+                    // No free ride off the island: the bus drops you whether you
+                    // pressed space or not.
+                    if (busGroundDistance() > WORLD_SIZE * 0.34) jumpFromBus();
+                } else if (busGroundDistance() > WORLD_SIZE * 0.52) {
+                    scene.remove(battleBus);
+                    battleBus = null;
+                }
+            }
+
+            if (dropPhase === 'bus') {
+                if (inputs.jump) { inputs.jump = false; jumpFromBus(); }
+                updateDropBanner();
+                return true;
+            }
+
+            const gliding = dropPhase === 'glider';
+            if (inputs.jump && !gliding) { inputs.jump = false; deployGlider(); }
+
+            const steer = gliding ? GLIDER_STEER : SKYDIVE_STEER;
+            const terminal = gliding ? GLIDER_FALL_SPEED : SKYDIVE_TERMINAL;
+
+            camera.getWorldDirection(_dropFV);
+            _dropFV.y = 0;
+            if (_dropFV.lengthSq() < 1e-6) _dropFV.set(0, 0, -1);
+            _dropFV.normalize();
+            _dropRV.set(-_dropFV.z, 0, _dropFV.x);
+
+            velocity.set(0, velocity.y, 0);
+            if (inputs.w) velocity.addScaledVector(_dropFV, steer);
+            if (inputs.s) velocity.addScaledVector(_dropFV, -steer * 0.55);
+            if (inputs.a) velocity.addScaledVector(_dropRV, -steer);
+            if (inputs.d) velocity.addScaledVector(_dropRV, steer);
+            player.isMoving = velocity.lengthSq() > 1;
+
+            // Freefall is fast enough that a tree or build shouldn't stop you dead;
+            // you brush past it and keep dropping.
+            moveEntity(playerPos, { y: feetY() }, velocity.x * dt, velocity.z * dt, PLAYER_RADIUS, PLAYER_HEIGHT);
+
+            velocity.y = Math.max(velocity.y - GRAVITY * dt, -terminal);
+            playerPos.y += velocity.y * dt;
+            isGrounded = false;
+
+            const agl = feetY() - surfaceYAt(playerPos.x, playerPos.z, feetY());
+            if (!gliding && agl < GLIDER_AUTO_DEPLOY) deployGlider();
+            if (agl > 0) updateDropBanner();
+            else landDrop();
+            return true;
+        }
 
         // ===============================================================
         // === STORM VISUAL + MINIMAP ====================================
@@ -3345,7 +3600,9 @@
         }
 
         function toggleBuildMode(on) {
-            buildMode = on === undefined ? !buildMode : on;
+            const want = on === undefined ? !buildMode : on;
+            if (want && dropPhase !== 'landed') { flashHint('build after you land'); return; }
+            buildMode = want;
             if (!buildMode) { exitEditMode(); disposeGhost(); }
             document.getElementById('build-bar').classList.toggle('visible', buildMode);
             document.getElementById('build-hint').classList.toggle('visible', buildMode);
@@ -4176,6 +4433,9 @@
             for (const drop of loot) scene.remove(drop.mesh);
             loot = [];
             buildings = [];
+            if (battleBus) { scene.remove(battleBus); battleBus = null; }
+            if (gliderMesh) gliderMesh.visible = false;
+            dropPhase = 'landed';
         }
 
         window.startGame = (mode) => {
@@ -4239,14 +4499,9 @@
             spawnBots();
             spawnCars();
 
-            playerPos.set(0, getTerrainHeight(0, 0) + PLAYER_HEIGHT, 0);
-            velocity.set(0, 0, 0);
-            isGrounded = true;
-            camDistance = camDistanceTarget = 4.6;
-            playerBody.position.set(playerPos.x, feetY(), playerPos.z);
-            camera.position.set(0, playerPos.y, camDistance);
-            camera.lookAt(playerPos.x, feetY() + camHeight, playerPos.z);
-            camera.rotation.z = 0;
+            // Every match starts on the battle bus.
+            player.inventory[0] = createWeaponItem('RFAR', 'COMMON');
+            switchSlot(0);
 
             // A second match must not inherit the previous match's closing circle.
             stormRadius = STORM_PHASES[0].radius;
@@ -4258,9 +4513,11 @@
             stormCenterNext.set(0, 0);
             player.lastStormDamage = 0;
 
-            startStormTimer(); 
-            player.inventory[0] = createWeaponItem('RFAR', 'COMMON');
-            switchSlot(0);
+            // The storm clock is started by landDrop(), not here.
+            document.getElementById('storm-status').innerText = 'Battle Bus';
+            document.getElementById('storm-timer').innerText = '--:--';
+
+            beginDrop();
             updateAliveCount();
             document.getElementById('minimap').classList.add('visible');
             
@@ -4333,6 +4590,8 @@
 
             if(player.vehicle) {
                 updateCars(dt);
+            } else if (updateDrop(dt)) {
+                // On the bus, in freefall or under glide: updateDrop owns the physics.
             } else {
                 // Player movement
                 if (gameMode !== 'desktop' || (controls && controls.isLocked)) {
@@ -4388,7 +4647,7 @@
             updateThirdPersonCamera(dt);
 
             // Shooting
-            if(inputs.fire && !player.vehicle && !player.isHealing && !buildMode) {
+            if(inputs.fire && !player.vehicle && !player.isHealing && !buildMode && dropPhase === 'landed') {
                 if (now - lastShot > (player.inventory[player.slot]?.stats.rate * 1000 || 0)) {
                     shoot();
                 }
@@ -4442,7 +4701,10 @@
                 setADS, placePiece, resolvePlacement, targetedPiece, shoot, fireRay, raycastSolids,
                 hasLineOfSight, surfaceYAt, damageBot, addKillEntry, botThink, aiTick: (now, dt) => { updateBots(dt, now); updateProjectiles(dt); },
                 bots: () => bots, player, inventory: () => player.inventory, give: (i, slot) => { player.inventory[slot] = i; switchSlot(slot); },
-                createWeaponItem, THREE
+                createWeaponItem, THREE,
+                jump: () => { inputs.jump = true; updateDrop(0.05); inputs.jump = false; },
+                dropTick: (dt) => { for (let i = 0; i < (dt || 1); i++) updateDrop(0.05); },
+                drop: () => ({ phase: dropPhase, bus: battleBus ? battleBus.position.toArray().map(v => +v.toFixed(1)) : null, dir: busDirection.toArray().map(v => +v.toFixed(2)), feet: +feetY().toFixed(1), agl: +(feetY() - surfaceYAt(playerPos.x, playerPos.z, feetY())).toFixed(1), glider: gliderMesh ? gliderMesh.visible : false, lean: +(playerBody.rotation.x * 180 / Math.PI).toFixed(1), stormActive, bots: bots.length })
             }
         };
 
