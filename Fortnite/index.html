@@ -267,8 +267,8 @@
             background: linear-gradient(135deg, #ffaa00, #ff6600);
         }
         
-        .game-button.controller { 
-            background: linear-gradient(135deg, #8a2be2, #4b0082);
+        .game-button.settings { 
+            background: linear-gradient(135deg, #3a3f52, #1b1e29);
         }
         
         /* Crosshair - Improved */
@@ -893,11 +893,26 @@
         }
 
         /* Day/Night Indicator - Repositioned */
+        #settings-hotkey {
+            position: absolute;
+            top: 46px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 210, 255, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            color: #9fe8ff;
+            font-size: 0.95rem;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 1201;
+        }
+        #settings-hotkey:hover { background: rgba(0, 140, 200, 0.6); }
         #day-night-indicator {
             position: absolute;
             top: 10px;
-            right: 80px;
-            background: rgba(0, 0, 0, 0.5);
+            right: 80px;            background: rgba(0, 0, 0, 0.5);
             color: white;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
@@ -911,23 +926,50 @@
             backdrop-filter: blur(3px);
         }
 
-        /* Controller Notification */
-        .controller-notification {
+        /* Settings / keybind panel */
+        #settings-screen {
             position: fixed;
-            top: 50px;
-            right: 20px;
-            background: linear-gradient(135deg, #8a2be2, #4b0082);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            z-index: 2000;
+            inset: 0;
+            background: rgba(6, 10, 20, 0.92);
+            z-index: 3000;
             display: none;
-            animation: slideInRight 0.3s ease-out;
-            border: 1px solid rgba(255,255,255,0.2);
-            pointer-events: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 16px;
+            overflow-y: auto;
         }
-        
+        #settings-screen.visible { display: flex; }
+        #settings-screen h2 { margin: 0 0 4px; letter-spacing: 2px; }
+        #bind-list {
+            width: min(560px, 92vw);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px 12px;
+            margin: 18px 0;
+        }
+        .bind-row {
+            display: contents;
+        }
+        .bind-label {
+            padding: 7px 10px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            font-size: 0.86rem;
+        }
+        .bind-key {
+            padding: 7px 14px;
+            background: rgba(0, 140, 200, 0.35);
+            border: 1px solid rgba(0, 210, 255, 0.5);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.86rem;
+            text-align: center;
+            cursor: pointer;
+            min-width: 110px;
+        }
+        .bind-key:hover { background: rgba(0, 210, 255, 0.45); }
+        .bind-key.listening { background: #ffaa00; color: #111; border-color: #fff; }
+        #bind-help { color: #9fe8ff; font-size: 0.78rem; margin-bottom: 14px; }
         @keyframes slideInRight {
             0% { transform: translateX(100%); opacity: 0; }
             100% { transform: translateX(0); opacity: 1; }
@@ -1123,9 +1165,19 @@
         <div class="button-container">
             <button class="game-button mobile" onclick="startGame('mobile')">📱 Mobile Mode</button>
             <button class="game-button" onclick="startGame('desktop')">🖥️ Desktop Mode</button>
-            <button class="game-button controller" onclick="startGame('controller')">🎮 Controller Mode</button>
+            <button class="game-button settings" onclick="openSettings()">⚙️ Settings</button>
         </div>
         <div id="victory-royales-stat">🏆 Victory Royales: 0</div>
+    </div>
+
+    <div id="settings-screen">
+        <h2>SETTINGS</h2>
+        <div id="bind-help">Click a binding, then press the key or mouse button you want. ESC cancels.</div>
+        <div id="bind-list"></div>
+        <div class="button-container">
+            <button class="game-button" onclick="resetBinds()">↺ DEFAULTS</button>
+            <button class="game-button settings" onclick="closeSettings()">✕ CLOSE</button>
+        </div>
     </div>
     
     <div id="game-container"></div>
@@ -1133,6 +1185,7 @@
     <div id="ui-layer">
         <!-- FPS Counter -->
         <div id="fps-counter">FPS: 60</div>
+        <button id="settings-hotkey" title="Settings" onclick="openSettings(true)">&#9881;</button>
         
         <!-- Day/Night Indicator -->
         <div id="day-night-indicator">
@@ -1271,6 +1324,7 @@
                 <div class="inventory-slot" id="slot-2" onclick="selectSlot(2)"></div>
                 <div class="inventory-slot" id="slot-3" onclick="selectSlot(3)"></div>
                 <div class="inventory-slot" id="slot-4" onclick="selectSlot(4)"></div>
+                <div class="inventory-slot" id="slot-5" onclick="selectSlot(5)"></div>
             </div>
 
             <!-- Center HUD -->
@@ -1334,9 +1388,6 @@
         <div class="total-points" id="total-points">Total Points: 0</div>
         <button class="restart-btn" onclick="location.reload()">🏆 RETURN TO LOBBY</button>
     </div>
-
-    <!-- Controller Notification -->
-    <div class="controller-notification" id="controller-notification">🎮 Controller Connected</div>
 
     <script type="importmap">
         {
@@ -1455,6 +1506,192 @@
             { time: 60, radius: WORLD_SIZE * 0.18, damage: 7, status: "Shrink" },
             { time: 45, radius: 14, damage: 12, status: "Final" }
         ];
+
+        // ===============================================================
+        // === KEYBINDS ==================================================
+        // ===============================================================
+
+        // The game only ever asks "is this action active?".  Binds translate an
+        // action into a key or mouse button and are editable in the settings screen.
+        const BIND_ACTIONS = [
+            ['forward',    'KeyW',        'Move forward'],
+            ['back',       'KeyS',        'Move back'],
+            ['left',       'KeyA',        'Move left'],
+            ['right',      'KeyD',        'Move right'],
+            ['sprint',     'ShiftLeft',   'Sprint'],
+            ['jump',       'Space',       'Jump / leave bus / glider'],
+            ['use',        'Mouse0',      'Fire / use / place'],
+            ['ads',        'Mouse2',      'Aim (toggle)'],
+            ['interact',   'KeyE',        'Open chest / vehicle'],
+            ['harvest',    'KeyF',        'Harvest / chop'],
+            ['reload',     'KeyR',        'Reload'],
+            ['build',      'KeyB',        'Build menu'],
+            ['pieceWall',  'KeyX',        'Wall'],
+            ['pieceFloor', 'KeyC',        'Floor'],
+            ['pieceStair', 'KeyZ',        'Stair'],
+            ['pieceCone',  'KeyV',        'Cone'],
+            ['cyclePiece', 'KeyQ',        'Next build piece'],
+            ['slot1',      'Digit1',      'Slot 1 (pickaxe)'],
+            ['slot2',      'Digit2',      'Slot 2'],
+            ['slot3',      'Digit3',      'Slot 3'],
+            ['slot4',      'Digit4',      'Slot 4'],
+            ['slot5',      'Digit5',      'Slot 5'],
+            ['slot6',      'Digit6',      'Slot 6'],
+            ['cancel',     'Escape',      'Exit edit / settings'],
+        ];
+
+        const DEFAULT_BINDS = {};
+        for (const [action, code] of BIND_ACTIONS) DEFAULT_BINDS[action] = code;
+
+        // Actions that stay active while held; everything else fires once per press.
+        const HELD_BINDS = new Set(['forward', 'back', 'left', 'right', 'sprint', 'jump', 'harvest', 'use']);
+
+        let keybinds = Object.assign({}, DEFAULT_BINDS);
+        let heldBinds = {};
+        let rebindTarget = null;
+        let settingsOpen = false;
+
+        function loadKeybinds() {
+            keybinds = Object.assign({}, DEFAULT_BINDS);
+            try {
+                const saved = JSON.parse(localStorage.getItem('fortniteKeybinds') || '{}');
+                for (const action of Object.keys(DEFAULT_BINDS)) {
+                    if (typeof saved[action] === 'string' && saved[action]) keybinds[action] = saved[action];
+                }
+            } catch (err) { /* first run or corrupt entry: defaults stand */ }
+        }
+
+        function saveKeybinds() {
+            localStorage.setItem('fortniteKeybinds', JSON.stringify(keybinds));
+        }
+
+        function bindLabel(code) {
+            if (!code) return 'UNBOUND';
+            if (code === 'Mouse0') return 'LMB';
+            if (code === 'Mouse1') return 'MMB';
+            if (code === 'Mouse2') return 'RMB';
+            if (/^Key./.test(code)) return code.slice(3);
+            if (/^Digit./.test(code)) return code.slice(5);
+            if (/^Arrow./.test(code)) return code.slice(5).toUpperCase();
+            if (/^Numpad./.test(code)) return 'NUM' + code.slice(6);
+            return code.toUpperCase();
+        }
+
+        function inputId(event) {
+            if (event.type === 'keydown' || event.type === 'keyup') return event.code;
+            if (event.button === 0) return 'Mouse0';
+            if (event.button === 2) return 'Mouse2';
+            if (event.button === 1) return 'Mouse1';
+            return null;
+        }
+
+        function actionFor(input) {
+            if (!input) return null;
+            for (const action of Object.keys(keybinds)) {
+                if (keybinds[action] === input) return action;
+            }
+            return null;
+        }
+
+        // inputs is what the movement code already reads, so held binds land there.
+        function applyHeldBinds() {
+            inputs.w = !!heldBinds.forward;
+            inputs.s = !!heldBinds.back;
+            inputs.a = !!heldBinds.left;
+            inputs.d = !!heldBinds.right;
+            inputs.sprint = !!heldBinds.sprint;
+            inputs.harvest = !!heldBinds.harvest;
+            inputs.fire = !!heldBinds.use;
+            if (heldBinds.jump) inputs.jump = true;
+        }
+
+        function pressBoundAction(action) {
+            switch (action) {
+                case 'interact': tryInteract(); break;
+                case 'reload': reload(); break;
+                case 'build': toggleBuildMode(); break;
+                case 'pieceWall': pickBuildPiece('wall'); break;
+                case 'pieceFloor': pickBuildPiece('floor'); break;
+                case 'pieceStair': pickBuildPiece('stair'); break;
+                case 'pieceCone': pickBuildPiece('cone'); break;
+                case 'cyclePiece': cyclePiece(); break;
+                case 'ads': setADS(!player.ads); break;
+                case 'slot1': switchSlot(0); break;
+                case 'slot2': switchSlot(1); break;
+                case 'slot3': switchSlot(2); break;
+                case 'slot4': switchSlot(3); break;
+                case 'slot5': switchSlot(4); break;
+                case 'slot6': switchSlot(5); break;
+                case 'cancel': if (editMode) exitEditMode(); break;
+            }
+        }
+
+        // B then the piece key shows the ghost, so the piece keys also open the menu.
+        function pickBuildPiece(type) {
+            if (dropPhase !== 'landed') { flashHint('build after you land'); return; }
+            if (!buildMode) toggleBuildMode(true);
+            selectPiece(type);
+        }
+
+        function renderBindList() {
+            const list = document.getElementById('bind-list');
+            list.innerHTML = '';
+            for (const [action, , label] of BIND_ACTIONS) {
+                const name = document.createElement('div');
+                name.className = 'bind-label';
+                name.textContent = label;
+
+                const key = document.createElement('div');
+                key.className = 'bind-key';
+                if (rebindTarget === action) {
+                    key.classList.add('listening');
+                    key.textContent = 'PRESS KEY…';
+                } else {
+                    key.textContent = bindLabel(keybinds[action]);
+                }
+                key.onclick = () => { rebindTarget = action; renderBindList(); };
+
+                list.appendChild(name);
+                list.appendChild(key);
+            }
+        }
+
+        function captureRebind(input) {
+            // One input can only drive one action, so steal it from whatever had it.
+            for (const action of Object.keys(keybinds)) {
+                if (keybinds[action] === input) keybinds[action] = '';
+            }
+            keybinds[rebindTarget] = input;
+            rebindTarget = null;
+            saveKeybinds();
+            renderBindList();
+        }
+
+        window.openSettings = function (fromMatch) {
+            settingsOpen = true;
+            rebindTarget = null;
+            heldBinds = {};
+            applyHeldBinds();
+            if (controls && controls.isLocked) controls.unlock();
+            renderBindList();
+            document.getElementById('settings-screen').classList.add('visible');
+            document.getElementById('start-screen').style.visibility = fromMatch ? 'hidden' : '';
+        };
+
+        window.closeSettings = function () {
+            settingsOpen = false;
+            rebindTarget = null;
+            document.getElementById('settings-screen').classList.remove('visible');
+            document.getElementById('start-screen').style.visibility = '';
+        };
+
+        window.resetBinds = function () {
+            keybinds = Object.assign({}, DEFAULT_BINDS);
+            heldBinds = {};
+            applyHeldBinds();
+            saveKeybinds();
+            renderBindList();
+        };
 
         // ===============================================================
         // === GLOBAL STATE VARIABLES ====================================

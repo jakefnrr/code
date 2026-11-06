@@ -1375,7 +1375,7 @@ function checkGameEnd(){
   if(kind==='win')SFX.win();else if(kind==='lose')SFX.lose();else SFX.draw();
   statusBar.textContent=reason;
   const title=S.mode==='local'?'🏁 Game Over':kind==='win'?'🏆 You Win!':kind==='lose'?'😞 You Lose':'🤝 Draw';
-  showGameOver(title,reason,S.mode!=='online');
+  showGameOver(title,reason);
   return true;
 }
 function endOnlineGame(kind,reason){
@@ -1384,18 +1384,31 @@ function endOnlineGame(kind,reason){
   if(kind==='win')SFX.win();else if(kind==='lose')SFX.lose();else SFX.draw();
   statusBar.textContent=reason;
   const title=kind==='win'?'🏆 You Win!':kind==='lose'?'😞 You Lose':'🤝 Draw';
-  showGameOver(title,reason,false);
+  showGameOver(title,reason);
 }
-function showGameOver(title,reason,offline){
+let overGen=0;
+function showGameOver(title,reason){
+  overGen++;
   $('overTitle').textContent=title;
   $('overReason').textContent=reason;
   const btns=$('overBtns');btns.innerHTML='';
   $('wantRematch').classList.add('hidden');
   $('rematchSet').classList.add('hidden');
-  if(offline){
+  if(S.mode!=='online'){
+    const isBot=S.mode==='bot';
     const ng=document.createElement('button');
-    ng.className='btn';ng.textContent='↻ New Game';
-    ng.onclick=()=>startGame(S.mode==='bot'?'bot':'local');
+    ng.className='btn';ng.textContent=isBot?'↻ Rematch':'↻ New Game';
+    const gen=overGen;
+    ng.onclick=()=>{
+      if(!isBot){startGame('local');return;}
+      ng.disabled=true;ng.textContent='⏳ Sending rematch…';
+      setTimeout(()=>{
+        if(gen!==overGen)return;
+        $('overReason').textContent='♟ '+S.oppName+' accepted the rematch!';
+        SFX.select();
+        setTimeout(()=>{if(gen===overGen)startGame('bot');},550);
+      },450);
+    };
     const mn=document.createElement('button');
     mn.className='btn secondary';mn.textContent='Menu';
     mn.onclick=()=>{closeOverlays();stopClock();show('menuScreen');};
@@ -1430,6 +1443,7 @@ function showGameOver(title,reason,offline){
   $('overOverlay').classList.add('open');
 }
 function closeOverlays(){
+  overGen++;
   document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));
   $('drawNotif').classList.remove('show');
 }
