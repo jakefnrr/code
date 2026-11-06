@@ -1250,7 +1250,7 @@
                 <span class="piece-icon">🔺</span>CONE<span class="piece-key">Z</span>
             </div>
         </div>
-        <div id="build-hint">LMB place &middot; C X V Z piece &middot; F edit &middot; Q exit</div>
+        <div id="build-hint">LMB place &middot; C wall X floor V ramp B cone &middot; F edit &middot; Q exit</div>
         <div id="drop-banner"></div>
         <div id="edit-mode-badge">EDIT MODE &mdash; LMB toggle tile &middot; F exit</div>
 
@@ -1351,7 +1351,7 @@
                 <div class="mobile-piece-btn selected" data-piece="wall">C</div>
                 <div class="mobile-piece-btn" data-piece="floor">X</div>
                 <div class="mobile-piece-btn" data-piece="ramp">V</div>
-                <div class="mobile-piece-btn" data-piece="cone">Z</div>
+                <div class="mobile-piece-btn" data-piece="cone">B</div>
             </div>
         </div>
     </div>
@@ -1417,10 +1417,11 @@
         const BUILD_COST = 10;       // wood per piece
         const PIECE_HP = 100;        // structure health — two pickaxe swings
         const EDIT_TILES = 2;        // wall/floor split into EDIT_TILES x EDIT_TILES panels
-        const BUILD_REACH = 9;       // how far ahead a piece may land
+        const BUILD_REACH = 11;      // how far ahead a piece may land — three cells, so a held click runs a wall out in front of you
         const EDIT_REACH = 12;
         const TURBO_BUILD_MS = 110;  // turbo: one piece per this interval while LMB is held
-        const BUILD_PROBE_START = 2; // metres along the reticle before a cell is eligible
+        const BUILD_PROBE_START = 4; // metres along the reticle before a cell is eligible — one full cell, so the height you aim at is read at a readable distance
+        const BUILD_MAX_RISE = 3;    // how many levels above the band you stand in a piece may go
 
         // --- BOT COMBAT ---
         const BOT_SIGHT_RANGE = 55;
@@ -3642,6 +3643,11 @@
         }
 
         // Where would the next piece of `type` land, given where the body stands and looks?
+        // The level band is counted from the feet, not from absolute world height, and it is
+        // deliberately not floored at zero: this terrain runs from about -7 to +10, so a
+        // clamp at zero parked every piece built below sea level several metres overhead.
+        function buildBaseLevel() { return levelAt(feetY() + 0.25); }
+
         function cellFor(type, point, orient, dir) {
             let gx, gz;
             if (type === 'wall') {
@@ -3651,7 +3657,10 @@
                 gx = cellFloor(point.x);
                 gz = cellFloor(point.z);
             }
-            const level = Math.max(0, levelAt(point.y));
+            // One level up per PIECE_H of aim height above the feet, read a little early so a
+            // 30-degree look already reaches the next band instead of needing near-vertical.
+            const rise = Math.min(BUILD_MAX_RISE, Math.max(0, Math.floor((point.y - feetY()) / (PIECE_H * 0.75))));
+            const level = buildBaseLevel() + rise;
             const center = pieceCenter(type, gx, gz, level, orient);
             return {
                 type, gx, gz, level, orient, key: gridKey(type, gx, gz, level, orient),
@@ -3676,12 +3685,15 @@
         }
 
         function resolvePlacement(type) {
-            const origin = camera.position;
+            // Same direction the crosshair points, but launched from the chest: the camera
+            // trails the body by ~4.6 m, so a camera-launched probe aimed the first cell
+            // behind the player and read its height from the camera's own altitude.
+            const origin = playerChest(new THREE.Vector3());
             const dir = camera.getWorldDirection(new THREE.Vector3());
             const orient = facingAxis();
             // March the reticle and take the first cell along it that will host the piece.
-            // Starting a couple of metres out keeps pieces off the body; skipping occupied
-            // cells is what lets a held click run a wall out in front of you.
+            // Starting a full cell out keeps pieces off the body; skipping occupied cells is
+            // what lets a held click run a wall out in front of you.
             for (let d = BUILD_PROBE_START; d <= BUILD_REACH; d += GRID / 6) {
                 const info = cellFor(type, origin.clone().addScaledVector(dir, d), orient, dir);
                 if (Math.hypot(info.center.x - playerPos.x, info.center.z - playerPos.z) > BUILD_REACH) continue;
@@ -3962,7 +3974,7 @@
             hint.classList.add('visible');
             clearTimeout(hintTimer);
             hintTimer = setTimeout(() => {
-                if (buildMode) hint.innerHTML = 'LMB place &middot; C X V Z piece &middot; F edit &middot; Q exit';
+                if (buildMode) hint.innerHTML = 'LMB place &middot; C wall X floor V ramp B cone &middot; F edit &middot; Q exit';
             }, 900);
         }
 
@@ -4652,7 +4664,7 @@
             document.querySelectorAll('.mobile-piece-btn').forEach(btn => {
                 btn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    selectPiece(btn.dataset.piece);
+                    pickBuildPiece(btn.dataset.piece);
                 });
             });
             
@@ -4716,7 +4728,7 @@
                     if (e.code === 'Escape') closeSettings();
                     return;
                 }
-                if (gameMode !== 'desktop' || !controls || !controls.isLocked) return;
+                if (gameMode !== 'desktop' || !gameStarted || menuVisible()) return;
 
                 const action = actionFor(e.code);
                 if (!action) return;
@@ -4742,7 +4754,9 @@
 
             document.addEventListener('mousedown', (e) => {
                 if (rebindTarget) { captureRebind(inputId(e)); return; }
-                if (settingsOpen || gameMode !== 'desktop' || !controls || !controls.isLocked || player.dead) return;
+                if (settingsOpen || !gameStarted || menuVisible()) return;
+                if (gameMode !== 'desktop' || player.dead) return;
+                if (e.target !== renderer.domElement) return;
 
                 const action = actionFor(inputId(e));
                 if (!action) return;
@@ -4994,7 +5008,7 @@
                 updateMantle(now);
             } else {
                 // Player movement
-                if (gameMode !== 'desktop' || (controls && controls.isLocked)) {
+                if (gameMode !== 'desktop' || !menuVisible()) {
                     setCrouch(!!inputs.crouch);
                     const height = playerHeight();
                     const speedMultiplier = player.ads ? 0.5 : 1.0;
