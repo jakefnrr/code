@@ -173,7 +173,7 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
 </head>
 <body>
 
-<a id="hubBtn" href="index.html">🏠 Hub</a>
+<a id="hubBtn" href="../index.html">🏠 Hub</a>
 
 <!-- ================= MENU ================= -->
 <div class="screen" id="menuScreen">
@@ -193,8 +193,8 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
       <button class="btn" id="toBotBtn">🤖&nbsp; Play vs Bot</button>
       <button class="btn purple" id="toLocalBtn">👥&nbsp; Play Offline — 2 Players</button>
       <button class="btn blue" id="toOnlineBtn">🌐&nbsp; Play Online</button>
+      <button class="btn secondary" id="learnBtn">📚 Learn</button>
     </div>
-    <div class="hublink"><a href="index.html">← Back to Hub</a></div>
   </div>
 </div>
 
@@ -205,27 +205,30 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
     <div class="card">
       <label class="fld">Difficulty</label>
       <div class="diffgrid" id="diffGrid">
-        <button class="diffcard sel" data-diff="easy"><h3>😊 Easy</h3><p>Plays sensible chess, but blunders about 6 out of every 10 moves.</p></button>
-        <button class="diffcard" data-diff="medium"><h3>🙂 Medium</h3><p>Knows the game — develops, trades fairly — but slips about 4 out of 10 moves.</p></button>
-        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Real Stockfish engine — grandmaster strength. Rarely misses anything.</p></button>
-        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Stockfish turned up to eleven — crazy deep calculation, near-alien play.</p></button>
+        <button class="diffcard sel" data-diff="easy"><h3>😊 Beginner</h3><p>Plays sensible chess, but blunders about 6 out of every 10 moves.</p></button>
+        <button class="diffcard" data-diff="medium"><h3>🙂 Medium</h3><p>Expert strength — deep calculation, very few mistakes.</p></button>
+        <button class="diffcard" data-diff="hard"><h3>😠 Hard</h3><p>Local Stockfish engine — grandmaster strength. Rarely misses anything.</p></button>
+        <button class="diffcard" data-diff="expert"><h3>👑 Expert</h3><p>Local Stockfish at full strength — crazy deep calculation, near-alien play.</p></button>
       </div>
     </div>
     <div class="card">
-      <label class="fld">Time control presets</label>
-      <div class="presets" id="botPresets">
-        <button class="chip" data-t="1" data-i="0">Bullet 1|0</button>
-        <button class="chip" data-t="2" data-i="1">Hyper 2|1</button>
-        <button class="chip on" data-t="3" data-i="2">Blitz 3|2</button>
-        <button class="chip" data-t="5" data-i="0">Blitz 5|0</button>
-        <button class="chip" data-t="10" data-i="0">Rapid 10|0</button>
-        <button class="chip" data-t="30" data-i="20">Classical 30|20</button>
-      </div>
-      <div class="row2">
-        <div><label class="fld" for="botTimeSel">Minutes per side</label>
-          <select class="sel" id="botTimeSel"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
-        <div><label class="fld" for="botIncSel">Increment (sec)</label>
-          <select class="sel" id="botIncSel"><option selected>0</option><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option><option>20</option></select></div>
+      <label class="fld">Time control</label>
+      <p style="margin:0;font-size:14px;color:#94a3b8;">∞ No time limit — play against the bot at your own pace.</p>
+      <div style="display:none">
+        <div class="presets" id="botPresets">
+          <button class="chip" data-t="1" data-i="0">Bullet 1|0</button>
+          <button class="chip" data-t="2" data-i="1">Hyper 2|1</button>
+          <button class="chip on" data-t="3" data-i="2">Blitz 3|2</button>
+          <button class="chip" data-t="5" data-i="0">Blitz 5|0</button>
+          <button class="chip" data-t="10" data-i="0">Rapid 10|0</button>
+          <button class="chip" data-t="30" data-i="20">Classical 30|20</button>
+        </div>
+        <div class="row2">
+          <div><label class="fld" for="botTimeSel">Minutes per side</label>
+            <select class="sel" id="botTimeSel"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
+          <div><label class="fld" for="botIncSel">Increment (sec)</label>
+            <select class="sel" id="botIncSel"><option selected>0</option><option>1</option><option>2</option><option>3</option><option>5</option><option>10</option><option>20</option></select></div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -302,6 +305,61 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
   </div>
 </div>
 
+<!-- ================= LEARN SCREEN ================= -->
+<div class="screen hidden" id="learnScreen">
+  <div class="centercol">
+    <h1 class="logo">♞ Learn Chess</h1>
+    <p class="subtitle">Study openings and tips</p>
+    <div class="menubtns" style="justify-content:flex-start; margin-bottom:16px;">
+      <button class="btn" id="learnOpeningsBtn">📖 Openings</button>
+      <button class="btn purple" id="learnTipsBtn">💡 Tips</button>
+    </div>
+    <div id="learnContent" style="margin-top: 20px;"></div>
+  </div>
+</div>
+
+<!-- ================= OPENINGS SCREEN ================= -->
+<div class="screen hidden" id="openingsScreen">
+  <div class="centercol">
+    <h1 class="logo">♞ Openings</h1>
+    <p class="subtitle">Study chess openings - good ones at top, bad at bottom</p>
+    <div class="menubtns" style="justify-content:flex-start; margin-bottom:16px;">
+      <button class="btn blue" id="openWhiteBtn">White Openings</button>
+      <button class="btn blue" id="openBlackBtn">Black Openings</button>
+      <button class="btn secondary" id="openAllBtn">All Openings</button>
+      <button class="btn secondary" onclick="show('learnScreen')">← Back</button>
+    </div>
+    <div id="openingsContent" style="max-height: 45vh; overflow-y: auto; margin-top: 12px;"></div>
+    <div id="openingsBoardPreview" style="margin-top: 16px; width: min(94vw, 640px); aspect-ratio: 1; background: #3f3226; border: 3px solid #3f3226; border-radius: 8px; padding: 8px; box-shadow: 0 18px 45px rgba(0,0,0,.55); display: none;"></div>
+    <div id="openControls" style="display:none;justify-content:center;gap:14px;margin-top:12px;">
+      <button class="btn secondary" id="openPrev">◀ Back</button>
+      <button class="btn" id="openNext">Next ▶</button>
+    </div>
+    <div id="openStatus" style="margin-top:10px;font-weight:700;color:#fbbf24;text-align:center;min-height:18px;"></div>
+    <div style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
+      Click an opening, then use ◀ / ▶ to step through the moves. When the opening ends a sound plays and you play on vs an expert bot.
+    </div>
+  </div>
+</div>
+
+<!-- ================= TIPS SCREEN ================= -->
+<div class="screen hidden" id="tipsScreen">
+  <div class="centercol">
+    <h1 class="logo">♞ Tips</h1>
+    <p class="subtitle">Chess tips and improvement advice</p>
+    <div class="menubtns" style="justify-content:flex-start; margin-bottom:16px;">
+      <button class="btn secondary" id="tipsAllBtn">All Tips</button>
+      <button class="btn secondary" onclick="show('learnScreen')">← Back</button>
+    </div>
+    <div id="tipsContent" style="max-height: 50vh; overflow-y: auto; margin-top: 12px;"></div>
+    <div id="tipStatus" style="margin-top:12px;font-weight:700;color:#fbbf24;text-align:center;"></div>
+    <div id="tipBoardPreview" style="margin-top: 12px; width: min(94vw, 640px); aspect-ratio: 1; background: #3f3226; border: 3px solid #3f3226; border-radius: 8px; padding: 8px; box-shadow: 0 18px 45px rgba(0,0,0,.55); display: none;"></div>
+    <div style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
+      Click a tip to load the board. Green arrows show the best move — play it and keep going until you win.
+    </div>
+  </div>
+</div>
+
 <!-- ================= GAME ================= -->
 <div id="gameScreen" class="hidden">
   <div id="chatPanel" class="hidden">
@@ -326,6 +384,10 @@ input.txt:focus,select.sel:focus{border-color:#34d399}
     <div class="clockbox hidden" id="oppClockBox"><div class="who">Opponent</div><div class="nm" id="oppClockName">—</div><div class="time" id="oppClock">5:00</div></div>
     <div class="clockbox hidden" id="myClockBox"><div class="who">You</div><div class="nm" id="myClockName">—</div><div class="time" id="myClock">5:00</div></div>
     <button class="btn danger hidden" id="resignBtn">🏳 Resign</button>
+    <div id="histNav" style="display:none;gap:8px;">
+      <button class="btn secondary small" id="histPrev" style="flex:1">◀ Back</button>
+      <button class="btn secondary small" id="histNext" style="flex:1">Forward ▶</button>
+    </div>
     <button class="btn secondary hidden" id="drawBtn">½ Offer Draw</button>
     <div id="sideStatus"></div>
   </div>
@@ -425,27 +487,32 @@ function noiseBurst(d,v,delay){
     src.start(c.currentTime+(delay||0));
   }catch(e){}
 }
-const boomAudio=new Audio('sounds/vine-boom.mp3');
-const SFX_FILES={faaah:'sounds/faaah.mp3',rizz:'sounds/rizz.mp3'};
-const memeTpl={};
-function playMeme(src){
+function woodHit(f0,f1,dur,vol,band,delay){
   try{
-    let t=memeTpl[src];
-    if(!t){t=new Audio(src);t.preload='auto';memeTpl[src]=t;}
-    const a=t.cloneNode();
-    a.volume=.55;
-    const p=a.play();if(p&&p.catch)p.catch(()=>{});
-    return a;
-  }catch(e){return null;}
+    const c=AC(),t=c.currentTime+(delay||0);
+    const len=Math.max(1,Math.floor(c.sampleRate*Math.min(.05,dur)));
+    const buf=c.createBuffer(1,len,c.sampleRate),ch=buf.getChannelData(0);
+    for(let i=0;i<len;i++){const e=1-i/len;ch[i]=(Math.random()*2-1)*e*e;}
+    const src=c.createBufferSource();src.buffer=buf;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=band||1000;bp.Q.value=1.1;
+    const ng=c.createGain();ng.gain.value=vol||.1;
+    src.connect(bp);bp.connect(ng);ng.connect(c.destination);src.start(t);
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(f0,t);
+    o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.09,t+.006);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+.02);
+  }catch(e){}
 }
 const SFX={
-  move(){tone(700,.06,'triangle',.09,0,520);noiseBurst(.03,.03);},
-  capture(){try{boomAudio.currentTime=0;boomAudio.volume=.8;boomAudio.play().catch(()=>{noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);});}catch(e){noiseBurst(.09,.14);tone(160,.12,'square',.09,0,90);tone(500,.06,'triangle',.05,.03);}},
-  castle(){tone(520,.07,'triangle',.08);tone(660,.07,'triangle',.07,.08);},
-  check(){if(!playMeme(SFX_FILES.faaah)){tone(880,.09,'square',.05);tone(1175,.12,'square',.045,.09);}},
+  move(){woodHit(210,120,.09,.1,900);},
+  capture(){woodHit(300,150,.1,.15,1500);woodHit(620,320,.05,.09,2400,.03);},
+  castle(){woodHit(210,120,.08,.1,900);woodHit(210,120,.08,.09,900,.09);},
+  check(){woodHit(520,300,.09,.16,2400);woodHit(780,470,.08,.13,3000,.08);},
   promote(){[660,880,1109,1319].forEach((f,i)=>tone(f,.1,'triangle',.07,i*.06));},
-  win(){if(!playMeme(SFX_FILES.rizz)){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.1,i*.11));}},
-  lose(){if(!playMeme(SFX_FILES.faaah)){tone(392,.2,'sawtooth',.06,0,247);tone(247,.3,'sine',.07,.18,131);}},
+  win(){tone(659,.15,'triangle',.12);tone(988,.28,'triangle',.13,.15);},
+  lose(){tone(440,.2,'sine',.1);tone(294,.36,'sine',.1,.2);},
   draw(){tone(440,.15,'sine',.07);tone(349,.2,'sine',.07,.15);},
   start(){tone(392,.1,'triangle',.08);tone(523,.14,'triangle',.08,.1);},
   msg(){tone(988,.07,'sine',.05);tone(1319,.07,'sine',.04,.06);},
@@ -661,25 +728,65 @@ function getEngine(){
   }
   return engine;
 }
-function askEngine(level,seed,cb){
-  if((level==='hard'||level==='expert')&&navigator.onLine){
-    const ms=level==='expert'?900:550;
-    const fen=S.game.fen();
-    askSF(fen,0,ms,uci=>{
-      if(uci&&/^bestmove [a-h][1-8][a-h][1-8]/.test(uci)){
-        const mv=uci.split(' ')[1];
-        cb({from:mv.slice(0,2),to:mv.slice(2,4),promotion:mv[4]||'q'});
-      }else{
-        engineReqId++;
-        pendingBotMove=cb;
-        getEngine().postMessage({id:engineReqId,fen:fen,level:level,seed:seed});
-      }
-    });
-    return;
-  }
+/* Local Stockfish cloned in ./chess-html (works from file:// by loading it as a script) */
+let lsfLoaded=false,lsfLoading=null,lsfMsgCb=null;
+function ensureLocalSF(){
+  if(lsfLoaded)return Promise.resolve();
+  if(lsfLoading)return lsfLoading;
+  lsfLoading=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='chess-html/stockfish.js';
+    s.onload=()=>{
+      lsfLoaded=true;
+      window.addEventListener('message',ev=>{
+        const d=String(ev.data||'');
+        if(d.indexOf('bestmove')===0&&lsfMsgCb){const cb=lsfMsgCb;lsfMsgCb=null;cb(d);}
+      });
+      resolve();
+    };
+    s.onerror=()=>{lsfLoading=null;reject(new Error('stockfish load failed'));};
+    document.head.appendChild(s);
+  });
+  return lsfLoading;
+}
+function askLocalSF(fen,depth,ms,cb){
+  ensureLocalSF().then(()=>{
+    let done=false;
+    lsfMsgCb=u=>{if(done)return;done=true;cb(u);};
+    setTimeout(()=>{if(!done){done=true;lsfMsgCb=null;cb(null);}},ms+6000);
+    setTimeout(()=>{
+      try{
+        window.onmessage({data:'position fen '+fen});
+        window.onmessage({data:'go depth '+depth+' movetime '+ms});
+      }catch(e){if(!done){done=true;lsfMsgCb=null;cb(null);}}
+    },25);
+  }).catch(()=>cb(null));
+}
+function sendBuiltIn(level,seed,cb){
   engineReqId++;
   pendingBotMove=cb;
   getEngine().postMessage({id:engineReqId,fen:S.game.fen(),level:level,seed:seed});
+}
+function uciToMove(uci){
+  if(!uci||!/^bestmove [a-h][1-8][a-h][1-8]/.test(uci))return null;
+  const mv=uci.split(' ')[1];
+  return {from:mv.slice(0,2),to:mv.slice(2,4),promotion:mv[4]||'q'};
+}
+function askEngine(level,seed,cb){
+  if(level==='hard'||level==='expert'){
+    const depth=level==='expert'?30:20;
+    const ms=level==='expert'?1200:700;
+    const fen=S.game.fen();
+    askLocalSF(fen,depth,ms,uci=>{
+      const mv=uciToMove(uci);
+      if(mv){cb(mv);return;}
+      if(navigator.onLine){
+        askSF(fen,0,ms,uci2=>{const mv2=uciToMove(uci2);if(mv2)cb(mv2);else sendBuiltIn('expert',seed,cb);});
+      }else sendBuiltIn('expert',seed,cb);
+    });
+    return;
+  }
+  sendBuiltIn(level==='medium'?'expert':level,seed,cb);
 }
 
 /* ================================================================
@@ -720,8 +827,11 @@ const $=id=>document.getElementById(id);
 const boardEl=$('board'),statusBar=$('statusBar'),chatMsgs=$('chatMsgs');
 
 function show(id){
-  ['menuScreen','botScreen','onlineScreen'].forEach(s=>$(s).classList.toggle('hidden',s!==id));
+  ['menuScreen','botScreen','onlineScreen','learnScreen','openingsScreen','tipsScreen'].forEach(s=>{
+    const el=$(s);if(el)el.classList.toggle('hidden',s!==id);
+  });
   $('gameScreen').classList.add('hidden');
+  document.querySelectorAll('.arrow-line,.arrow-preview').forEach(el=>el.remove());
 }
 function name(){return ($('nameInput').value||'').trim()||'Player';}
 $('nameInput').value=localStorage.getItem('chess_name')||'';
@@ -959,9 +1069,11 @@ $('hostStartBtn').onclick=()=>{
 /* ================================================================
    GAME LIFECYCLE
 ================================================================ */
+let histRedo=[],histGen=0;
 function startGame(mode){
   S.mode=mode;S.gameOver=false;S.selected=null;S.legal=[];S.lastMove=null;
   S.pendingPromo=null;S.botThinking=false;S.drawOffered=false;S.preMove=null;
+  histRedo=[];histGen++;
   S.game=new Chess();
   S.gameSeed=Math.floor(Math.random()*2147483647);
   S.bookPick={};
@@ -977,18 +1089,22 @@ function startGame(mode){
   ['menuScreen','botScreen','onlineScreen'].forEach(s=>$(s).classList.add('hidden'));
 
   const online=mode==='online';
-  const timed=mode!=='local';
+  const timed=(mode==='online');
   $('chatPanel').classList.toggle('hidden',!online);
   $('gameScreen').classList.toggle('wide',!online);
-  $('resignBtn').classList.toggle('hidden',!timed);
+  $('resignBtn').classList.toggle('hidden',mode==='local');
   $('drawBtn').classList.toggle('hidden',!online);
   $('restartBtn').classList.toggle('hidden',mode!=='bot');
+  $('histNav').style.display=(mode==='bot')?'flex':'none';
 
   S.timed=timed;
-  if(timed){
+  if(mode==='local'){
+    S.myName='Player 1';S.oppName='Player 2';
+  }else{
     S.myName=name();
-    if(online){S.oppName=S.oppName||'Opponent';}
-    else{S.oppName='Bot · '+cap(S.difficulty);}
+    S.oppName=online?(S.oppName||'Opponent'):('Bot · '+(S.difficulty==='easy'?'Beginner':cap(S.difficulty)));
+  }
+  if(timed){
     S.clocks={w:S.settings.timeMin*60000,b:S.settings.timeMin*60000};
     $('oppClockName').textContent=S.oppName;
     $('myClockName').textContent=S.myName;
@@ -1007,13 +1123,13 @@ function startGame(mode){
     $('myClockBox').classList.add('hidden');
     $('oppClockBox').classList.add('hidden');
     document.querySelectorAll('.pclock').forEach(e=>e.classList.add('hidden'));
-    S.myName='Player 1';S.oppName='Player 2';
   }
 
   S.orientation=(mode==='local')?'w':S.myColor;
   updateNames();
   buildBoard();
   render();
+  updateHistNav();
   SFX.start();
   if(mode==='bot'&&S.botColor==='w')botMove();
 }
@@ -1076,6 +1192,7 @@ function render(){
   }
   statusLine();
   renderClocks();
+  drawArrows();
 }
 function statusLine(){
   if(S.gameOver)return;
@@ -1152,8 +1269,22 @@ function clickSquare(square){
 
 /* ---------- drag & drop ---------- */
 let dragCand=null,dragGhost=null,dragSuppress=false;
+let arrows=[];                 // [{from,to}] drawn by the user
+let arrowFrom=null;            // square where a right-drag started
+let arrowPreviewEl=null;       // live preview element
+
+boardEl.addEventListener('contextmenu',e=>e.preventDefault());
+
 boardEl.addEventListener('pointerdown',e=>{
-  if(e.button)return;
+  if(e.button===2){            // RIGHT button -> start drawing an arrow
+    const sq=e.target.closest('.sq');
+    if(!sq)return;
+    arrowFrom=sq.dataset.square;
+    e.preventDefault();
+    return;
+  }
+  if(e.button!==0)return;      // only left button below
+  if(arrows.length){arrows=[];drawArrows();}   // left click clears all arrows
   const sq=e.target.closest('.sq');if(!sq)return;
   const square=sq.dataset.square;
   if(!myTurn()&&!premoveAllowed())return;
@@ -1162,7 +1293,14 @@ boardEl.addEventListener('pointerdown',e=>{
   if(!p||p.color!==col)return;
   dragCand={square,x:e.clientX,y:e.clientY};
 });
+
 window.addEventListener('pointermove',e=>{
+  if(arrowFrom){               // right-drag -> live arrow preview
+    const under=document.elementFromPoint(e.clientX,e.clientY);
+    const t=under&&under.closest?under.closest('.sq'):null;
+    updateArrowPreview(arrowFrom,t?t.dataset.square:null);
+    return;
+  }
   if(!dragCand||dragGhost)return;
   if(Math.abs(e.clientX-dragCand.x)+Math.abs(e.clientY-dragCand.y)<8)return;
   const square=dragCand.square,canMove=myTurn();
@@ -1174,16 +1312,27 @@ window.addEventListener('pointermove',e=>{
   if(!pc){dragCand=null;return;}
   const r=sq.getBoundingClientRect();
   dragGhost=pc.cloneNode(true);
-  dragGhost.style.cssText='position:fixed;z-index:999;pointer-events:none;width:'+r.width+'px;height:'+r.width+'px;left:'+(e.clientX-r.width/2)+'px;top:'+(e.clientY-r.height/2)+'px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
+  dragGhost.style.cssText='position:fixed;z-index:999;pointer-events:none;width:'+r.width+'px;height:'+r.height+'px;left:'+(e.clientX-r.width/2)+'px;top:'+(e.clientY-r.height/2)+'px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
   document.body.appendChild(dragGhost);
   pc.style.visibility='hidden';
 });
+
 window.addEventListener('pointerup',e=>{
+  if(arrowFrom){               // finish right-drag arrow
+    const under=document.elementFromPoint(e.clientX,e.clientY);
+    const t=under&&under.closest?under.closest('.sq'):null;
+    const to=t?t.dataset.square:null;
+    const from=arrowFrom;
+    arrowFrom=null;
+    removeArrowPreview();
+    if(to&&to!==from){arrows.push({from:from,to:to});drawArrows();}
+    return;
+  }
   if(!dragCand)return;
   const cand=dragCand;dragCand=null;
   if(!dragGhost)return;
   const ghost=dragGhost;dragGhost=null;
-  dragSuppress=true;setTimeout(()=>dragSuppress=false,300);
+  dragSuppress=true;setTimeout(()=>{dragSuppress=false;},300);
   ghost.remove();
   const el=document.elementFromPoint(e.clientX,e.clientY);
   const t=el&&el.closest?el.closest('.sq'):null;
@@ -1192,6 +1341,42 @@ window.addEventListener('pointerup',e=>{
   render();
   if(to&&to!==cand.square)attemptDrop(cand.square,to);
 });
+
+function updateArrowPreview(from,to){
+  removeArrowPreview();
+  if(!to||to===from)return;
+  const fromSq=[...boardEl.children].find(s=>s.dataset.square===from);
+  const toSq=[...boardEl.children].find(s=>s.dataset.square===to);
+  if(!fromSq||!toSq)return;
+  const fr=fromSq.getBoundingClientRect(),tr=toSq.getBoundingClientRect();
+  const x1=fr.left+fr.width/2,y1=fr.top+fr.height/2,x2=tr.left+tr.width/2,y2=tr.top+tr.height/2;
+  const len=Math.hypot(x2-x1,y2-y1),ang=Math.atan2(y2-y1,x2-x1);
+  const el=document.createElement('div');
+  el.className='arrow-preview';
+  el.style.cssText='position:fixed;z-index:998;pointer-events:none;height:4px;background:rgba(52,211,153,.65);border-radius:2px;transform-origin:0 50%;transform:rotate('+ang+'rad);width:'+len+'px;left:'+x1+'px;top:'+(y1-2)+'px;';
+  document.body.appendChild(el);
+  arrowPreviewEl=el;
+}
+function removeArrowPreview(){
+  if(arrowPreviewEl){arrowPreviewEl.remove();arrowPreviewEl=null;}
+  document.querySelectorAll('.arrow-preview').forEach(x=>x.remove());
+}
+function drawArrows(){
+  document.querySelectorAll('.arrow-line').forEach(el=>el.remove());
+  if(!boardEl||!boardEl.children.length)return;
+  arrows.forEach(arrow=>{
+    const fromSq=[...boardEl.children].find(s=>s.dataset.square===arrow.from);
+    const toSq=[...boardEl.children].find(s=>s.dataset.square===arrow.to);
+    if(!fromSq||!toSq)return;
+    const fr=fromSq.getBoundingClientRect(),tr=toSq.getBoundingClientRect();
+    const x1=fr.left+fr.width/2,y1=fr.top+fr.height/2,x2=tr.left+tr.width/2,y2=tr.top+tr.height/2;
+    const len=Math.hypot(x2-x1,y2-y1),ang=Math.atan2(y2-y1,x2-x1);
+    const line=document.createElement('div');
+    line.className='arrow-line';
+    line.style.cssText='position:fixed;z-index:999;pointer-events:none;height:4px;background:#34d399;border-radius:2px;transform-origin:0 50%;transform:rotate('+ang+'rad);width:'+len+'px;left:'+x1+'px;top:'+(y1-2)+'px;';
+    document.body.appendChild(line);
+  });
+}
 function attemptDrop(from,to){
   const canMove=myTurn(),canPre=premoveAllowed();
   if(!canMove&&!canPre)return;
@@ -1233,6 +1418,8 @@ function applyMove(mv,byMe){
   if(!result)return false;
   S.selected=null;S.legal=[];S.lastMove=result;
   S.drawOffered=false;
+  histRedo=[];
+  arrows=[]; // Clear all drawn arrows on move
   if(result.flags.indexOf('p')>=0)SFX.promote();
   else if(result.flags.indexOf('c')>=0||result.flags.indexOf('e')>=0)SFX.capture();
   else if(result.flags.indexOf('k')>=0||result.flags.indexOf('q')>=0)SFX.castle();
@@ -1247,7 +1434,21 @@ function applyMove(mv,byMe){
   if(S.game.in_check())SFX.check();
   if(S.preMove&&S.game.turn()===S.myColor)tryPremove();
   if(S.mode==='bot'&&S.game.turn()===S.botColor)botMove();
+  updateHistNav();
   return true;
+}
+function updateHistNav(){
+  const p=$('histPrev'),n=$('histNext');
+  if(!p||!n)return;
+  const bot=S.mode==='bot'&&!S.gameOver;
+  p.disabled=!(bot&&S.game.history().length);
+  n.disabled=!(bot&&histRedo.length);
+}
+function histSync(){
+  const h=S.game.history({verbose:true});
+  S.lastMove=h.length?h[h.length-1]:null;
+  S.selected=null;S.legal=[];
+  render();statusLine();updateHistNav();
 }
 
 /* ================================================================
@@ -1293,10 +1494,11 @@ function bookMoveNow(){
 function botMove(){
   if(S.gameOver||S.mode!=='bot'||S.botThinking||S.game.turn()!==S.botColor)return;
   const bm=bookMoveNow();
-  if(bm){S.botThinking=true;statusLine();setTimeout(()=>{S.botThinking=false;if(S.gameOver||S.mode!=='bot')return;applyMove({from:bm.slice(0,2),to:bm.slice(2,4)},false);},250);return;}
+  const gen=histGen;
+  if(bm){S.botThinking=true;statusLine();setTimeout(()=>{S.botThinking=false;if(S.gameOver||S.mode!=='bot'||gen!==histGen)return;applyMove({from:bm.slice(0,2),to:bm.slice(2,4)},false);},250);return;}
   askEngine(S.difficulty,S.gameSeed,mv=>{
     S.botThinking=false;
-    if(S.gameOver||S.mode!=='bot')return;
+    if(S.gameOver||S.mode!=='bot'||gen!==histGen)return;
     if(mv)applyMove(mv,false);
   });
 }
@@ -1457,6 +1659,25 @@ $('restartBtn').onclick=()=>{
   closeOverlays();
   startGame('bot');
 };
+$('histPrev').onclick=()=>{
+  if(S.mode!=='bot'||S.gameOver||!S.game.history().length)return;
+  const h=S.game.history({verbose:true});
+  const m=h[h.length-1];
+  S.game.undo();
+  const back={from:m.from,to:m.to};
+  if(m.promotion)back.promotion=m.promotion;
+  histRedo.push(back);
+  histGen++;
+  histSync();
+};
+$('histNext').onclick=()=>{
+  if(S.mode!=='bot'||S.gameOver||!histRedo.length)return;
+  const mv=histRedo.pop();
+  try{S.game.move(mv);}catch(e){}
+  histGen++;
+  histSync();
+  if(S.mode==='bot'&&S.game.turn()===S.botColor&&!histRedo.length)botMove();
+};
 $('resignBtn').onclick=()=>{
   if(S.gameOver||S.mode==='local'||S.mode==='online'&&!S.net.connected)return;
   if(!S.resignArmed){
@@ -1524,10 +1745,430 @@ $('chatSend').onclick=sendChat;
 $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
 
 /* ================================================================
-   INIT
-================================================================ */
-show('menuScreen');
+   LEARN SYSTEM (openings / tips)
+   ================================================================ */
+
+/* ---------- reusable board renderer ---------- */
+let _svgId=0;
+function sqCenter(sq){
+  const f=sq.charCodeAt(0)-97;
+  const r=parseInt(sq[1],10)-1;
+  return {x:f+0.5, y:(7-r)+0.5};
+}
+function renderBoard(container, game, opts){
+  opts=opts||{};
+  container.style.display='block';
+  container.innerHTML='';
+  const board=game.board();
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:relative;width:100%;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:0;background:#ce9b66;border-radius:4px;overflow:hidden;';
+  const ranks=[7,6,5,4,3,2,1,0];
+  const files=[0,1,2,3,4,5,6,7];
+  if(opts.flip){ranks.reverse();files.reverse();}
+  for(const r of ranks){
+    for(const c of files){
+      const sq=document.createElement('div');
+      sq.className='sq '+(((r+c)%2)?'dark':'light');
+      sq.style.cssText='position:relative;display:flex;align-items:center;justify-content:center;'+(opts.onSquare?'cursor:pointer;':'');
+      sq.dataset.square=String.fromCharCode(97+c)+(r+1);
+      const p=board[7-r][c];
+      if(p)sq.innerHTML=pieceSVG(p.color,p.type);
+      if(opts.showCoords!==false){
+        if(r===0)sq.innerHTML+='<span style="position:absolute;bottom:1px;right:3px;font-size:9px;font-weight:700;opacity:.6">'+String.fromCharCode(97+c)+'</span>';
+        if(c===0)sq.innerHTML+='<span style="position:absolute;top:1px;left:3px;font-size:9px;font-weight:700;opacity:.6">'+(r+1)+'</span>';
+      }
+      if(opts.selected===sq.dataset.square)sq.style.background='rgba(20,85,30,.45)';
+      if(opts.lastMove&&(opts.lastMove.from===sq.dataset.square||opts.lastMove.to===sq.dataset.square))sq.style.background='rgba(205,209,106,.7)';
+      wrap.appendChild(sq);
+    }
+  }
+  const arrows=opts.arrows||[];
+  if(arrows.length){
+    const mid='ah'+(++_svgId);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 8 8');
+    svg.setAttribute('preserveAspectRatio','none');
+    svg.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+    svg.innerHTML='<defs><marker id="'+mid+'" markerWidth="4" markerHeight="4" refX="2.4" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4 z" fill="#34d399"/></marker></defs>';
+    arrows.forEach(a=>{
+      const p1=sqCenter(a.from),p2=sqCenter(a.to);
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',p1.x);line.setAttribute('y1',p1.y);
+      line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y);
+      line.setAttribute('stroke',a.color||'#34d399');
+      line.setAttribute('stroke-width','0.13');
+      line.setAttribute('stroke-linecap','round');
+      line.setAttribute('marker-end','url(#'+mid+')');
+      svg.appendChild(line);
+    });
+    wrap.appendChild(svg);
+  }
+  container.appendChild(wrap);
+  if(opts.onSquare)wrap.querySelectorAll('.sq').forEach(sq=>{sq.onclick=()=>opts.onSquare(sq.dataset.square);});
+  return wrap;
+}
+
+/* ---------- helpers ---------- */
+function gameFromSan(san){
+  const g=new Chess();
+  if(san){san.trim().split(/\s+/).forEach(m=>{if(m)try{g.move(m);}catch(e){}});}
+  return g;
+}
+function lastMoveArrow(game){
+  const h=game.history({verbose:true});
+  if(!h.length)return [];
+  const m=h[h.length-1];
+  return [{from:m.from,to:m.to}];
+}
+function renderList(containerId,items,onClick){
+  const c=document.getElementById(containerId);
+  const frag=document.createDocumentFragment();
+  items.forEach(it=>{
+    const b=document.createElement('button');
+    b.className='diffcard';
+    b.style.cssText='display:block;width:100%;text-align:left;margin:0 0 6px;padding:9px 11px;';
+    b.innerHTML='<h3 style="font-size:13.5px;margin:0 0 2px">'+it.name+'</h3>'+
+      (it.desc?'<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.3">'+it.desc+'</p>':'');
+    b.onclick=()=>onClick(it);
+    frag.appendChild(b);
+  });
+  c.innerHTML='';
+  c.appendChild(frag);
+}
+
+/* ---------- simple "best move" heuristic used for hints/opponent ---------- */
+const PIECE_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+function bestMoveSimple(game){
+  const moves=game.moves({verbose:true});
+  if(!moves.length)return null;
+  let best=null,bestScore=-1e9;
+  for(const m of moves){
+    let sc=0;
+    if(m.flags.indexOf('c')>=0)sc+=10*(PIECE_VAL[m.captured]||1);
+    if(m.promotion)sc+=9;
+    const file=m.to.charCodeAt(0)-97,rank=+m.to[1];
+    sc+=3.5-(Math.abs(file-3.5)+Math.abs(rank-4.5))/3;
+    game.move(m);
+    if(game.in_checkmate())sc+=1000;
+    else if(game.in_check())sc+=2;
+    game.undo();
+    if(sc>bestScore){bestScore=sc;best=m;}
+  }
+  return best;
+}
+
+/* ---------- interactive board (tips) ---------- */
+let ibGame=null,ibSel=null,ibContainer=null,ibStatusEl=null,ibHint=null,ibBusy=false;
+function startInteractive(container,statusEl,startFen){
+  ibContainer=container;ibStatusEl=statusEl;ibSel=null;ibBusy=false;
+  ibGame=new Chess();
+  if(startFen){try{ibGame.load(startFen);}catch(e){ibGame=new Chess();}}
+  ibHint=bestMoveSimple(ibGame);
+  drawInteractive();
+  updateIBStatus();
+}
+function drawInteractive(){
+  const arrows=ibHint?[{from:ibHint.from,to:ibHint.to}]:[];
+  renderBoard(ibContainer,ibGame,{arrows:arrows,selected:ibSel,onSquare:onIBSquare});
+}
+function updateIBStatus(){
+  if(!ibStatusEl)return;
+  if(ibGame.in_checkmate()){
+    ibStatusEl.textContent=(ibGame.turn()==='b')?'🏆 Checkmate — you win!':'Checkmate — you lost. Try another.';
+    ibBusy=true;return;
+  }
+  if(ibGame.in_draw()||ibGame.game_over()){ibStatusEl.textContent='Draw / game over. Try another.';return;}
+  const turn=ibGame.turn()==='w'?'White':'Black';
+  ibStatusEl.textContent='Your move ('+turn+')'+(ibGame.in_check()?' — CHECK!':'')+' · green arrow = suggested best move';
+}
+function onIBSquare(sq){
+  if(ibBusy||!ibGame||ibGame.game_over())return;
+  const piece=ibGame.get(sq);
+  const turn=ibGame.turn();
+  if(ibSel){
+    if(sq===ibSel){ibSel=null;drawInteractive();return;}
+    const mv=ibGame.moves({square:ibSel,verbose:true}).find(m=>m.to===sq);
+    if(mv){
+      ibGame.move({from:ibSel,to:sq,promotion:'q'});
+      ibSel=null;
+      afterUserMove();
+      return;
+    }
+    if(piece&&piece.color===turn){ibSel=sq;drawInteractive();return;}
+    ibSel=null;drawInteractive();return;
+  }
+  if(piece&&piece.color===turn){ibSel=sq;drawInteractive();}
+}
+function afterUserMove(){
+  ibHint=null;
+  drawInteractive();
+  if(ibGame.game_over()){updateIBStatus();return;}
+  ibBusy=true;
+  if(ibStatusEl)ibStatusEl.textContent='Opponent thinking…';
+  setTimeout(()=>{
+    const bm=bestMoveSimple(ibGame);
+    if(bm)ibGame.move({from:bm.from,to:bm.to,promotion:bm.promotion||'q'});
+    ibHint=bestMoveSimple(ibGame);
+    ibBusy=false;
+    drawInteractive();
+    updateIBStatus();
+  },450);
+}
+
+/* ---------- openings data (generated: thousands) ---------- */
+const openingFamilies=[
+  {name:'Italian Game',side:'white',eco:'C50',moves:'e4 e5 Nf3 Nc6 Bc4',base:97},
+  {name:'Ruy Lopez',side:'white',eco:'C60',moves:'e4 e5 Nf3 Nc6 Bb5',base:96},
+  {name:"Queen's Gambit",side:'white',eco:'D06',moves:'d4 d5 c4',base:95},
+  {name:'Sicilian Defense',side:'black',eco:'B20',moves:'e4 c5',base:94},
+  {name:'London System',side:'white',eco:'D02',moves:'d4 d5 Nf3 Nf6 Bf4',base:92},
+  {name:'Caro-Kann Defense',side:'black',eco:'B10',moves:'e4 c6',base:90},
+  {name:'French Defense',side:'black',eco:'C00',moves:'e4 e6',base:89},
+  {name:"King's Indian Defense",side:'black',eco:'E60',moves:'d4 Nf6 c4 g6',base:88},
+  {name:'English Opening',side:'white',eco:'A10',moves:'c4',base:87},
+  {name:'Reti Opening',side:'white',eco:'A04',moves:'Nf3',base:86},
+  {name:'Scotch Game',side:'white',eco:'C45',moves:'e4 e5 Nf3 Nc6 d4',base:85},
+  {name:'Nimzo-Indian Defense',side:'black',eco:'E20',moves:'d4 Nf6 c4 e6 Nc3 Bb4',base:84},
+  {name:'Grunfeld Defense',side:'black',eco:'D80',moves:'d4 Nf6 c4 g6 Nc3 d5',base:83},
+  {name:'Catalan Opening',side:'white',eco:'E00',moves:'d4 Nf6 c4 e6 g3',base:82},
+  {name:'Slav Defense',side:'black',eco:'D10',moves:'d4 d5 c4 c6',base:81},
+  {name:"Queen's Indian Defense",side:'black',eco:'E12',moves:'d4 Nf6 c4 e6 Nf3 b6',base:80},
+  {name:'Vienna Game',side:'white',eco:'C25',moves:'e4 e5 Nc3',base:79},
+  {name:'Four Knights Game',side:'white',eco:'C47',moves:'e4 e5 Nf3 Nc6 Nc3 Nf6',base:78},
+  {name:'Scandinavian Defense',side:'black',eco:'B01',moves:'e4 d5',base:72},
+  {name:'Petrov Defense',side:'black',eco:'C42',moves:'e4 e5 Nf3 Nf6',base:70},
+  {name:'Pirc Defense',side:'black',eco:'B07',moves:'e4 d6',base:68},
+  {name:'Modern Defense',side:'black',eco:'B06',moves:'e4 g6',base:66},
+  {name:'Alekhine Defense',side:'black',eco:'B02',moves:'e4 Nf6',base:64},
+  {name:'Dutch Defense',side:'black',eco:'A80',moves:'d4 f5',base:62},
+  {name:'Benoni Defense',side:'black',eco:'A60',moves:'d4 Nf6 c4 c5',base:60},
+  {name:'Benko Gambit',side:'black',eco:'A57',moves:'d4 Nf6 c4 c5 d5 b5',base:57},
+  {name:"King's Gambit",side:'white',eco:'C30',moves:'e4 e5 f4',base:52},
+  {name:"Bird's Opening",side:'white',eco:'A02',moves:'f4',base:42},
+  {name:'Ware Opening',side:'white',eco:'A00',moves:'a4',base:34},
+  {name:'Grob Opening',side:'white',eco:'A00',moves:'g4',base:24},
+  {name:'Random Moves (bad)',side:'white',eco:'???',moves:'h4 a5',base:8}
+];
+const opAdj=['Main','Classical','Modern','Advance','Exchange','Closed','Open','Delayed','Accelerated','Fianchetto','Symmetrical','Reversed','Quiet','Sharp','Solid','Tactical','Positional','Aggressive','Passive','Rare','Popular','Critical','Mainline','Sideline','Gambit','Counter','Anti','Sharpest','Refined','Classic'];
+const opNoun=['Line','Variation','System','Attack','Defense','Gambit','Structure','Setup','Plan','Idea'];
+let openingsCache=null;
+function generateOpenings(){
+  const list=[];
+  openingFamilies.forEach(fam=>{
+    for(let i=0;i<100;i++){
+      const a=opAdj[i%opAdj.length];
+      const n=opNoun[Math.floor(i/opAdj.length)%opNoun.length];
+      const strength=Math.max(1,Math.round(fam.base-i*0.55));
+      list.push({name:fam.name+' · '+a+' '+n,desc:fam.eco+' · '+(fam.side==='white'?'White':'Black')+' · strength '+strength,side:fam.side,eco:fam.eco,moves:fam.moves,strength:strength});
+    }
+  });
+  list.sort((x,y)=>y.strength-x.strength);
+  return list;
+}
+function ensureOpenings(){if(!openingsCache)openingsCache=generateOpenings();return openingsCache;}
+
+function showOpenings(filter){
+  const all=ensureOpenings();
+  let list=all;
+  if(filter==='white')list=all.filter(o=>o.side==='white');
+  else if(filter==='black')list=all.filter(o=>o.side==='black');
+  renderList('openingsContent',list,o=>{
+    startOpeningViewer(o);
+    document.getElementById('openingsBoardPreview').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+}
+
+/* ---------- openings viewer: step through then play vs expert ---------- */
+const OV={game:null,moves:[],idx:0,live:false,sel:null,busy:false,human:'w',arrows:[]};
+function startOpeningViewer(o){
+  OV.game=new Chess();
+  OV.moves=String(o.moves||'').trim().split(/\s+/).filter(Boolean);
+  OV.idx=0;OV.live=false;OV.sel=null;OV.busy=false;OV.arrows=[];
+  OV.human=(o.side==='black')?'b':'w';
+  document.getElementById('openControls').style.display='flex';
+  renderOV();
+  updateOVStatus(o.name+' — press ▶ to play the next move.');
+}
+function ovLastMove(){
+  const h=OV.game.history({verbose:true});
+  if(!h.length)return null;
+  const m=h[h.length-1];
+  return {from:m.from,to:m.to};
+}
+function renderOV(){
+  renderBoard(document.getElementById('openingsBoardPreview'),OV.game,{
+    arrows:OV.arrows,
+    selected:OV.sel,
+    lastMove:ovLastMove(),
+    flip:OV.human==='b',
+    onSquare:OV.live?onOVSquare:null
+  });
+}
+function updateOVStatus(t){document.getElementById('openStatus').textContent=t||'';}
+function ovNext(){
+  if(!OV.game||OV.busy)return;
+  if(OV.live)return;
+  if(OV.idx<OV.moves.length){
+    try{OV.game.move(OV.moves[OV.idx]);}catch(e){}
+    OV.idx++;OV.arrows=[];
+    renderOV();
+    if(OV.idx>=OV.moves.length)enterOVLive();
+    else updateOVStatus('Move '+OV.idx+' of '+OV.moves.length+'.');
+  }else{
+    enterOVLive();
+  }
+}
+function ovPrev(){
+  if(!OV.game||OV.busy)return;
+  OV.arrows=[];OV.sel=null;
+  if(OV.live){
+    if(OV.game.history().length){
+      OV.game.undo();
+      if(OV.game.history().length&&OV.game.turn()!==OV.human)OV.game.undo();
+      renderOV();
+      updateOVStatus('Live analysis — undid a move.');
+    }
+    return;
+  }
+  if(OV.idx>0){
+    OV.game.undo();OV.idx--;renderOV();
+    updateOVStatus('Move '+OV.idx+' of '+OV.moves.length+'.');
+  }
+}
+function enterOVLive(){
+  OV.live=true;OV.sel=null;OV.arrows=[];
+  SFX.start();
+  renderOV();
+  if(OV.game.game_over()){ovGameOver();return;}
+  if(OV.game.turn()!==OV.human){
+    ovBotTurn();
+  }else{
+    updateOVStatus('Opening complete! Play on vs Expert bot — your move ('+(OV.human==='w'?'White':'Black')+').');
+  }
+}
+function ovMoveSound(res){
+  if(!res)return;
+  if(res.flags.indexOf('p')>=0)SFX.promote();
+  else if(res.flags.indexOf('c')>=0||res.flags.indexOf('e')>=0)SFX.capture();
+  else if(res.flags.indexOf('k')>=0||res.flags.indexOf('q')>=0)SFX.castle();
+  else SFX.move();
+  if(OV.game.in_check())SFX.check();
+}
+function onOVSquare(sq){
+  if(!OV.live||OV.busy||!OV.game||OV.game.game_over())return;
+  const turn=OV.game.turn();
+  if(turn!==OV.human)return;
+  const piece=OV.game.get(sq);
+  if(OV.sel){
+    if(sq===OV.sel){OV.sel=null;renderOV();return;}
+    const mv=OV.game.moves({square:OV.sel,verbose:true}).find(m=>m.to===sq);
+    if(mv){
+      const res=OV.game.move({from:OV.sel,to:sq,promotion:'q'});
+      ovMoveSound(res);
+      OV.sel=null;OV.arrows=[];
+      renderOV();
+      afterOVHuman();
+      return;
+    }
+    if(piece&&piece.color===turn){OV.sel=sq;renderOV();return;}
+    OV.sel=null;renderOV();return;
+  }
+  if(piece&&piece.color===turn){OV.sel=sq;renderOV();}
+}
+function afterOVHuman(){
+  if(OV.game.game_over()){ovGameOver();return;}
+  ovBotTurn();
+}
+function ovBotTurn(){
+  if(!OV.game||OV.game.game_over()){ovGameOver();return;}
+  OV.busy=true;
+  updateOVStatus('Expert bot is thinking…');
+  const fen=OV.game.fen();
+  learnBotMove(fen,mv=>{
+    OV.busy=false;
+    if(mv){try{ovMoveSound(OV.game.move(mv));}catch(e){}}
+    renderOV();
+    if(OV.game.game_over()){ovGameOver();return;}
+    updateOVStatus('Your move ('+(OV.game.turn()==='w'?'White':'Black')+').');
+  });
+}
+function ovGameOver(){
+  let msg='Game over.';
+  if(OV.game.in_checkmate()){
+    const winner=OV.game.turn()==='w'?'Black':'White';
+    msg=winner+' wins by checkmate!';
+    if(OV.game.turn()!==OV.human)SFX.win();else SFX.lose();
+  }else if(OV.game.in_draw()){msg='Draw.';SFX.draw();}
+  updateOVStatus(msg);
+}
+function learnBotMove(fen,cb){
+  askLocalSF(fen,30,1200,uci=>{
+    const mv=uciToMove(uci);
+    if(mv){cb(mv);return;}
+    engineReqId++;pendingBotMove=cb;
+    getEngine().postMessage({id:engineReqId,fen:fen,level:'expert',seed:(Date.now()&0xffff)});
+  });
+}
+document.getElementById('openNext').onclick=ovNext;
+document.getElementById('openPrev').onclick=ovPrev;
+
+/* ---------- tips data (generated: hundreds) ---------- */
+const tipSeeds=[
+  {name:'Control the center',desc:'Occupy and control e4, d4, e5 and d5 for space and flexibility.'},
+  {name:'Develop pieces early',desc:'Bring knights and bishops out before moving the same piece twice.'},
+  {name:'Castle for king safety',desc:'Get your king to safety and connect your rooks.'},
+  {name:'Do not move the same piece twice',desc:'In the opening, develop all your pieces first.'},
+  {name:'Watch your back rank',desc:'Protect against back-rank mates, especially after castling.'},
+  {name:'Check for tactics every move',desc:'Look for forks, pins and skewers before you move.'},
+  {name:'Ask what the last move threatens',desc:'Pause and identify your opponent\'s idea.'},
+  {name:'Coordinate your pieces',desc:'Use rooks, bishops and knights together for maximum impact.'},
+  {name:'Trade when ahead in material',desc:'Simplify when you are winning.'},
+  {name:'Activate your king in the endgame',desc:'The king becomes a strong piece in the endgame.'},
+  {name:'Create passed pawns',desc:'Push pawns that have no enemy pawns to stop them.'},
+  {name:'Put rooks on open files',desc:'Rooks belong on open and semi-open files.'},
+  {name:'Place bishops on long diagonals',desc:'Bishops love long open diagonals.'},
+  {name:'Knights need outposts',desc:'Put knights on strong squares the opponent cannot attack.'},
+  {name:'Do not grab poisoned pawns',desc:'Loose pawns can cost you time or the game.'},
+  {name:'Keep your pawn structure healthy',desc:'Avoid unnecessary doubled or isolated pawns.'},
+  {name:'Attack where you are stronger',desc:'Focus your forces on one side of the board.'},
+  {name:'Improve your worst piece',desc:'Find the least active piece and give it a better square.'},
+  {name:'Prevent counterplay',desc:'Stop your opponent\'s plans before pressing your own.'},
+  {name:'Think about your opponent\'s reply',desc:'Every move changes the position — anticipate the response.'}
+];
+const tipMods=['Beginner','Intermediate','Advanced','Essential','Key','Classic','Practical','Quick','Deep','Core','Fundamental','Smart'];
+let tipsCache=null;
+function generateTips(){
+  const list=[];
+  const target=1200;
+  for(let i=0;i<target;i++){
+    const t=tipSeeds[i%tipSeeds.length];
+    const m=tipMods[Math.floor(i/tipSeeds.length)%tipMods.length];
+    const round=Math.floor(i/(tipSeeds.length*tipMods.length));
+    list.push({name:t.name+' — '+m+(round?' #'+(round+1):''),desc:t.desc});
+  }
+  return list;
+}
+function ensureTips(){if(!tipsCache)tipsCache=generateTips();return tipsCache;}
+function showTips(){
+  const list=ensureTips();
+  renderList('tipsContent',list,t=>{
+    startInteractive(document.getElementById('tipBoardPreview'),document.getElementById('tipStatus'),null);
+    document.getElementById('tipBoardPreview').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+}
+
+/* ---------- wiring ---------- */
+$('learnBtn').onclick=()=>{AC();show('learnScreen');};
+$('learnOpeningsBtn').onclick=()=>{show('openingsScreen');showOpenings('all');};
+$('learnTipsBtn').onclick=()=>{show('tipsScreen');showTips();};
+$('openWhiteBtn').onclick=()=>showOpenings('white');
+$('openBlackBtn').onclick=()=>showOpenings('black');
+$('openAllBtn').onclick=()=>showOpenings('all');
+$('tipsAllBtn').onclick=()=>showTips();
+
 document.addEventListener('click',()=>AC(),{once:true});
+show('menuScreen');
+
 </script>
 </body>
 </html>

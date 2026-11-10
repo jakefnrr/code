@@ -51,7 +51,7 @@
         #wp{position:absolute;bottom:16px;right:18px;display:flex;gap:4px;align-items:flex-end}
         .ws{background:rgba(0,0,0,.55);padding:6px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.06);color:#777;text-align:center;font-size:10px;min-width:62px;transition:all .15s;position:relative;overflow:hidden;backdrop-filter:blur(3px)}
         .ws.ac{color:#fff;background:rgba(0,0,0,.65);transform:translateY(-3px);box-shadow:0 4px 15px rgba(0,0,0,.3)}
-        .ws.em{opacity:.25}
+        .ws.em{opacity:.72;background:rgba(0,0,0,.35)}
         .wk{font-size:9px;color:#666;display:block;margin-bottom:1px}.wn{font-weight:bold;font-size:11px;display:block;letter-spacing:.5px}.wa{font-size:17px;font-weight:900;color:#ffcc00;display:block;margin-top:2px}
         .rarity-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
         .r-common{background:#aaa}.r-uncommon{background:#44cc44}.r-rare{background:#44aaff}.r-epic{background:#bb44ff}.r-legendary{background:#ffaa00}
@@ -165,11 +165,11 @@
     </div>
     <div class="ctrl">
         <p><span>WASD</span> Move</p><p><span>MOUSE</span> Look / Camera</p>
-        <p><span>LEFT CLICK</span> Shoot / Place build</p><p><span>RIGHT CLICK / T</span> Toggle aim zoom</p>
+        <p><span>LEFT CLICK</span> Shoot / Place build / Pick tile</p><p><span>RIGHT CLICK</span> Toggle aim zoom</p>
         <p><span>SPACE</span> Jump</p><p><span>LEFT SHIFT</span> Sprint</p>
-        <p><span>LEFT CTRL</span> Crouch</p><p><span>R</span> Reload</p>
-        <p><span>E</span> Pick up / Use</p><p><span>Q</span> Toggle build mode</p>
-        <p><span>F</span> Edit (blue tiles)</p><p><span>G</span> Pickaxe</p>
+        <p><span>Z</span> Crouch</p><p><span>R</span> Reload</p>
+        <p><span>F</span> Pick up / Use</p><p><span>Q</span> Toggle build mode</p>
+        <p><span>E</span> Edit (blue tiles)</p><p><span>T</span> Pickaxe</p>
         <p><span>X</span> Wall</p><p><span>C</span> Floor</p>
         <p><span>B</span> Ramp</p><p><span>V</span> Cone / Roof</p>
         <p><span>HOLD LMB</span> Turbo build</p><p><span>R</span> Rotate while editing</p>
@@ -191,6 +191,7 @@
         <div class="bar-row"><span class="bi">❤️</span><div class="bbg"><div class="bf" id="hf" style="width:100%"></div></div><span class="bt" id="ht">150</span></div>
     </div>
     <div id="wp">
+        <div class="ws em" id="spk"><span class="wk">[T]</span><span class="wn">Pickaxe</span><span class="wa"></span></div>
         <div class="ws em" id="s0"><span class="wk">[1]</span><span class="wn">-</span><span class="wa">-</span></div>
         <div class="ws em" id="s1"><span class="wk">[2]</span><span class="wn">-</span><span class="wa">-</span></div>
         <div class="ws em" id="s2"><span class="wk">[3]</span><span class="wn">-</span><span class="wa">-</span></div>
@@ -209,7 +210,7 @@
     <div id="mm"><canvas id="mc" width="120" height="120"></canvas></div>
     <div id="fp">FPS: 60</div>
     <div id="ri">⟳ RELOADING</div>
-    <div id="lp">[E] Pick up</div>
+    <div id="lp">[F] Pick up</div>
     <div id="hold"><canvas id="hc" width="56" height="56"></canvas><div id="hl">Open</div></div>
     <div id="elim-banner"><div class="eb-text"></div><div class="eb-sub"></div></div>
 </div>
@@ -234,7 +235,7 @@
 <script>
 // ===== MODE & CONFIG =====
 let MODE='br'; // 'br' or 'practice'
-let MAP=140, PLAYERS=30;
+let MAP=140, PLAYERS=100;
 
 function selMode(m){
     MODE=m;
@@ -245,7 +246,7 @@ function selMode(m){
         el.querySelector('div:nth-child(2)').style.color=act?b[1]:'#aaa';
     });
     document.getElementById('go-text').textContent=m==='br'?'CLICK TO DROP IN':'CLICK TO PRACTICE';
-    if(m==='practice'){MAP=40;PLAYERS=1;}else{MAP=140;PLAYERS=30;}
+    if(m==='practice'){MAP=400;PLAYERS=1;}else{MAP=1400;PLAYERS=100;}
 }
 
 // ===== MAP SELECTION =====
@@ -266,14 +267,33 @@ function selMap(m){
 }
 
 const WD={
-    'AK-47':{a:30,ma:30,d:35,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80},
-    'Shotgun':{a:8,ma:8,d:22,r:500,rc:.05,sp:.07,au:false,rl:2200,bps:7,rng:28},
-    'Sniper':{a:5,ma:5,d:150,r:1000,rc:.06,sp:.002,au:false,rl:2500,bps:1,rng:150},
-    'SMG':{a:30,ma:30,d:22,r:70,rc:.015,sp:.03,au:true,rl:1500,bps:1,rng:55},
-    'Pistol':{a:15,ma:15,d:28,r:220,rc:.018,sp:.02,au:false,rl:1200,bps:1,rng:65},
+    'AK-47':{a:30,ma:30,d:20,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80,rngHead:30,rngUpperChest:14,rngLowerChest:10,rngFeet:7,rarity:'gray'},
+    'Shotgun':{a:8,ma:8,d:200,r:2200,rc:.05,sp:.07,au:false,rl:2500,bps:7,rng:28,rngHead:200,rngUpperChest:145,rngLowerChest:100,rngFeet:70,rarity:'gray'},
+    'Sniper':{a:5,ma:5,d:150,r:1000,rc:.06,sp:.002,au:false,rl:2500,bps:1,rng:150,rngHead:300,rarity:'gray'},
+    'SMG':{a:30,ma:30,d:15,r:70,rc:.015,sp:.03,au:true,rl:1500,bps:1,rng:55,rngHead:25,rarity:'gray'},
+    'Pistol':{a:15,ma:15,d:28,r:220,rc:.018,sp:.02,au:false,rl:1200,bps:1,rng:65,rarity:'gray'},
+    'AK-47 Gold':{a:30,ma:30,d:50,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80,rngHead:100,rarity:'gold'},
+    'Shotgun Gold':{a:8,ma:8,d:250,r:2500,rc:.05,sp:.07,au:false,rl:3000,bps:7,rng:35,rngHead:250,rngUpperChest:180,rngLowerChest:120,rngFeet:90,rarity:'gold'},
+    'Sniper Gold':{a:5,ma:5,d:200,r:1000,rc:.06,sp:.002,au:false,rl:3000,bps:1,rng:180,rngHead:400,rarity:'gold'},
+    'SMG Gold':{a:30,ma:30,d:20,r:70,rc:.015,sp:.03,au:true,rl:1800,bps:1,rng:65,rngHead:30,rarity:'gold'},
+    'Pistol Gold':{a:15,ma:15,d:35,r:220,rc:.018,sp:.02,au:false,rl:1300,bps:1,rng:75,rarity:'gold'},
+    'AK-47 Purple':{a:30,ma:30,d:40,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80,rngHead:90,rarity:'purple'},
+    'Shotgun Purple':{a:8,ma:8,d:220,r:2300,rc:.05,sp:.07,au:false,rl:2700,bps:7,rng:32,rngHead:220,rngUpperChest:160,rngLowerChest:110,rngFeet:80,rarity:'purple'},
+    'Sniper Purple':{a:5,ma:5,d:180,r:1000,rc:.06,sp:.002,au:false,rl:2700,bps:1,rng:170,rngHead:360,rarity:'purple'},
+    'SMG Purple':{a:30,ma:30,d:18,r:70,rc:.015,sp:.03,au:true,rl:1600,bps:1,rng:58,rngHead:22,rarity:'purple'},
+    'Pistol Purple':{a:15,ma:15,d:30,r:220,rc:.018,sp:.02,au:false,rl:1300,bps:1,rng:70,rarity:'purple'},
+    'AK-47 Blue':{a:30,ma:30,d:30,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80,rngHead:80,rarity:'blue'},
+    'Shotgun Blue':{a:8,ma:8,d:180,r:2100,rc:.05,sp:.07,au:false,rl:2400,bps:7,rng:30,rngHead:180,rngUpperChest:130,rngLowerChest:90,rngFeet:65,rarity:'blue'},
+    'Sniper Blue':{a:5,ma:5,d:130,r:1000,rc:.06,sp:.002,au:false,rl:2300,bps:1,rng:140,rngHead:260,rarity:'blue'},
+    'SMG Blue':{a:30,ma:30,d:12,r:70,rc:.015,sp:.03,au:true,rl:1400,bps:1,rng:52,rngHead:18,rarity:'blue'},
+    'Pistol Blue':{a:15,ma:15,d:22,r:220,rc:.018,sp:.02,au:false,rl:1200,bps:1,rng:60,rarity:'blue'},
+    'AK-47 Green':{a:30,ma:30,d:25,r:100,rc:.02,sp:.018,au:true,rl:1800,bps:1,rng:80,rngHead:70,rarity:'green'},
+    'Shotgun Green':{a:8,ma:8,d:150,r:2000,rc:.05,sp:.07,au:false,rl:2200,bps:7,rng:28,rngHead:150,rngUpperChest:110,rngLowerChest:80,rngFeet:55,rarity:'green'},
+    'Sniper Green':{a:5,ma:5,d:100,r:1000,rc:.06,sp:.002,au:false,rl:2100,bps:1,rng:120,rngHead:200,rarity:'green'},
+    'SMG Green':{a:30,ma:30,d:9,r:70,rc:.015,sp:.03,au:true,rl:1300,bps:1,rng:50,rngHead:15,rarity:'green'},
+    'Pistol Green':{a:15,ma:15,d:20,r:220,rc:.018,sp:.02,au:false,rl:1200,bps:1,rng:58,rarity:'green'},
 };
 const WN=Object.keys(WD);
-const LT=['AK-47','Shotgun','Sniper','SMG','Pistol','Heal','Shield','Ammo'];
 
 // ===== STATE =====
 const G={
@@ -1026,7 +1046,7 @@ function mkLoot(x,z,type){
 function chkLoot(){
     // E is Fortnite's interact key; F still works so the old bind keeps working.
     if(BLD.edit)return;
-    if(!G.k['KeyE'])return;
+    if(!G.k['KeyF'])return;      // F is the interact key
     const pp=new THREE.Vector3(P.p.x,0,P.p.z);
     let cl=null,cd=2.5;
     G.loots.forEach(l=>{const d=pp.distanceTo(new THREE.Vector3(l.m.position.x,0,l.m.position.z));if(d<cd){cl=l;cd=d;}});
@@ -1040,7 +1060,7 @@ function chkLoot(){
         let idx=G.sl.findIndex(s=>s===null);if(idx===-1)idx=G.cs;
         G.sl[idx]={n:t,a:def.ma};G.cs=idx;mkGun(t);uWep();feed('Got '+t,'ky');
     }
-    S.remove(cl.m);G.loots=G.loots.filter(l=>l!==cl);G.k['KeyE']=false;
+    S.remove(cl.m);G.loots=G.loots.filter(l=>l!==cl);G.k['KeyF']=false;
 }
 
 // ===== DESERT MAP 🏜️ =====
@@ -1535,6 +1555,22 @@ function mkBot(pos,id){
         pt:new THREE.Vector3((Math.random()-.5)*MAP,0,(Math.random()-.5)*MAP),
         sf:Math.random()>.5?1:-1,st:0,alive:true};
 }
+function mkBotBus(id){
+    // Create a bot starting on the battle bus
+    const bg=new THREE.Group();
+    const m=dsMats();
+    // Simplified model - just torso, head, and basic shape
+    bg.add(mk2(GEO.box,m.vest,[0,1.15,0],[.7,.9,.42]));        // 0 torso
+    bg.add(mk2(GEO.box,m.skin,[0,1.65,0],[.3,.1,.25]));        // 1 neck
+    bg.add(mk2(GEO.box,m.skin,[0,1.9,0],[.38,.38,.38]));       // 2 head
+    bg.add(mk2(GEO.box,m.eye,[-.09,1.94,.19],[.06,.04,.03]));  // 3 eyeL
+    bg.add(mk2(GEO.box,m.eye,[.09,1.94,.19],[.06,.04,.03]));   // 4 eyeR
+    bg.add(mk2(GEO.box,m.hair,[0,2.09,0],[.4,.13,.4]));        // 5 hair
+    bg.position.set(-10, 120, -10); // position on bus
+    S.add(bg);
+    return{id,g:bg,hp:80,mhp:80,hb:null,w:null,spd:.04+Math.random()*.02,la:0,ar:1800+Math.random()*1500,
+        pt:new THREE.Vector3(-10,0,-10),sf:1,st:Math.random()*200+300,alive:true,onBus:true};
+}
 function mk2(geo,mat,pos,scl){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scl)m.scale.set(...scl);return m;}
 
 function uBots(){
@@ -1543,7 +1579,24 @@ function uBots(){
 
     G.bots.forEach(bot=>{
         if(!bot.alive)return;
-        const bp=new THREE.Vector3(bot.g.position.x,0,bot.g.position.z);
+        // Handle bots on the bus - random jump-out
+        if(bot.onBus){
+            bot.st--;
+            if(bot.st<=0){
+                // Jump out of the bus at a random location
+                bot.onBus=false;
+                bot.g.position.set((Math.random()-.5)*MAP*0.8,0,(Math.random()-.5)*MAP*0.8);
+                // Give the bot a weapon after landing
+                const wn=['Pistol','SMG','Shotgun','Sniper','AK-47'];
+                bot.w=wn[Math.floor(Math.random()*wn.length)];
+                bot.st=Math.random()*200+300; // reset timer for next consideration
+            }else{
+                // Stay on bus - follow player position around the bus circle
+                const bx=Math.cos(t)*.5*MAP,bz=Math.sin(t)*.5*MAP;
+                bot.g.position.set(bx,120,bz);
+            }
+        }
+        // ... rest of existing code
         const zd=Math.sqrt((bp.x-G.zone.cx)**2+(bp.z-G.zone.cz)**2);
 
         // Zone dmg (BR only)
@@ -1627,10 +1680,29 @@ function bShoot(bot,dist,isP){
         else bot.w='AK-47';
         // Higher accuracy in 1v1 but still fair
         const h1=Math.random()<=.4;bTrc(bot,isP,h1);if(!h1)return;
-        if(isP&&!G.dead){dmgPlayer(wd.d*(.2+Math.random()*.25));}
+        if(isP&&!G.dead){
+            // Random hit location: head (20%), upper chest (30%), lower chest (30%), feet (20%)
+            const loc=Math.random();
+            let mul=.5;
+            if(loc<.2)mul=wd.rngHead/wd.d; // headshot multiplier
+            else if(loc<.5)mul=wd.rngUpperChest/wd.d; // upper chest
+            else if(loc<.8)mul=wd.rngLowerChest/wd.d; // lower chest
+            else mul=wd.rngFeet/wd.d; // feet
+            dmgPlayer(wd.d*mul*.8+Math.random()*.4*wd.d);
+        }
+        if(bot.en&&bot.en.alive){dmgBot(bot.en,wd.d*(.5+Math.random()*.4),bot);}
     } else {
         const h2=Math.random()<=.25;bTrc(bot,isP,h2);if(!h2)return;
-        if(isP&&!G.dead){dmgPlayer(wd.d*(.15+Math.random()*.2));}
+        if(isP&&!G.dead){
+            // Random hit location
+            const loc=Math.random();
+            let mul=.5;
+            if(loc<.2)mul=wd.rngHead/wd.d;
+            else if(loc<.5)mul=wd.rngUpperChest/wd.d;
+            else if(loc<.8)mul=wd.rngLowerChest/wd.d;
+            else mul=wd.rngFeet/wd.d;
+            dmgPlayer(wd.d*mul*.8+Math.random()*.4*wd.d);
+        }
         else if(bot.en&&bot.en.alive){dmgBot(bot.en,wd.d*(.5+Math.random()*.4),bot);}
     }
 }
@@ -1942,6 +2014,12 @@ function uWep(){
         }
         el.classList.toggle('ac',i===G.cs&&s!==null);
     }
+    // The pickaxe sits in front of the five slots and lights up while it is in hand.
+    const pk=$('spk');
+    if(pk){
+        pk.classList.toggle('ac',BLD.pick);
+        pk.style.borderColor=BLD.pick?'#c0956a':'rgba(255,255,255,.06)';
+    }
 }
 
 // Elimination banner
@@ -2042,7 +2120,7 @@ function uLP(){
     G.loots.forEach(l=>{
         if(pp.distanceTo(new THREE.Vector3(l.m.position.x,0,l.m.position.z))<3){
             nr=true;
-            $('lp').textContent='[E] Pick up: '+( descs[l.type]||l.type);
+            $('lp').textContent='[F] Pick up: '+( descs[l.type]||l.type);
         }
     });
     $('lp').style.display=nr?'block':'none';
@@ -2218,7 +2296,7 @@ function uFall(dt,now){
     }else{
         // glide: slow descent, still steerable
         G.v.y=-.24;
-        if(G.k['ControlLeft']||G.k['ControlRight'])G.v.y=-.75;
+        if(G.k['KeyZ'])G.v.y=-.75;                     // Z dives
     }
     // WASD steering through the air
     _bd.set(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -2337,8 +2415,8 @@ const PIECE_NAMES=['Wall','Floor','Ramp','Cone'];
 // above, whose middle cell is the handle you drag to flip the stair rather than a
 // tile you can cut.
 const TILES=[9,4,9,4];
-// Which grid index each overlay pane stands for. The stair keeps all nine cells on
-// screen, but bit 4 is never a hole: pieceGeo skips it, paint flips the piece instead.
+// Which grid index each overlay pane stands for. The stair shows 8 tiles (no middle),
+// middle cell is the handle you drag to flip the stair rather than a tile you can cut.
 const TILE_IDX=[[0,1,2,3,4,5,6,7,8],[0,1,2,3],[0,1,2,3,4,5,6,7,8],[0,1,2,3]];
 const BLD={
     mode:false,piece:0,list:[],ghost:[],
@@ -2404,11 +2482,17 @@ function tileTris(type,idx){
         const L=Math.hypot(BS.size,BS.step),W=BS.size,r=(idx/3)|0,c=idx%3;
         return boxTris(-L/2+r*(L/3),-L/2+(r+1)*(L/3),-tw,tw,-W/2+c*(W/3),-W/2+(c+1)*(W/3));
     }
-    // Cone: four slant faces, one per tile, meeting at the apex. No base cap, so
-    // from below it is an open roof and the floor underneath is the real bottom.
-    const h=BS.wallH/2,P4=[[-S2,-S2],[S2,-S2],[S2,S2],[-S2,S2]];
+    // Cone: a low pyramid. Each tile is one slant face; the solid base is added once
+    // (on face 0) so the cone is visible from below and reads as a real roof.
+    const faceH=(BS.wallH/2)*0.7;
+    const P4=[[-S2,-S2],[S2,-S2],[S2,S2],[-S2,S2]];
     const a=P4[idx&3],b=P4[(idx+1)&3];
-    return orientTris([[[a[0],0,a[1]],[b[0],0,b[1]],[0,h,0]]]);
+    const tris=[[[a[0],0,a[1]],[b[0],0,b[1]],[0,faceH,0]]];
+    if((idx&3)===0){
+        tris.push([[-S2,0,-S2],[S2,0,-S2],[S2,0,S2]]);
+        tris.push([[S2,0,-S2],[-S2,0,-S2],[-S2,0,S2]]);
+    }
+    return orientTris(tris);
 }
 function pieceGeo(type,cut){
     const tris=[],list=TILE_IDX[type];
@@ -2462,8 +2546,9 @@ function mkPiece(type,cx,cz,lvl,dir,cut){
     body.position.set(sp.pos[0],sp.pos[1],sp.pos[2]);
     applyRot(body,sp.rot);
     body.castShadow=true;body.receiveShadow=true;
+    body.updateMatrixWorld(true);            // so a raycast in this same frame can see it
     body.userData.isO=true;body.userData.sz=sp.sz;body.userData.isBuild=true;body.userData.lvl=lvl;
-    body.userData.piece=null;
+    body.userData.piece=null;body.userData.hits=0; // track pickaxe hits
     S.add(body);
     // Walls block movement, floors block from the side, ramps and roofs are walked
     // on rather than through.
@@ -2477,6 +2562,18 @@ function mkPiece(type,cx,cz,lvl,dir,cut){
 }
 function hasAt(type,cx,cz,lvl,dir){
     return BLD.list.some(b=>b.type===type&&b.cx===cx&&b.cz===cz&&b.lvl===lvl&&b.dir===dir);
+}
+// Cannot place stair and cone in same box
+function canPlace(type,cx,cz,lvl,dir){
+    if(type===0||type===2){ // wall or ramp
+        if(hasAt(3,cx,cz,lvl,dir))return false; // no cone in same cell
+        if(hasAt(2,cx,cz,lvl,dir))return false; // no second stair
+    }
+    if(type===3){ // cone
+        if(hasAt(2,cx,cz,lvl,dir))return false; // no cone in same cell as stair
+        if(hasAt(3,cx,cz,lvl,dir))return false; // no second cone
+    }
+    return true;
 }
 // A wall on the +X edge of cell n is the same plank as the -X edge of cell n+1,
 // so always store the negative-side pair. Otherwise the same wall could be built twice.
@@ -2568,18 +2665,20 @@ function buildTarget(){
         const w=canonWall(p.cx,p.cz,fwdDir());
         return{type:0,cx:w.cx,cz:w.cz,lvl:up?L+1:L,dir:w.dir};
     }
-    const lvl=up?L+1:L,c=aimCell(p,lvl);
+    const lvl=up?L+1:L,c=aimCell(p,lvl),fr={cx:p.cx+DIR_STEP[fwdDir()][0],cz:p.cz+DIR_STEP[fwdDir()][1]};
     if(t===2){
-        // Stairs chain along the way you face. Looking up from a ramp means the next
-        // one, so try the cell ahead at the level above first: its low edge lands on
-        // the top nodes of the ramp under you and you never have to jump to climb.
-        const d=fwdDir(),s=DIR_STEP[d];
-        const cands=up?[{type:2,cx:p.cx+s[0],cz:p.cz+s[1],lvl:L+1,dir:d},
-                        {type:2,cx:p.cx,cz:p.cz,lvl:L+1,dir:d},
-                        {type:2,cx:c.cx,cz:c.cz,lvl:L+1,dir:d}]
-                      :[{type:2,cx:c.cx,cz:c.cz,lvl:L,dir:d},
-                        {type:2,cx:p.cx+s[0],cz:p.cz+s[1],lvl:L,dir:d},
-                        {type:2,cx:p.cx,cz:p.cz,lvl:L,dir:d}];
+        // Stairs chain along the way you face. cellLvl() reads your feet, so standing
+        // mid-ramp it is one level low and standing on the crest one level high: try the
+        // cell ahead on both levels and the connected one wins, which is why the next
+        // ramp snaps in without a jump. If that cell already holds its ramp, offer
+        // nothing lower in it - a second plate at your ankles is clutter, so read red.
+        const d=fwdDir(),R=(cx,cz,lvl)=>({type:2,cx,cz,lvl,dir:d});
+        let cands;
+        if(up){
+            cands=[R(fr.cx,fr.cz,L+1),R(c.cx,c.cz,L+1)];
+            if(!hasAt(2,fr.cx,fr.cz,L+1,d))cands=cands.concat(
+                [R(fr.cx,fr.cz,L),R(p.cx,p.cz,L+1),R(c.cx,c.cz,L),R(p.cx,p.cz,L)]);
+        }else cands=[R(c.cx,c.cz,L),R(fr.cx,fr.cz,L),R(p.cx,p.cz,L)];
         for(const q of cands)if(!ghostInvalid(q))return q;
         return cands[0];
     }
@@ -2590,7 +2689,11 @@ function buildTarget(){
     if(t===3){
         if(!up||(!G.og&&down))return{type:3,cx:c.cx,cz:c.cz,lvl:L,dir:0};
         const cands=[{type:3,cx:p.cx,cz:p.cz,lvl:L+1,dir:0},
-                     {type:3,cx:c.cx,cz:c.cz,lvl:L+1,dir:0}];
+                     {type:3,cx:c.cx,cz:c.cz,lvl:L+1,dir:0},
+                     {type:3,cx:fr.cx,cz:fr.cz,lvl:L+1,dir:0},
+                     {type:3,cx:p.cx,cz:p.cz,lvl:L,dir:0},
+                     {type:3,cx:c.cx,cz:c.cz,lvl:L,dir:0},
+                     {type:3,cx:fr.cx,cz:fr.cz,lvl:L,dir:0}];
         for(const q of cands)if(!ghostInvalid(q))return q;
         return cands[0];
     }
@@ -2609,9 +2712,19 @@ function ghostInvalid(sp){
     // ramp is entered deliberately: walk back and you climb onto it, walk forward
     // and you slide out underneath.
     const feet=P.p.y;
-    if(b.x1>P.p.x-.35&&b.x0<P.p.x+.35&&b.z1>P.p.z-.35&&b.z0<P.p.z+.35&&b.y1>feet+.1&&b.y0<feet+1.6){
-        if(type===1&&lvl*BS.step<=feet+.1)return false;
+    const xz=b.x1>P.p.x-.35&&b.x0<P.p.x+.35&&b.z1>P.p.z-.35&&b.z0<P.p.z+.35;
+    if(!xz)return false;
+    // A ramp or cone is one thin sloped sheet, so what seals you in is where that
+    // sheet crosses your body - not the box drawn around it. Step-up height means
+    // you can walk onto it, head height means you can walk under it, and a ramp
+    // dropped at your own feet while looking down is the deliberate phase-in.
+    if(type===2||type===3){
         if(type===2&&AIM.f.y<-0.45&&lvl*BS.step<=feet+.1)return false;
+        const surf=pieceSurf({type,cx,cz,lvl,dir,cut:0},P.p.x,P.p.z);
+        return !(surf===null||surf>=feet+1.6||surf<=feet+BUILD_STEP);
+    }
+    if(b.y1>feet+.1&&b.y0<feet+1.6){
+        if(type===1&&lvl*BS.step<=feet+.1)return false;
         return true;
     }
     return false;
@@ -2669,6 +2782,7 @@ function placePiece(){
     // Turbo build calls this every frame with the button held, so the cell that is
     // already built fails quietly instead of filling the feed with errors.
     if(hasAt(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir))return false;
+    if(!canPlace(sp.type,sp.cx,sp.cz,sp.lvl,sp.dir))return false;
     if(ghostInvalid(sp)){
         const r=ghostReason(sp),now=performance.now();
         if(r!=='dup'&&now-BLD.lastBad>600){feed(r,'kh');BLD.lastBad=now;}
@@ -2715,12 +2829,28 @@ function settleBuilds(){
 }
 function breakPiece(b){
     if(!b)return false;
-    const p=b.m.position.clone();
-    removePiece(b);
-    mkPt(p,0x8a6a45,6);
-    const extra=settleBuilds();
-    pPick();
-    if(extra)feed('Broke '+PIECE_NAMES[b.type]+' and '+extra+' more','kh');
+    b.userData.hits+=1;
+    if(b.userData.hits===1){
+        // Show weak spot indicator - red glowing circle
+        const p=b.m.position.clone();
+        const geo=new THREE.CircleGeometry(BS.size/2,8,8);
+        const mat=new THREE.MeshBasicMaterial({color:0xff0000,transparent:true,opacity:.8,depthWrite:false,side:THREE.DoubleSide});
+        const circle=new THREE.Mesh(geo,mat);
+        circle.position.copy(p);
+        circle.position.y+=BS.wallH/2; // position at wall height
+        circle.rotation.x=-Math.PI/2; // lie flat on wall
+        S.add(circle);
+        // Remove after 0.5 seconds
+        setTimeout(()=>{S.remove(circle);circle.geometry.dispose();circle.material.dispose();},500);
+    }
+    if(b.userData.hits>=2){
+        const p=b.m.position.clone();
+        removePiece(b);
+        mkPt(p,0x8a6a45,6);
+        const extra=settleBuilds();
+        pPick();
+        if(extra)feed('Broke '+PIECE_NAMES[b.type]+' and '+extra+' more','kh');
+    }
     return true;
 }
 const EDIT_R=BS.size*1.6;
@@ -2812,13 +2942,16 @@ function makeTiles(b){
     const list=TILE_IDX[b.type],L=Math.hypot(BS.size,BS.step),W=BS.size,tw=BS.thick/2;
     for(let i=0;i<BLD.tiles.length;i++){
         const m=BLD.tiles[i],e=BLD.tileEdges[i];
-        if(i<list.length){
-            const idx=list[i],tris=insetTris(tileFaceTris(b.type,idx),.86);
+        let idx;
+        if(b.type===2&&i===4)idx=-1;else idx=(list[i]||list[0]);
+        if(idx>=0&&i<list.length){
+            const tidx=b.type===2&&idx===4?3:idx;
+            const tris=insetTris(tileFaceTris(b.type,tidx),.86);
             if(m.geometry)m.geometry.dispose();
             if(e.geometry)e.geometry.dispose();
             m.geometry=geoFromTris(tris);
-            e.geometry=edgeGeo(tileFaceTris(b.type,idx),stairArrow(b.type,idx,L,W,tw));
-            m.visible=e.visible=true;
+            e.geometry=edgeGeo(tileFaceTris(b.type,tidx),stairArrow(b.type,tidx,L,W,tw));
+            m.visible=e.visible=(tidx!==4);
         }else m.visible=e.visible=false;
     }
 }
@@ -2945,8 +3078,8 @@ function convertEdit(type){
 function uBuildBar(){
     $('bb').style.display=BLD.mode?'flex':'none';
     $('bmode').style.display=(BLD.mode||BLD.pick)?'block':'none';
-    $('bmode').textContent=BLD.pick?'Pickaxe - LMB breaks builds'
-        :BLD.edit?'Edit Mode':'Build Mode - '+PIECE_NAMES[BLD.piece];
+    $('bmode').textContent=BLD.pick?'[T] Pickaxe - LMB breaks builds'
+        :BLD.edit?'[E] Edit - hold LMB, drag, release to confirm':'Build Mode - '+PIECE_NAMES[BLD.piece];
     for(let i=0;i<4;i++)$('b'+i).classList.toggle('ac',BLD.mode&&i===BLD.piece&&!BLD.edit);
 }
 function setPiece(i){
@@ -2958,13 +3091,14 @@ function setPiece(i){
 function equipPick(on){
     if(on===BLD.pick)return;
     BLD.pick=on;
-    clearInterval(si);si=null;                     // an auto rifle must keep firing after G
+    clearInterval(si);si=null;                     // an auto rifle must keep firing after T
     if(on){
         if(BLD.edit)endEdit(false);
         BLD.mode=false;
         mkPick();
     }else mkGun(G.sl[G.cs]?G.sl[G.cs].n:'Pistol');
     uBuildBar();
+    uWep();
 }
 function swingPick(){
     BLD.sw=1;
@@ -3046,7 +3180,13 @@ function slopeBlocks(b,nx,nz,fy){
     }
     if(y<=fy+BUILD_STEP||y>=fy+1.6)return false;
     const here=pieceSurf(b,P.p.x,P.p.z);
-    if(here!==null&&here>fy+1.6)return false;       // phasing out of the ramp you are in
+    if(here===null)return true;
+    // You are inside this plate - the ramp you dropped on your own feet. A walker
+    // never ends up here: climbing on keeps the plate at your feet, crawling under
+    // keeps it over your head. So any step that takes the plate lower is a step out
+    // of the phase, and following it down lands you on the stair at its low edge.
+    const inCell=Math.abs(P.p.x-b.cx*BS.size)<=BS.size/2&&Math.abs(P.p.z-b.cz*BS.size)<=BS.size/2;
+    if(here>fy+1.6||(inCell&&y<=here))return false;
     return true;
 }
 // A wall only blocks the tile column you are actually against, and only where a tile
@@ -3102,7 +3242,11 @@ function initBuild(){
     }
 }
 // ===== CONTROLS =====
-$('blocker').addEventListener('click',()=>R.domElement.requestPointerLock());
+// Clicks inside the menu (mode buttons, etc.) must not launch the game - only the
+// "CLICK TO DROP IN" prompt or a click on the dark backdrop outside the menu does.
+$('menu').addEventListener('click',e=>e.stopPropagation());
+$('go-text').addEventListener('click',e=>{e.stopPropagation();R.domElement.requestPointerLock();});
+$('blocker').addEventListener('click',e=>{if(e.target===$('blocker'))R.domElement.requestPointerLock();});
 document.addEventListener('pointerlockchange',()=>{
     if(document.pointerLockElement===R.domElement){
         G.play=true;$('blocker').style.display='none';$('hud').style.display='block';
@@ -3123,11 +3267,18 @@ document.addEventListener('pointerlockchange',()=>{
                 spawn1v1Bot();spawnLoots();
                 feed('1v1 - Eliminate your opponent!','ky');
             }else{
-                spawnBots();spawnLoots();mkZone();spawnBoss();
+                // Battle royal: spawn bots on the bus, they'll jump out at random times
+                for(let i=0;i<PLAYERS-1;i++){
+                    const bot=mkBotBus(i);
+                    bot.pt=new THREE.Vector3((Math.random()-.5)*MAP*2,0,(Math.random()-.5)*MAP*2);
+                    bot.st=Math.random()*1000; // random jump-out timer
+                    G.bots.push(bot);
+                }
+                mkZone();spawnBoss();
                 startDrop();
             }
         }
-    }else if(!G.dead){$('blocker').style.display='flex';$('hud').style.display='none';}
+    }
 });
 // Mouse look also works while riding / falling, so you can look around the bus.
 document.addEventListener('mousemove',e=>{
@@ -3135,10 +3286,9 @@ document.addEventListener('mousemove',e=>{
     yaw-=e.movementX*.0022;
     pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
 });
-// ADS is a latch: right mouse turns the zoom on, again turns it off, and T does the same
-// thing from the keyboard for anyone who would rather not touch the mouse.
-const ADS_KEY='KeyT';
+// ADS is a latch: right mouse turns the zoom on, again turns it off.
 let aimLock=false;
+let rmbPressed=false;
 function uAim(){P.aiming=aimLock;}
 let lmb=false;
 document.addEventListener('mousedown',e=>{
@@ -3155,7 +3305,13 @@ document.addEventListener('mousedown',e=>{
         shoot();
         const sl=G.sl[G.cs];if(sl&&WD[sl.n].au)si=setInterval(shoot,WD[sl.n].r);
     }else if(e.button===2){                              // RMB: edit a build, or latch the aim
-        if(BLD.edit){endEdit(false);return;}
+        if(BLD.edit){
+            if(rmbPressed){
+                endEdit(false);
+                rmbPressed=false;
+            }else{rmbPressed=true;}
+            return;
+        }
         if(BLD.mode||BLD.pick){startEdit();return;}
         aimLock=!aimLock;uAim();
     }
@@ -3166,23 +3322,29 @@ document.addEventListener('mouseup',e=>{
         clearInterval(si);si=null;
         // Releasing the button is the confirm - the drag you just made is the edit.
         if(BLD.paint)commitEdit();
+        rmbPressed=false;
     }
 });
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('wheel',e=>{
     if(!G.play||G.dead||dp||BLD.mode)return;
-    cycSlot(e.deltaY>0?1:-1);
+    // Scroll disabled - use RMB to switch weapons or bind
 },{passive:true});
 
 const PBIND={'KeyX':0,'KeyC':1,'KeyB':2,'KeyV':3};   // wall / floor / ramp / cone
 document.addEventListener('keydown',e=>{
     G.k[e.code]=true;
-    if(e.code==='ControlLeft'||e.code==='Space')e.preventDefault();
+    if(e.code==='Space')e.preventDefault();
     if(e.code==='Space'&&dp&&BUS.phase==='bus'){jumpFromBus();return;}   // SPACE: jump out of the bus
 
     if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=true;
-    if(e.code==='ControlLeft'||e.code==='ControlRight')G.cr=true;
+    if(e.code==='KeyZ')G.cr=true;                      // Z crouches
     if(e.code==='KeyR')BLD.edit?rotateEdit():rlod();  // R reloads, or turns the piece you are editing
+    if(e.code==='KeyH'){
+        materialIndex=(materialIndex||0)%3;
+        materialNames=['Wood','Brick','Metal'];
+        feed('Material: '+materialNames[materialIndex],'kh');
+    }
     if(e.code==='Digit1')swSlot(0);
     if(e.code==='Digit2')swSlot(1);
     if(e.code==='Digit3')swSlot(2);
@@ -3193,11 +3355,10 @@ document.addEventListener('keydown',e=>{
         else{if(BLD.pick)equipPick(false);BLD.mode=!BLD.mode;uBuildBar();}
     }
     if(PBIND[e.code]!==undefined)setPiece(PBIND[e.code]);              // X/C/B/V piece (and convert while editing)
-    if(e.code===ADS_KEY){aimLock=!aimLock;uAim();return;}               // T toggles the aim zoom
-    if(e.code==='KeyF'){                                               // F opens the grid, and closes it when you are done
+    if(e.code==='KeyE'){                                               // E opens the grid, and closes it when you are done
         if(BLD.edit)commitEdit();else startEdit();
     }
-    if(e.code==='KeyG')equipPick(!BLD.pick);                           // G: pickaxe in hand
+    if(e.code==='KeyT')equipPick(!BLD.pick);                           // T: pickaxe in hand
     if(e.code==='Escape'){
         if(BLD.edit)endEdit(false);
         else if(BLD.mode){BLD.mode=false;uBuildBar();}
@@ -3206,7 +3367,7 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('keyup',e=>{
     G.k[e.code]=false;
     if(e.code==='ShiftLeft'||e.code==='ShiftRight')G.sp=false;
-    if(e.code==='ControlLeft'||e.code==='ControlRight')G.cr=false;
+    if(e.code==='KeyZ')G.cr=false;
 });
 
 // ===== OBSTACLE CACHE =====
@@ -3400,6 +3561,17 @@ function buildPracticeMap(){
     const fm=new THREE.MeshStandardMaterial({color:0x6e7a5e,roughness:.92});
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(MAP*4,MAP*4),fm);
     floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;S.add(floor);
+    // Add water pits at the edges of the practice island
+    const waterCol=new THREE.MeshStandardMaterial({color:0x1a5a72,roughness:.9,metalness:.1});
+    const waterRadius=MAP*0.8;
+    ['top','bottom','left','right'].forEach(side=>{
+        const pos=side==='top'?[0,-MAP*2]:side==='bottom'?[0,MAP*2]:side==='left'?[-MAP*2,0]:[MAP*2,0];
+        const water=new THREE.Mesh(new THREE.CircleGeometry(waterRadius,32,32),waterCol);
+        water.rotation.x=-Math.PI/2;
+        water.position.set(pos[0],0,pos[1]);
+        water.position.y=-0.1; // slightly below ground level
+        S.add(water);
+    });
     spawnTargets();
 }
 
