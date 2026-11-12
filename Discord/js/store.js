@@ -602,6 +602,7 @@ const Store = (() => {
       type: data.type === "voice" ? "voice" : "text",
       categoryId,
       topic: (data.topic || "").slice(0, 200),
+      position: s.channels.length,
       messages: [],
       readBy: {},
       voiceUsers: data.type === "voice" ? [] : undefined
@@ -683,6 +684,36 @@ const Store = (() => {
     s.categories = remaining;
     save();
     return true;
+  }
+
+  function reorderLayout(userId, serverId, layout = {}) {
+    const s = db.servers[serverId];
+    if (!s || !canManageChannels(serverId, userId)) throw new Error("You don't have permission.");
+    const cats = s.categories || [];
+    const catIds = new Set(cats.map(c => c.id));
+    if (Array.isArray(layout.categories)) {
+      const order = layout.categories.filter(id => catIds.has(id));
+      for (const c of cats) if (!order.includes(c.id)) order.push(c.id);
+      order.forEach((id, i) => { const c = cats.find(x => x.id === id); if (c) c.position = i; });
+      cats.sort((a, b) => (a.position || 0) - (b.position || 0));
+    }
+    if (layout.channels && typeof layout.channels === "object") {
+      const chById = {};
+      for (const ch of s.channels) chById[ch.id] = ch;
+      for (const [catId, ids] of Object.entries(layout.channels)) {
+        if (!Array.isArray(ids)) continue;
+        const valid = catId === "__other" || catIds.has(catId);
+        if (!valid) continue;
+        ids.forEach((chId, i) => {
+          const ch = chById[chId];
+          if (!ch) return;
+          if (catId !== "__other") ch.categoryId = catId;
+          ch.position = i;
+        });
+      }
+    }
+    save();
+    return s;
   }
 
   /* ---------- roles ---------- */
@@ -1014,7 +1045,7 @@ const Store = (() => {
     permissions, canManageChannels, canManageMessages, canManageRoles, canKickMembers,
     memberCustomRoles, memberRoleColor, memberRoleList,
     joinServer, leaveServer, deleteServer, updateServer, regenerateInvite,
-    addChannel, updateChannel, deleteChannel, addCategory, updateCategory, deleteCategory,
+    addChannel, updateChannel, deleteChannel, addCategory, updateCategory, deleteCategory, reorderLayout,
     addRole, updateRole, deleteRole, setMemberRoles,
     kickMember, setMemberRole,
     joinVoice, leaveVoice, voiceChannelFor,

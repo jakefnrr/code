@@ -669,7 +669,7 @@ const Servers = (() => {
       m.el.querySelector("#eo-save").onclick = () => {
         try {
           Store.updateServer(me.id, serverId, { name: m.el.querySelector("#eo-name").value, topic: m.el.querySelector("#eo-topic").value });
-          m.close(); App.render();
+          UI.closeModal(); App.render(); openServerSettings(serverId);
         } catch (e) { UI.toast(e.message, "error"); }
       };
     } else if (field === "icon") {
@@ -686,7 +686,7 @@ const Servers = (() => {
           if (file.size > 300 * 1024) { UI.toast("Icon image too large (max 300 KB)", "error"); return; }
           try { icon = await Utils.readFileAsDataURL(file); } catch (e) { UI.toast("Could not read image", "error"); return; }
         }
-        try { Store.updateServer(me.id, serverId, { icon }); m.close(); App.render(); }
+        try { Store.updateServer(me.id, serverId, { icon }); UI.closeModal(); App.render(); openServerSettings(serverId); }
         catch (e) { UI.toast(e.message, "error"); }
       };
     }
