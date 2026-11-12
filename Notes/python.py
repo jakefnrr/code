@@ -1,8 +1,9 @@
 import ctypes
 import sys
+import time
 from pathlib import Path
 
-from PySide6.QtCore import QPointF, QMimeData, QTimer, Qt, QUrl
+from PySide6.QtCore import QPointF, QMimeData, QTimer, Qt, QUrl, QUrlQuery
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import (
     QApplication,
@@ -16,6 +17,7 @@ from PySide6.QtWebEngineCore import (
     QWebEnginePage,
     QWebEngineProfile,
     QWebEngineScript,
+    QWebEngineSettings,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
@@ -293,6 +295,164 @@ CLIPBOARD_SHIM_JS = """
 
 
 # ---------------------------------------------------------
+# YouTube resilience: long videos sometimes die with YouTube's
+# gray "An error occurred" overlay, or the media element errors
+# out mid-stream. This watches the player and, if that happens,
+# reloads the watch page at the last playback position so the
+# video keeps going instead of leaving a dead gray box.
+# ---------------------------------------------------------
+
+YOUTUBE_GUARD_JS = """
+(function () {
+    var host = location.hostname || "";
+    if (!/(^|\\.)youtube\\.com$/.test(host)) return;
+    if (!/\\/watch|\\/shorts\\//.test(location.pathname)) return;
+    if (window.__ytGuard) return;
+    window.__ytGuard = true;
+
+    var RELOAD_COOLDOWN = 8000;
+    var MAX_TRIES = 4;
+    var lastReload = 0;
+
+    function video() {
+        return document.querySelector("video.html5-main-video, video");
+    }
+
+    function videoId() {
+        try {
+            return new URLSearchParams(location.search).get("v") || "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function triesKey() {
+        return "__ytGuardTries_" + videoId();
+    }
+
+    function canRecover() {
+        try {
+            var a = JSON.parse(sessionStorage.getItem(triesKey()) || "null");
+            if (!a || Date.now() - a.ts > 600000) return true;
+            return a.n < MAX_TRIES;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    function noteAttempt() {
+        try {
+            var a = JSON.parse(sessionStorage.getItem(triesKey()) || "null");
+            if (!a || Date.now() - a.ts > 600000) {
+                a = { n: 0, ts: Date.now() };
+            }
+            a.n += 1;
+            sessionStorage.setItem(triesKey(), JSON.stringify(a));
+        } catch (e) {}
+    }
+
+    function position() {
+        var v = video();
+        if (v && isFinite(v.currentTime) && v.currentTime > 0) {
+            return v.currentTime;
+        }
+        try {
+            var n = parseFloat(sessionStorage.getItem("__ytGuardTime"));
+            if (isFinite(n)) return n;
+        } catch (e) {}
+        return 0;
+    }
+
+    function errorVisible(el) {
+        if (!el) return false;
+        var box = el.getBoundingClientRect();
+        if (box.width <= 1 || box.height <= 1) return false;
+        var style = window.getComputedStyle(el);
+        return style.display !== "none" && style.visibility !== "hidden";
+    }
+
+    function recover(reason) {
+        var now = Date.now();
+        if (now - lastReload < RELOAD_COOLDOWN) return;
+        if (!canRecover()) return;
+        lastReload = now;
+        noteAttempt();
+
+        var id = videoId();
+        var t = Math.max(0, Math.floor(position() - 3));
+
+        try {
+            sessionStorage.setItem(
+                "__ytGuardResume",
+                JSON.stringify({ id: id, t: t, ts: now })
+            );
+        } catch (e) {}
+
+        console.log("__YT_GUARD_RELOAD__ " + reason + " t=" + t);
+
+        if (id) {
+            location.href = (
+                "https://www.youtube.com/watch?v=" + id + "&t=" + t + "s"
+            );
+        } else {
+            location.reload();
+        }
+    }
+
+    function seekBack() {
+        var pending = null;
+        try {
+            pending = JSON.parse(
+                sessionStorage.getItem("__ytGuardResume") || "null"
+            );
+        } catch (e) {}
+        if (!pending || pending.id !== videoId()) return;
+        if (Date.now() - pending.ts > 120000) {
+            try { sessionStorage.removeItem("__ytGuardResume"); } catch (e) {}
+            return;
+        }
+        var v = video();
+        if (!v || v.readyState < 1) {
+            setTimeout(seekBack, 500);
+            return;
+        }
+        if (Math.abs(v.currentTime - pending.t) > 5) {
+            try { v.currentTime = pending.t; } catch (e) {}
+        }
+        try { sessionStorage.removeItem("__ytGuardResume"); } catch (e) {}
+    }
+
+    window.addEventListener("load", function () {
+        setTimeout(seekBack, 1200);
+    });
+
+    setInterval(function () {
+        var v = video();
+        if (!v) return;
+
+        if (v.currentTime > 0) {
+            try {
+                sessionStorage.setItem(
+                    "__ytGuardTime", String(Math.floor(v.currentTime))
+                );
+            } catch (e) {}
+        }
+
+        var overlay = document.querySelector(".ytp-error");
+        if (errorVisible(overlay)) {
+            recover("player-error");
+            return;
+        }
+
+        if (v.error) {
+            recover("media-error-" + v.error.code);
+        }
+    }, 2000);
+})();
+"""
+
+
+# ---------------------------------------------------------
 # Persistent browser storage
 # ---------------------------------------------------------
 
@@ -372,6 +532,16 @@ class BrowserPage(QWebEnginePage):
         clip_script.setSourceCode(CLIPBOARD_SHIM_JS)
         self.scripts().insert(clip_script)
 
+        yt_script = QWebEngineScript()
+        yt_script.setName("browser-youtube-guard")
+        yt_script.setInjectionPoint(
+            QWebEngineScript.DocumentCreation
+        )
+        yt_script.setWorldId(QWebEngineScript.MainWorld)
+        yt_script.setRunsOnSubFrames(False)
+        yt_script.setSourceCode(YOUTUBE_GUARD_JS)
+        self.scripts().insert(yt_script)
+
     def featurePermissionRequested(self, url, feature):
 
         if feature in (
@@ -442,6 +612,16 @@ class BrowserTab(QWebEngineView):
         page.manager = manager
         self.setPage(page)
 
+        settings = self.settings()
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture,
+            False,
+        )
+        settings.setAttribute(
+            QWebEngineSettings.WebAttribute.FullScreenSupportEnabled,
+            True,
+        )
+
         self._capture_active = False
         self._pl_last = QPointF()
 
@@ -449,7 +629,87 @@ class BrowserTab(QWebEngineView):
         self._pl_tick.setInterval(4)
         self._pl_tick.timeout.connect(self._pl_sample)
 
+        # Track playback position so a crashed renderer can be
+        # recovered without losing the viewer's place in a long video.
+        self._yt_last_time = 0.0
+        self._yt_last_crash = 0.0
+
+        self._yt_poll = QTimer(self)
+        self._yt_poll.setInterval(5000)
+        self._yt_poll.timeout.connect(self._poll_youtube_time)
+        self._yt_poll.start()
+
+        page.renderProcessTerminated.connect(
+            self._render_process_terminated
+        )
+
         self.setFocusPolicy(Qt.StrongFocus)
+
+    # -------------------------------------------------
+    # YouTube crash recovery
+    # -------------------------------------------------
+
+    def _poll_youtube_time(self):
+
+        page = self.page()
+
+        if page is None:
+            return
+
+        if "youtube.com" not in page.url().toString():
+            return
+
+        page.runJavaScript(
+            "(function () {"
+            "  var v = document.querySelector('video');"
+            "  return v && isFinite(v.currentTime) ? v.currentTime : 0;"
+            "})();",
+            QWebEngineScript.MainWorld,
+            self._store_youtube_time,
+        )
+
+    def _store_youtube_time(self, value):
+
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return
+
+        if value > 0:
+            self._yt_last_time = value
+
+    def _render_process_terminated(self, status, exit_code):
+
+        page = self.page()
+
+        if page is None:
+            return
+
+        url = page.url()
+
+        if "youtube.com" not in url.toString():
+            return
+
+        now = time.monotonic()
+
+        if now - self._yt_last_crash < 20:
+            return
+
+        self._yt_last_crash = now
+
+        video_id = QUrlQuery(url).queryItemValue("v")
+        seconds = int(self._yt_last_time)
+
+        if video_id and seconds > 0:
+            url = QUrl(
+                "https://www.youtube.com/watch?v="
+                + video_id
+                + "&t="
+                + str(max(0, seconds - 3))
+                + "s"
+            )
+
+        QTimer.singleShot(1000, lambda: self.setUrl(url))
 
     # -------------------------------------------------
     # Pointer lock emulation

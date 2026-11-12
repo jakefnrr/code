@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Python runner</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    background: #0d1117;
+    color: #c9d1d9;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #stage { position: fixed; inset: 0; }
+  #frameBox {
+    position: absolute;
+    display: flex;
+    background: #0d1117;
+    box-shadow: 0 0 0 1px #30363d, 0 10px 40px rgba(0, 0, 0, .55);
+    min-width: 320px;
+    min-height: 200px;
+  }
+  #pyframe {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #0d1117;
+  }
+
+  .handle {
+    position: absolute;
+    z-index: 10;
+    background: transparent;
+  }
+  .handle:hover { background: rgba(88, 166, 255, .18); }
+  .handle.n  { top: -5px; left: 12px; right: 12px; height: 10px; cursor: ns-resize; }
+  .handle.s  { bottom: -5px; left: 12px; right: 12px; height: 10px; cursor: ns-resize; }
+  .handle.e  { right: -5px; top: 12px; bottom: 12px; width: 10px; cursor: ew-resize; }
+  .handle.w  { left: -5px; top: 12px; bottom: 12px; width: 10px; cursor: ew-resize; }
+  .handle.nw { top: -7px; left: -7px; width: 16px; height: 16px; cursor: nwse-resize; }
+  .handle.ne { top: -7px; right: -7px; width: 16px; height: 16px; cursor: nesw-resize; }
+  .handle.sw { bottom: -7px; left: -7px; width: 16px; height: 16px; cursor: nesw-resize; }
+  .handle.se { bottom: -7px; right: -7px; width: 16px; height: 16px; cursor: nwse-resize; }
+
+  #dragShield {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+    background: transparent;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="frameBox">
+      <iframe id="pyframe" title="Python runner"></iframe>
+      <span class="handle n"  data-dir="n"></span>
+      <span class="handle s"  data-dir="s"></span>
+      <span class="handle e"  data-dir="e"></span>
+      <span class="handle w"  data-dir="w"></span>
+      <span class="handle nw" data-dir="nw"></span>
+      <span class="handle ne" data-dir="ne"></span>
+      <span class="handle sw" data-dir="sw"></span>
+      <span class="handle se" data-dir="se"></span>
+    </div>
+  </div>
+  <div id="dragShield"></div>
+
+  <template id="frame-doc">
+    <meta charset="utf-8" />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: flex;
+        flex-direction: column;
+        background: #0d1117;
+        color: #c9d1d9;
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid #21262d;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+      }
+      button {
+        background: #21262d;
+        color: #c9d1d9;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        padding: 5px 12px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover { background: #30363d; }
+      button.primary { background: #238636; border-color: #2ea043; color: #fff; }
+      button.primary:hover { background: #2ea043; }
+      button:disabled { opacity: .5; cursor: default; }
+      .status { margin-left: auto; color: #8b949e; font-size: 12px; }
+      .split {
+        flex: 1 1 auto;
+        display: flex;
+        min-height: 0;
+      }
+      .pane { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; }
+      .pane + .pane { border-left: 1px solid #21262d; }
+      .pane label {
+        padding: 6px 12px;
+        font-size: 11px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #8b949e;
+        border-bottom: 1px solid #21262d;
+        flex: 0 0 auto;
+      }
+      textarea {
+        flex: 1 1 auto;
+        width: 100%;
+        border: 0;
+        resize: none;
+        outline: none;
+        background: #0d1117;
+        color: #e6edf3;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+        padding: 12px;
+        tab-size: 4;
+      }
+      #out {
+        flex: 1 1 auto;
+        overflow: auto;
+        margin: 0;
+        padding: 12px;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #010409;
+      }
+      #out .meta { color: #8b949e; }
+      #out .stderr, #out .err { color: #ff7b72; }
+      #out .result { color: #79c0ff; }
+      #out .hint { color: #d29922; }
+      .kbd { opacity: .7; font-weight: 400; }
+    </style>
+
+    <div class="bar">
+      <button id="run" class="primary" disabled>Run &#9654;</button>
+      <button id="clear">Clear output</button>
+      <span class="status" id="status">loading Pyodide&hellip;</span>
+    </div>
+
+    <div class="split">
+      <div class="pane">
+        <label>editor <span class="kbd">(&#8984;/Ctrl+Enter to run)</span></label>
+        <textarea id="code" spellcheck="false"># Pure Python only. Qt / PySide6 / filesystem browsing cannot run here.
+print("Hello from Python", __import__("sys").version.split()[0])
+
+for i in range(3):
+    print("tick", i)
+
+def square(n):
+    return n * n
+
+print("square(9) =", square(9))
+</textarea>
+      </div>
+      <div class="pane">
+        <label>output</label>
+        <pre id="out"></pre>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+    <script>
+      const out = document.getElementById("out");
+      const codeEl = document.getElementById("code");
+      const runBtn = document.getElementById("run");
+      const clearBtn = document.getElementById("clear");
+      const statusEl = document.getElementById("status");
+
+      let pyodide = null;
+      let ready = false;
+
+      function log(text, cls) {
+        if (text === undefined || text === null) return;
+        const piece = text.endsWith("\n") ? text : text + "\n";
+        if (cls) {
+          const span = document.createElement("span");
+          span.className = cls;
+          span.textContent = piece;
+          out.appendChild(span);
+        } else {
+          out.appendChild(document.createTextNode(piece));
+        }
+        out.scrollTop = out.scrollHeight;
+      }
+
+      clearBtn.addEventListener("click", () => { out.textContent = ""; });
+
+      async function boot() {
+        try {
+          pyodide = await loadPyodide();
+          try { await pyodide.loadPackage("micropip"); } catch (err) {}
+          window.pyodide = pyodide;
+          pyodide.setStdout({ batched: (s) => log(s) });
+          pyodide.setStderr({ batched: (s) => log(s, "stderr") });
+          const version = pyodide.runPython("import sys; sys.version.split()[0]");
+          ready = true;
+          runBtn.disabled = false;
+          statusEl.textContent = "Python " + version + " ready";
+          log("Pyodide loaded — Python " + version + " ready.", "meta");
+        } catch (err) {
+          statusEl.textContent = "failed to load";
+          log("Could not load Pyodide: " + (err && err.message ? err.message : err), "err");
+          log("It needs an internet connection the first time (CDN).", "hint");
+        }
+      }
+
+      async function run() {
+        if (!ready) return;
+        const code = codeEl.value;
+        log(">>> run", "meta");
+        try {
+          const result = await pyodide.runPythonAsync(code);
+          if (result !== undefined) {
+            log(String(result), "result");
+            result.destroy && result.destroy();
+          }
+        } catch (err) {
+          const message = String(err && err.message ? err.message : err);
+          log(message, "stderr");
+          if (/No module named ['"]?(PySide6|PyQt)/.test(message)) {
+            log("PySide6/Qt is a native GUI toolkit — it cannot run inside a browser iframe.", "hint");
+          }
+        }
+      }
+
+      runBtn.addEventListener("click", run);
+      codeEl.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          run();
+        }
+      });
+
+      boot();
+    </script>
+  </template>
+
+  <script>
+    const stage = document.getElementById("stage");
+    const box = document.getElementById("frameBox");
+    const shield = document.getElementById("dragShield");
+    const frame = document.getElementById("pyframe");
+    const tpl = document.getElementById("frame-doc");
+
+    frame.srcdoc = "<!DOCTYPE html>" + tpl.innerHTML;
+
+    const MIN_W = 320;
+    const MIN_H = 200;
+    const MARGIN = 20;
+
+    function clamp(v, lo, hi) {
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    function layoutInitial() {
+      const vw = stage.clientWidth;
+      const vh = stage.clientHeight;
+      const w = Math.max(MIN_W, vw - MARGIN * 2);
+      const h = Math.max(MIN_H, vh - MARGIN * 2);
+      box.style.left = Math.round((vw - w) / 2) + "px";
+      box.style.top = Math.round((vh - h) / 2) + "px";
+      box.style.width = Math.round(w) + "px";
+      box.style.height = Math.round(h) + "px";
+    }
+
+    layoutInitial();
+    window.addEventListener("resize", () => {
+      const vw = stage.clientWidth;
+      const vh = stage.clientHeight;
+      let left = parseFloat(box.style.left) || 0;
+      let top = parseFloat(box.style.top) || 0;
+      let width = parseFloat(box.style.width) || MIN_W;
+      let height = parseFloat(box.style.height) || MIN_H;
+      width = clamp(width, MIN_W, vw);
+      height = clamp(height, MIN_H, vh);
+      left = clamp(left, 0, Math.max(0, vw - width));
+      top = clamp(top, 0, Math.max(0, vh - height));
+      box.style.left = left + "px";
+      box.style.top = top + "px";
+      box.style.width = width + "px";
+      box.style.height = height + "px";
+    });
+
+    let drag = null;
+
+    document.querySelectorAll(".handle").forEach((handle) => {
+      handle.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        const rect = box.getBoundingClientRect();
+        drag = {
+          dir: handle.dataset.dir,
+          sx: e.clientX,
+          sy: e.clientY,
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        };
+        shield.style.cursor = getComputedStyle(handle).cursor;
+        shield.style.display = "block";
+        handle.setPointerCapture(e.pointerId);
+      });
+
+      handle.addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        const vw = stage.clientWidth;
+        const vh = stage.clientHeight;
+        const dx = e.clientX - drag.sx;
+        const dy = e.clientY - drag.sy;
+        const dir = drag.dir;
+
+        let left = drag.left;
+        let top = drag.top;
+        let width = drag.width;
+        let height = drag.height;
+
+        if (dir.includes("e")) {
+          width = clamp(drag.width + dx, MIN_W, vw - left);
+        }
+        if (dir.includes("s")) {
+          height = clamp(drag.height + dy, MIN_H, vh - top);
+        }
+        if (dir.includes("w")) {
+          left = clamp(drag.left + dx, 0, drag.left + drag.width - MIN_W);
+          width = drag.left + drag.width - left;
+        }
+        if (dir.includes("n")) {
+          top = clamp(drag.top + dy, 0, drag.top + drag.height - MIN_H);
+          height = drag.top + drag.height - top;
+        }
+
+        box.style.left = left + "px";
+        box.style.top = top + "px";
+        box.style.width = width + "px";
+        box.style.height = height + "px";
+      });
+
+      const endDrag = (e) => {
+        if (!drag) return;
+        drag = null;
+        shield.style.display = "none";
+        try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+      };
+
+      handle.addEventListener("pointerup", endDrag);
+      handle.addEventListener("pointercancel", endDrag);
+    });
+  </script>
+</body>
+</html>
