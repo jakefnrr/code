@@ -2,15 +2,17 @@
 
 const App = (() => {
   const state = { view: null };
-  const voiceState = { muted: false, deafened: false };
+  const voiceState = { muted: false, deafened: false, camera: false };
   let authMode = "login";
   let dmQuery = "";
 
   function init() {
     Store.initSync();
     Chat.init();
+    Voice.init();
     Store.applySettings();
     Store.onState(() => {
+      Voice.sync();
       if (Store.isLoggedIn()) renderApp();
       else renderAuth();
     });
@@ -106,12 +108,14 @@ const App = (() => {
   }
 
   function openFriends() {
+    document.body.classList.remove("sidebar-open");
     state.view = { type: "friends" };
     saveView();
     renderApp();
   }
 
   function openServer(serverId) {
+    document.body.classList.remove("sidebar-open");
     const me = Store.currentUser();
     const s = Store.getServer(serverId);
     if (!s || !Store.isMember(serverId, me.id)) return;
@@ -124,6 +128,7 @@ const App = (() => {
   }
 
   function openChannel(serverId, channelId) {
+    document.body.classList.remove("sidebar-open");
     const me = Store.currentUser();
     const s = Store.getServer(serverId);
     const ch = s && s.channels.find(c => c.id === channelId && c.type === "text");
@@ -135,6 +140,7 @@ const App = (() => {
   }
 
   function openDM(dmId) {
+    document.body.classList.remove("sidebar-open");
     const me = Store.currentUser();
     const dm = Store.db.dms[dmId];
     if (!dm || !dm.userIds.includes(me.id)) return;
@@ -168,9 +174,13 @@ const App = (() => {
       <div class="app">
         <nav class="server-rail">${rail}</nav>
         <aside class="channel-sidebar">${sidebar}</aside>
-        <main class="chat-main">${main}</main>
+        <main class="chat-main">
+          <div class="mobile-topbar"><button class="icon-btn" id="mobile-nav-btn" title="Menu">☰</button></div>
+          ${main}
+        </main>
         ${members}
       </div>
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
       ${userPanel}`;
 
     Servers.bindRail();
@@ -262,6 +272,7 @@ const App = (() => {
     return `
       <div class="chat-header">${header}</div>
       ${pinned}
+      <div class="voice-grid" id="voice-grid"></div>
       ${messages}
       ${typing}
       <div class="message-input-wrap">${input}</div>
@@ -451,8 +462,8 @@ const App = (() => {
     if (!panel) return;
     panel.onclick = e => {
       if (e.target.closest("#panel-settings")) { Settings.open(); return; }
-      if (e.target.closest("#panel-mute")) { voiceState.muted = !voiceState.muted; renderApp(); return; }
-      if (e.target.closest("#panel-deafen")) { voiceState.deafened = !voiceState.deafened; renderApp(); return; }
+      if (e.target.closest("#panel-mute")) { voiceState.muted = !voiceState.muted; Voice.setMicMuted(voiceState.muted); renderApp(); return; }
+      if (e.target.closest("#panel-deafen")) { voiceState.deafened = !voiceState.deafened; Voice.setDeafened(voiceState.deafened); renderApp(); return; }
       if (!e.target.closest("button")) Settings.open();
     };
     panel.oncontextmenu = e => {
@@ -477,6 +488,7 @@ const App = (() => {
         <span class="spacer"></span>
         <button class="icon-btn ${voiceState.muted ? "active" : ""}" id="vb-mute" title="Mute">${voiceState.muted ? "🔇" : "🎙"}</button>
         <button class="icon-btn ${voiceState.deafened ? "active" : ""}" id="vb-deafen" title="Deafen">${voiceState.deafened ? "🔕" : "🎧"}</button>
+        <button class="icon-btn ${voiceState.camera ? "active" : ""}" id="vb-cam" title="Camera">${voiceState.camera ? "📹" : "🚫"}</button>
         <button class="icon-btn" id="vb-disconnect" title="Disconnect">📞</button>
       </div>`;
   }
@@ -484,11 +496,14 @@ const App = (() => {
   function bindVoiceBar(me, view) {
     const bar = document.querySelector(".voice-connected-bar");
     if (!bar) return;
-    bar.querySelector("#vb-mute").onclick = () => { voiceState.muted = !voiceState.muted; renderApp(); };
-    bar.querySelector("#vb-deafen").onclick = () => { voiceState.deafened = !voiceState.deafened; renderApp(); };
+    bar.querySelector("#vb-mute").onclick = () => { voiceState.muted = !voiceState.muted; Voice.setMicMuted(voiceState.muted); renderApp(); };
+    bar.querySelector("#vb-deafen").onclick = () => { voiceState.deafened = !voiceState.deafened; Voice.setDeafened(voiceState.deafened); renderApp(); };
+    bar.querySelector("#vb-cam").onclick = async () => { voiceState.camera = await Voice.toggleCamera(); renderApp(); };
     bar.querySelector("#vb-disconnect").onclick = () => {
       const ch = Store.voiceChannelFor(me.id, view.serverId);
       if (ch) Store.leaveVoice(me.id, view.serverId, ch.id);
+      Voice.leave();
+      voiceState.camera = false;
       renderApp();
     };
   }
@@ -525,12 +540,21 @@ const App = (() => {
     }
   }
 
+  function bindMobileNav() {
+    const btn = document.getElementById("mobile-nav-btn");
+    const backdrop = document.getElementById("sidebar-backdrop");
+    const close = () => document.body.classList.remove("sidebar-open");
+    if (btn) btn.onclick = () => document.body.classList.toggle("sidebar-open");
+    if (backdrop) backdrop.onclick = close;
+  }
+
   // Patch renderApp to bind header actions + members
   const _renderApp = renderApp;
   renderApp = function () {
     _renderApp();
     bindMembers(state.view);
     bindHeaderActions(state.view);
+    bindMobileNav();
   };
 
   return {
@@ -539,5 +563,5 @@ const App = (() => {
   };
 })();
 
-window.__dc = { Store, App, Chat, Servers, UI, Friends, Settings, Utils };
+window.__dc = { Store, App, Chat, Servers, UI, Friends, Settings, Utils, Voice };
 window.addEventListener("DOMContentLoaded", () => App.init());

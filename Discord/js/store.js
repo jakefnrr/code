@@ -111,7 +111,16 @@ const Store = (() => {
       if (e.key === DB_KEY) { load(); emit(); }
     });
     window.addEventListener("beforeunload", () => {
-      if (session && session.userId) setOnline(session.userId, false, true);
+      if (session && session.userId) {
+        const uid = session.userId;
+        for (const sid in db.servers) {
+          const s = db.servers[sid];
+          if (!s) continue;
+          for (const ch of s.channels) if (ch.voiceUsers) ch.voiceUsers = ch.voiceUsers.filter(id => id !== uid);
+        }
+        persist();
+        setOnline(uid, false, true);
+      }
     });
   }
 
@@ -146,13 +155,18 @@ const Store = (() => {
   /* ---------- session ---------- */
 
   function getStoredSession() {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
+    // Per-tab session wins so multiple tabs can be logged into different accounts.
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
       if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch (e) {}
+        return s;
+      }
     } catch (e) {}
     return null;
   }
@@ -160,11 +174,10 @@ const Store = (() => {
   function setSession(userId, remember) {
     session = { userId, remember: !!remember };
     const raw = JSON.stringify(session);
+    try { sessionStorage.setItem(SESSION_KEY, raw); } catch (e) {}
     try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
-    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
     try {
       if (session.remember) localStorage.setItem(SESSION_KEY, raw);
-      else sessionStorage.setItem(SESSION_KEY, raw);
     } catch (e) {}
   }
 

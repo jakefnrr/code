@@ -37,12 +37,15 @@ const Servers = (() => {
     if (!s || !Store.isMember(s.id, me.id)) return "";
     const canManage = Store.canManageChannels(s.id, me.id);
     const cats = (s.categories || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+    const chIndex = {};
+    s.channels.forEach((c, i) => { chIndex[c.id] = i; });
+    const chCmp = (a, b) => ((a.position ?? 1e9) - (b.position ?? 1e9)) || (chIndex[a.id] - chIndex[b.id]);
     let list = "";
     for (const cat of cats) {
-      const channels = s.channels.filter(c => c.categoryId === cat.id);
+      const channels = s.channels.filter(c => c.categoryId === cat.id).sort(chCmp);
       list += categoryHTML(cat, channels, canManage, view);
     }
-    const uncategorized = s.channels.filter(c => !cats.some(cat => cat.id === c.categoryId));
+    const uncategorized = s.channels.filter(c => !cats.some(cat => cat.id === c.categoryId)).sort(chCmp);
     if (uncategorized.length) {
       list += categoryHTML({ id: "__other", name: "Other", collapsed: false, position: 999 }, uncategorized, canManage, view);
     }
@@ -57,21 +60,22 @@ const Servers = (() => {
   function categoryHTML(cat, channels, canManage, view) {
     const realCat = cat.id !== "__other";
     return `
-      <div class="channel-category ${cat.collapsed ? "collapsed" : ""}" data-category-header="${cat.id}" ${realCat ? `data-cat-id="${cat.id}"` : ""}>
+      <div class="channel-category ${cat.collapsed ? "collapsed" : ""}" data-category-header="${cat.id}" ${realCat ? `data-cat-id="${cat.id}"` : ""} ${canManage && realCat ? 'draggable="true"' : ""}>
         <span class="cat-chevron">${cat.collapsed ? "▸" : "▾"}</span>
         <span class="cat-name">${Utils.esc(cat.name)}</span>
         ${canManage && realCat ? `<button class="icon-btn add" data-add-channel-cat="${cat.id}" title="Create Channel" style="width:18px;height:18px;font-size:14px">+</button>` : ""}
       </div>
-      ${cat.collapsed ? "" : channels.map(ch => channelItemHTML(ch, view)).join("")}`;
+      ${cat.collapsed ? "" : channels.map(ch => channelItemHTML(ch, view, canManage)).join("")}`;
   }
 
-  function channelItemHTML(ch, view) {
+  function channelItemHTML(ch, view, canManage = false) {
     const me = Store.currentUser();
+    const dragAttr = canManage ? 'draggable="true"' : "";
     if (ch.type === "voice") {
       const users = (ch.voiceUsers || []).map(id => Store.getUser(id)).filter(Boolean);
       const active = view && view.type === "server" && view.channelId === ch.id;
       return `
-        <div class="channel-item voice-channel ${active ? "active" : ""}" data-voice-channel="${ch.id}">
+        <div class="channel-item voice-channel ${active ? "active" : ""}" data-voice-channel="${ch.id}" data-ch-id="${ch.id}" ${dragAttr}>
           <span class="voice-icon">🔊</span>
           <span class="channel-name">${Utils.esc(ch.name)}</span>
           ${users.length ? `<span style="font-size:11px;color:var(--text-muted)">${users.length}</span>` : ""}
@@ -81,7 +85,7 @@ const Servers = (() => {
     const unread = Store.unreadCount(ch, me.id);
     const active = view && view.type === "server" && view.channelId === ch.id;
     return `
-      <div class="channel-item ${active ? "active" : ""}" data-channel-id="${ch.id}">
+      <div class="channel-item ${active ? "active" : ""}" data-channel-id="${ch.id}" data-ch-id="${ch.id}" ${dragAttr}>
         <span class="hash">#</span>
         <span class="channel-name">${Utils.esc(ch.name)}</span>
         ${unread ? `<span class="unread-count">${unread > 99 ? "99+" : unread}</span>` : ""}
@@ -220,6 +224,207 @@ const Servers = (() => {
         emptyChannelMenu(e.clientX, e.clientY, view.serverId);
       };
     }
+    if (Store.canManageChannels(view.serverId, Store.currentUser().id)) initSidebarDrag(view);
+  }
+
+  /* ---------- drag & drop reorder ---------- */
+
+  let dragState = null;
+  let pendingDrop = null;
+  let dropLine = null;
+
+  function sortedCats(s) {
+    return (s.categories || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+  }
+
+  function channelOrder(s) {
+    const idx = {};
+    s.channels.forEach((c, i) => { idx[c.id] = i; });
+    return s.channels.slice().sort((a, b) => ((a.position ?? 1e9) - (b.position ?? 1e9)) || (idx[a.id] - idx[b.id]));
+  }
+
+  function layoutFromModel(s) {
+    const cats = sortedCats(s);
+    const catOrder = cats.map(c => c.id);
+    const byCat = {};
+    catOrder.forEach(id => { byCat[id] = []; });
+    byCat["__other"] = [];
+    for (const ch of channelOrder(s)) {
+      const cid = catOrder.includes(ch.categoryId) ? ch.categoryId : "__other";
+      byCat[cid].push(ch.id);
+    }
+    return { catOrder, byCat };
+  }
+
+  function clearDropLine() {
+    if (dropLine) { dropLine.remove(); dropLine = null; }
+  }
+
+  function placeLineBefore(refEl) {
+    clearDropLine();
+    dropLine = document.createElement("div");
+    dropLine.className = "drop-line";
+    refEl.parentNode.insertBefore(dropLine, refEl);
+  }
+
+  function placeLineAfter(refEl) {
+    clearDropLine();
+    dropLine = document.createElement("div");
+    dropLine.className = "drop-line";
+    refEl.parentNode.insertBefore(dropLine, refEl.nextSibling);
+  }
+
+  function placeLineEnd(list) {
+    clearDropLine();
+    dropLine = document.createElement("div");
+    dropLine.className = "drop-line";
+    list.appendChild(dropLine);
+  }
+
+  function catHeaderEls(list) {
+    return [...list.querySelectorAll(".channel-category[data-cat-id]")];
+  }
+
+  function computeDrop(e, view) {
+    const list = document.querySelector("#channel-list");
+    if (!list) return null;
+    const s = Store.getServer(view.serverId);
+    if (!s) return null;
+    const { catOrder, byCat } = layoutFromModel(s);
+    const target = e.target;
+    const catEl = target.closest ? target.closest(".channel-category[data-cat-id]") : null;
+    const chEl = target.closest ? target.closest("[data-ch-id]") : null;
+
+    if (dragState.type === "cat") {
+      const headers = catHeaderEls(list);
+      const hi = catEl ? headers.indexOf(catEl) : -1;
+      if (hi >= 0 && catEl.dataset.catId !== dragState.id) {
+        const r = catEl.getBoundingClientRect();
+        const before = e.clientY < r.top + r.height / 2;
+        if (before) {
+          placeLineBefore(catEl);
+          return { kind: "cat", id: dragState.id, beforeCatId: catEl.dataset.catId };
+        }
+        const next = headers[hi + 1];
+        if (next) { placeLineBefore(next); return { kind: "cat", id: dragState.id, beforeCatId: next.dataset.catId }; }
+        placeLineEnd(list);
+        return { kind: "cat", id: dragState.id, beforeCatId: null };
+      }
+      // over a channel or empty space -> move to end
+      placeLineEnd(list);
+      return { kind: "cat", id: dragState.id, beforeCatId: null };
+    }
+
+    // channel drag
+    if (chEl) {
+      const targetId = chEl.dataset.chId;
+      if (targetId === dragState.id) { clearDropLine(); return null; }
+      const ch2 = s.channels.find(c => c.id === targetId);
+      let catId = ch2 && catOrder.includes(ch2.categoryId) ? ch2.categoryId : catOrder[catOrder.length - 1];
+      const r = chEl.getBoundingClientRect();
+      const before = e.clientY < r.top + r.height / 2;
+      const siblings = byCat[catId] || [];
+      const ti = siblings.indexOf(targetId);
+      let beforeId;
+      if (before) {
+        beforeId = targetId;
+        placeLineBefore(chEl);
+      } else {
+        let nextId = siblings[ti + 1];
+        if (nextId === dragState.id) nextId = siblings[ti + 2];
+        beforeId = nextId || null;
+        placeLineAfter(chEl);
+      }
+      return { kind: "ch", id: dragState.id, catId, beforeId };
+    }
+    if (catEl) {
+      const catId = catEl.dataset.catId;
+      placeLineAfter(catEl); // top of that category
+      const first = (byCat[catId] || [])[0];
+      return { kind: "ch", id: dragState.id, catId, beforeId: first && first !== dragState.id ? first : null };
+    }
+    const lastCat = catOrder[catOrder.length - 1];
+    placeLineEnd(list);
+    return { kind: "ch", id: dragState.id, catId: lastCat, beforeId: null };
+  }
+
+  function applyDrop(view) {
+    if (!pendingDrop) return;
+    const s = Store.getServer(view.serverId);
+    const me = Store.currentUser();
+    if (!s || !me) return;
+    const { catOrder, byCat } = layoutFromModel(s);
+    const drop = pendingDrop;
+    try {
+      if (drop.kind === "cat") {
+        const order = catOrder.filter(id => id !== drop.id);
+        let idx = drop.beforeCatId ? order.indexOf(drop.beforeCatId) : order.length;
+        if (idx < 0) idx = order.length;
+        order.splice(idx, 0, drop.id);
+        Store.reorderLayout(me.id, view.serverId, { categories: order, channels: byCat });
+      } else {
+        for (const key of Object.keys(byCat)) {
+          const i = byCat[key].indexOf(drop.id);
+          if (i >= 0) byCat[key].splice(i, 1);
+        }
+        const list = byCat[drop.catId] || (byCat[drop.catId] = []);
+        let idx = drop.beforeId ? list.indexOf(drop.beforeId) : -1;
+        if (idx < 0) idx = list.length;
+        list.splice(idx, 0, drop.id);
+        Store.reorderLayout(me.id, view.serverId, { categories: catOrder, channels: byCat });
+      }
+      UI.toast("Layout updated");
+      App.render();
+    } catch (e) { UI.toast(e.message, "error"); }
+  }
+
+  function cleanupDrag() {
+    dragState = null;
+    pendingDrop = null;
+    clearDropLine();
+    document.querySelectorAll(".dragging").forEach(el => el.classList.remove("dragging"));
+  }
+
+  function initSidebarDrag(view) {
+    const sidebar = document.querySelector(".channel-sidebar");
+    const list = sidebar && sidebar.querySelector("#channel-list");
+    if (!list) return;
+
+    sidebar.addEventListener("dragstart", e => {
+      const catEl = e.target.closest && e.target.closest(".channel-category[data-cat-id]");
+      const chEl = e.target.closest && e.target.closest("[data-ch-id]");
+      if (catEl && !chEl) {
+        dragState = { type: "cat", id: catEl.dataset.catId };
+        catEl.classList.add("dragging");
+      } else if (chEl) {
+        dragState = { type: "ch", id: chEl.dataset.chId };
+        chEl.classList.add("dragging");
+      } else {
+        e.preventDefault();
+        return;
+      }
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", dragState.id); } catch (_) {}
+    });
+
+    list.addEventListener("dragover", e => {
+      if (!dragState) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      pendingDrop = computeDrop(e, view);
+    });
+
+    list.addEventListener("drop", e => {
+      e.preventDefault();
+      if (dragState && pendingDrop) applyDrop(view);
+      cleanupDrag();
+    });
+
+    list.addEventListener("dragleave", e => {
+      if (e.target === list && !list.contains(e.relatedTarget)) clearDropLine();
+    });
+
+    sidebar.addEventListener("dragend", cleanupDrag);
   }
 
   function emptyChannelMenu(x, y, serverId) {
