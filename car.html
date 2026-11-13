@@ -81,21 +81,20 @@ let cfg=null,spawnTimer=0,breather=0;
 function levelConfig(n){
   const t=(n-1)/(MAX_LEVEL-1); // 0..1 difficulty
   return{
-    playerSpeed:280+n*3.2,                       // 283..440 px/s
+    playerSpeed:500+n*4,                          // 504..700 px/s — way faster
     distance:1500+n*22,                          // meters to finish
-    spawnInterval:Math.max(.55,1.5-t*.9),         // seconds between waves
-    waveMax:1+Math.floor(t*2.6),                 // cars per wave 1..3
-    factorMin:.5+t*.15,                          // slowest traffic fraction of player
-    factorMax:.8+t*.38,                          // fastest (up to ~1.18)
-    matchChance:t>.45?.35:0,                     // chance of ~equal speed car late game
-    narrow:t>.6                                    // tighter lane gaps late
+    spawnInterval:Math.max(.35,1.1-t*.7),         // seconds between waves
+    waveMax:2+Math.floor(t*4),                   // cars per wave 2..6
+    trafficBase:250+n*3,                          // absolute traffic speed
+    matchChance:t>.4?.4:0                         // ~equal-speed cars late game
   };
 }
-
-function trafficFactor(){
-  const f=Math.random()*(cfg.factorMax-cfg.factorMin)+cfg.factorMin;
-  if(cfg.matchChance&&Math.random()<cfg.matchChance)return 1+ (Math.random()*.06-.03); // ~player speed
-  return f;
+function trafficSpeed(){
+  const c=cfg;
+  if(c.matchChance&&Math.random()<c.matchChance)
+    return player.speed*(0.94+Math.random()*.12); // matches YOU
+  const mult=.65+Math.random()*1.0;               // 0.65..1.65 × base
+  return c.trafficBase*mult;
 }
 
 /* ---------- persistence ---------- */
@@ -175,25 +174,39 @@ function winLevel(){
   beep(523,.12,'square',.06);setTimeout(()=>beep(659,.12,'square',.06),120);setTimeout(()=>beep(784,.3,'square',.06),240);
 }
 function crashFX(){
-  shake=14;
-  for(let i=0;i<22;i++)particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*9,vy:(Math.random()-.5)*9-2,life:500,color:Math.random()<.5?'#00e5ff':'#ff5d8f'});
+  shake=22;
+  for(let i=0;i<40;i++)particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*14,vy:(Math.random()-.5)*14-3,life:800,color:Math.random()<.5?'#00e5ff':'#ff5d8f'});
+}
+function die(){
+  if(state!=='playing')return;
+  state='dead';engineStop();crashFX();
+  beep(160,.5,'sawtooth',.09);beep(90,.6,'square',.07);
+  overlay.style.display='flex';
+  overlay.innerHTML=`<div id="panel"><h1 style="color:#ff5d8f">WRECKED!</h1>
+    <p>Level ${level} · Passed ${passed} cars · ${Math.floor(distance)}m</p>
+    <button id="retryBtn">↻ RETRY (SPACE)</button><br>
+    <button class="ghost" id="menuBtn2">MENU</button></div>`;
+  document.getElementById('retryBtn').onclick=()=>startLevel(level);
+  document.getElementById('menuBtn2').onclick=showMenu;
 }
 
 /* ---------- spawning ---------- */
-const LANES=4;
+const LANES=8;
 function laneX(l){return 60+l*((W-120)/(LANES-1));}
 function spawnWave(){
-  const n=1+Math.floor(Math.random()*cfg.waveMax);
-  const lanes=[0,1,2,3].sort(()=>Math.random()-.5).slice(0,n);
+  // never fill every lane — always leave gaps so it's possible
+  const maxCars=Math.min(cfg.waveMax,LANES-3);
+  const n=1+Math.floor(Math.random()*maxCars);
+  const lanes=[...Array(LANES).keys()].sort(()=>Math.random()-.5).slice(0,n);
   for(const l of lanes){
-    const colors=['#ff5d5d','#ffb84d','#c77dff','#ff7ad9','#8aff5d'];
-    const f=trafficFactor();
+    const colors=['#ff5d5d','#ffb84d','#c77dff','#ff7ad9','#8aff5d','#ff9d5c','#7dd8ff','#f0f'];
+    const spd=trafficSpeed();
     traffic.push({
-      x:laneX(l)+(Math.random()-.5)*22+ (cfg.narrow?0:10),
-      y:-110,w:44,h:76,
-      speed:cfg.playerSpeed*f,
+      x:laneX(l)+(Math.random()-.5)*16,
+      y:-110,w:40,h:72,
+      speed:spd,
       color:colors[Math.floor(Math.random()*colors.length)],
-      passed:false,age:0,decay:f<1.05?1:0,bulb:Math.random()*6
+      passed:false,age:0,decay:spd<player.speed*1.02?1:0,bulb:Math.random()*6
     });
   }
 }
@@ -201,11 +214,10 @@ function spawnWave(){
 /* ---------- update ---------- */
 function update(dt){
   if(state!=='playing')return;
-  const steer=260*dt;
-  if(keys.left){player.vx-=steer;player.facing=-1;}
-  if(keys.right){player.vx+=steer;player.facing=1;}
-  if(!keys.left&&!keys.right)player.vx*=Math.pow(.0015,dt); // smooth stop
-  player.vx=Math.max(-340,Math.min(340,player.vx));
+  // hyper-responsive steering: snap toward target velocity
+  const target=(keys.right?430:0)-(keys.left?430:0);
+  player.vx+=(target-player.vx)*Math.min(1,dt*14);
+  player.facing=player.vx<-20?-1:player.vx>20?1:player.facing;
   player.x+=player.vx*dt;
   if(player.x<player.w/2){player.x=player.w/2;player.vx=0;}
   if(player.x>W-player.w/2){player.x=W-player.w/2;player.vx=0;}
@@ -214,13 +226,13 @@ function update(dt){
   engineUpdate();
 
   roadOffset=(roadOffset+player.speed*dt)%90;
-  distance+=player.speed*dt/55; // meters
+  distance+=player.speed*dt/20; // meters (~25-35 m/s)
 
   // spawning
   spawnTimer-=dt;breather-=dt;
   if(spawnTimer<=0){
-    if(breather<=0){spawnWave();breather=cfg.spawnInterval*(2+Math.random()*1.5);}
-    spawnTimer=cfg.spawnInterval*(.7+Math.random()*.6);
+    if(breather<=0){spawnWave();breather=cfg.spawnInterval*(1+Math.random()*1.2);}
+    spawnTimer=cfg.spawnInterval*(.5+Math.random()*.5);
   }
 
   for(const c of traffic){
@@ -232,20 +244,20 @@ function update(dt){
     if(!c.passed&&c.y>player.y+player.h/2+10){
       c.passed=true;passed++;
       const dx=Math.abs(c.x-player.x);
-      if(dx<60){floaters.push({x:c.x,y:c.y-40,text:'NEAR MISS +2',life:900,color:'#ffe98a'});passed++;}
+      if(dx<42){floaters.push({x:c.x,y:c.y-40,text:'NEAR MISS +2',life:900,color:'#ffe98a'});passed++;}
       passEl.textContent='PASSED: '+passed;
       beep(880,.07,'sine',.04);
     }
-    // bump = slowdown + sparks (never fatal — always possible)
+    // ONE crash = wrecked. No second chances.
     if(Math.abs(c.x-player.x)<(c.w+player.w)/2-8&&Math.abs(c.y-player.y)<(c.h+player.h)/2-8){
-      if(!c.bumped){c.bumped=true;player.speed=Math.max(140,player.speed-70);
-        crashFX();beep(140,.25,'sawtooth',.07);}
+      die();return;
     }
     // exhaust particles for close cars
     if(Math.abs(c.y-player.y)<140&&Math.random()<.3)
       particles.push({x:c.x+(Math.random()-.5)*10,y:c.y-c.h/2,vx:0,vy:-30-Math.random()*30,life:300,color:'#557'});
   }
   traffic=traffic.filter(c=>c.y<H+140);
+  if(traffic.length>70)traffic.splice(0,traffic.length-70); // perf cap
 
   for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt*1000;}
   particles=particles.filter(p=>p.life>0);
@@ -361,12 +373,16 @@ function dpadAction(dir,active){
   try{ac();}catch(e){}
   if(state==='menu'){if(active)showMenu();return;}
   if(state==='won'){if(active)document.getElementById('nextBtn')?.click();return;}
+  if(state==='dead'){if(active)document.getElementById('retryBtn')?.click();return;}
   if(dir==='lt')setLeft(active);if(dir==='rt')setRight(active);
 }
 window.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')setLeft(true);
   if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')setRight(true);
-  if((e.key===' '||e.key==='Enter')&&state!=='playing'){e.preventDefault();if(state==='won')document.getElementById('nextBtn')?.click();else if(state==='menu')startLevel(Math.min(unlocked,MAX_LEVEL));}
+  if((e.key===' '||e.key==='Enter')&&state!=='playing'){e.preventDefault();
+    if(state==='won')document.getElementById('nextBtn')?.click();
+    else if(state==='dead')document.getElementById('retryBtn')?.click();
+    else if(state==='menu')startLevel(Math.min(unlocked,MAX_LEVEL));}
 });
 window.addEventListener('keyup',e=>{
   if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')setLeft(false);
