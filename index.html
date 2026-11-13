@@ -53,39 +53,39 @@ body{overflow-x:hidden}
 }
 
 .top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:15px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(175px,1fr));
+    gap:13px;
+    margin-bottom:32px;
 }
 .corner-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
+    min-height:115px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
     text-decoration:none;
-    color:#dffff0;
-    background:rgba(3,25,13,.58);
-    border:1px solid rgba(67,255,143,.42);
-    border-radius:10px;
-    padding:9px 12px;
-    font-size:10px;
+    color:#eafff1;
+    padding:18px;
+    font-size:12px;
     font-weight:800;
     letter-spacing:1px;
     text-transform:uppercase;
-    backdrop-filter:blur(12px);
-    box-shadow:0 0 12px rgba(39,255,126,.07);
-    transition:.18s ease;
+    border:1px solid rgba(100,255,165,.18);
+    border-radius:15px;
+    background:rgba(4,25,13,.55);
+    backdrop-filter:blur(10px);
+    transition:.22s ease;
 }
-.corner-btn-big{
-    padding:11px 14px;
-    font-size:12px;
+.corner-btn .bigicon{
+    font-size:26px;
+    margin-bottom:12px;
+    filter:drop-shadow(0 0 8px rgba(70,255,145,.6));
 }
 .corner-btn:hover{
-    color:#001b0b;
-    background:#45ff90;
-    border-color:#aaffc9;
-    box-shadow:0 0 15px #45ff90,0 0 45px rgba(69,255,144,.35);
-    transform:translateY(-2px) scale(1.025);
+    transform:translateY(-5px);
+    border-color:rgba(90,255,157,.7);
+    background:rgba(7,40,20,.7);
+    box-shadow:0 0 25px rgba(55,255,137,.12);
 }
 
 .hero{
@@ -344,25 +344,17 @@ footer{
 @media(max-width:600px){
     .app{padding:18px 14px 100px}
     .hero{margin-top:45px}
-    .grid{grid-template-columns:repeat(2,1fr);gap:9px}
+    .grid,.top{grid-template-columns:repeat(2,1fr);gap:9px}
+    .top{margin-bottom:9px}
     .shortcuts{gap:9px}
     .shortcut{min-height:100px;padding:15px}
-    .card{min-height:105px;padding:14px}
+    .card,.corner-btn{min-height:105px;padding:14px}
     .mode{bottom:35px;right:10px;width:215px}
     footer{font-size:7px;bottom:8px}
 }
 @media(max-width:390px){
-    .grid{grid-template-columns:1fr}
+    .grid,.top{grid-template-columns:1fr}
     .shortcuts{grid-template-columns:1fr}
-}
-@media(max-width:850px){
-    .top{flex-direction:row;gap:6px;padding:8px 0}
-    .corner-btn{flex:0 0 auto;width:auto;padding:6px 8px;font-size:9px}
-    .corner-btn-big{display:none}
-}
-@media(max-width:600px){
-    .top{padding:6px 0}
-    .corner-btn{padding:5px 6px;font-size:8px}
 }
 </style>
 </head>
@@ -373,17 +365,16 @@ footer{
 <div class="scanlines"></div>
 
 <div class="app">
-    <div class="top">
-        <a href="GrindHub/" class="corner-btn">Grind Hub</a>
-        <a href="Money/" class="corner-btn">Money</a>
-        <a href="NexusIDE/" class="corner-btn">Nexus IDE</a>
-        <a href="ai.html" class="corner-btn">Jake AI</a>
-        <a href="Japanese/" class="corner-btn">Japanese</a>
-        <a href="https://jakegreenchat.base44.app" target="_blank" rel="noopener" class="corner-btn" style="background: rgba(30, 255, 120, 0.18); border-color: rgba(67, 255, 143, 0.45); color: #45ff90;">GreenChat</a>
-        <a href="Type/index.html" class="corner-btn-big">⌨ Typing Test</a>
-    </div>
     <section class="section">
         <div class="label">ALL PROJECTS</div>
+        <div class="top">
+            <a href="GrindHub/" id="grind" class="corner-btn"><span class="bigicon">⚡</span><span class="btn-label">Grind Hub</span></a>
+            <a href="Money/" class="corner-btn"><span class="bigicon">💰</span>Money</a>
+            <a href="NexusIDE/" class="corner-btn"><span class="bigicon">💻</span>Nexus IDE</a>
+            <a href="ai.html" class="corner-btn"><span class="bigicon">🤖</span>Jake AI</a>
+            <a href="Japanese/" class="corner-btn"><span class="bigicon">🗾</span>Japanese</a>
+            <a href="https://jakegreenchat.base44.app" target="_blank" rel="noopener" class="corner-btn" style="background: rgba(30, 255, 120, 0.18); border-color: rgba(67, 255, 143, 0.45); color: #45ff90;"><span class="bigicon">💬</span>GreenChat</a>
+        </div>
         <div id="projects" class="grid"></div>
     </section>
 </div>
@@ -413,7 +404,7 @@ footer{
    main.py
    ========================================================= */
 const projects = [
-    ["Arcade","Arcade/index.html","🎮"],
+    ["Typing Test","Type/index.html","⌨️"],
     ["App Maker","appmaker.html","🛠️"],
     ["Massage","Massage/index.html","💆"],
     ["Notes","Notes/index.html","📝"],
@@ -449,7 +440,7 @@ function enterJakeMode(){
     setTimeout(()=>{
         toast.classList.remove("show");
 
-        grind.textContent="â My Grind Hub";
+        grind.querySelector(".btn-label").textContent="My Grind Hub";
         grind.href="MyGrindHub/";
 
         mode.innerHTML=`
@@ -462,7 +453,7 @@ function enterJakeMode(){
 }
 
 function exitJakeMode(){
-    grind.textContent="â¡ Grind Hub";
+    grind.querySelector(".btn-label").textContent="Grind Hub";
     grind.href="GrindHub/";
 
     mode.innerHTML=`
