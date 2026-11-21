@@ -222,41 +222,110 @@ class UIManager {
         await this.renderStats();
     }
 
-    async renderStats() {
-        const points = await pointsManager.getPoints();
-        const pv = document.getElementById('points-value');
-        if (pv) pv.textContent = Number.isInteger(points) ? points : points.toFixed(1);
-        const ss = document.getElementById('sync-status');
-        if (ss && window.storage) ss.textContent = storage.syncStatus ? storage.syncStatus() : '';
+    
+async renderStats() {
+    const points = await pointsManager.getPoints();
+    const pv = document.getElementById('points-value');
+    if (pv) pv.textContent = Number.isInteger(points) ? points : points.toFixed(1);
 
-        await historyManager.refreshHistory().catch(() => {});
-        await totalsManager.refreshTotals().catch(() => {});
-        const t = totalsManager.getTotals();
-        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        set('total-time', totalsManager.formatTimeMinutes(t.totalTime || 0));
-        set('total-money', totalsManager.formatMoney(t.moneySpent || 0));
-        set('total-paid', totalsManager.formatTimeMinutes(t.paidTime || 0));
-        set('total-free', totalsManager.formatTimeMinutes(t.freeTime || 0));
-
-        const lists = [document.getElementById('history-list'), document.getElementById('history-list-main')].filter(Boolean);
-        if (!lists.length) return;
-        const paid = historyManager.getPaidHistory().map(e => ({ ...e, type: 'paid' }));
-        const free = historyManager.getFreeHistory().map(e => ({ ...e, type: 'free' }));
-        const all = [...paid, ...free].sort((a, b) => b.timestamp - a.timestamp);
-        set('total-count', String(all.length));
-        const html = !all.length
-            ? '<div class="history-empty">No massages yet — your full history will show up here.</div>'
-            : all.map(e => {
-            const date = historyManager.formatDate(e.date || new Date(e.timestamp).toISOString());
-            const dur = historyManager.formatDuration(e.duration) + (e.note ? ` · ${e.note}` : '');
-            const right = e.type === 'paid'
-                ? `<span class="history-amount">${historyManager.formatPrice(e.price)}</span> <span class="history-points">${historyManager.formatPoints(e.points)}</span>`
-                : `<span class="history-amount">FREE</span> <span class="history-points">-${e.pointsUsed || 0} pts</span>`;
-            const tag = e.type === 'paid' ? 'PAID' : 'FREE';
-            return `<div class="history-item"><div class="history-date">${date} · ${tag}</div><div class="history-details"><span class="history-duration">${dur}</span>${right}</div></div>`;
-        }).join('');
-        lists.forEach(l => { l.innerHTML = html; });
+    const ss = document.getElementById('sync-status');
+    if (ss && window.storage) {
+        ss.textContent = storage.syncStatus ? storage.syncStatus() : '';
     }
+
+    await historyManager.refreshHistory().catch(() => {});
+    await totalsManager.refreshTotals().catch(() => {});
+
+    const t = totalsManager.getTotals();
+    const set = (id, v) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = v;
+    };
+
+    set('total-time', totalsManager.formatTimeMinutes(t.totalTime || 0));
+    set('total-money', totalsManager.formatMoney(t.moneySpent || 0));
+    set('total-paid', totalsManager.formatTimeMinutes(t.paidTime || 0));
+    set('total-free', totalsManager.formatTimeMinutes(t.freeTime || 0));
+
+    const lists = [
+        document.getElementById('history-list'),
+        document.getElementById('history-list-main')
+    ].filter(Boolean);
+
+    if (!lists.length) return;
+
+    const paid = historyManager.getPaidHistory().map(e => ({ ...e, type: 'paid' }));
+    const free = historyManager.getFreeHistory().map(e => ({ ...e, type: 'free' }));
+    const all = [...paid, ...free].sort(
+        (a, b) => Number(b.timestamp) - Number(a.timestamp)
+    );
+
+    set('total-count', String(all.length));
+
+    lists.forEach(list => {
+        list.replaceChildren();
+
+        if (!all.length) {
+            const empty = document.createElement('div');
+            empty.className = 'history-empty';
+            empty.textContent = 'No massages yet — your full history will show up here.';
+            list.appendChild(empty);
+            return;
+        }
+
+        all.forEach(e => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+
+            const dateEl = document.createElement('div');
+            dateEl.className = 'history-date';
+
+            const timestamp = Number(e.timestamp);
+            const fallbackDate = Number.isFinite(timestamp)
+                ? new Date(timestamp).toISOString()
+                : '';
+
+            dateEl.textContent =
+                `${historyManager.formatDate(e.date || fallbackDate)} · ${e.type === 'paid' ? 'PAID' : 'FREE'}`;
+
+            const details = document.createElement('div');
+            details.className = 'history-details';
+
+            const duration = document.createElement('span');
+            duration.className = 'history-duration';
+            duration.textContent = historyManager.formatDuration(e.duration);
+
+            if (e.note) {
+                duration.appendChild(
+                    document.createTextNode(` · ${String(e.note)}`)
+                );
+            }
+
+            const amount = document.createElement('span');
+            amount.className = 'history-amount';
+
+            const pointsEl = document.createElement('span');
+            pointsEl.className = 'history-points';
+
+            if (e.type === 'paid') {
+                amount.textContent = historyManager.formatPrice(e.price);
+                pointsEl.textContent = historyManager.formatPoints(e.points);
+            } else {
+                amount.textContent = 'FREE';
+                pointsEl.textContent = `-${Number(e.pointsUsed) || 0} pts`;
+            }
+
+            details.appendChild(duration);
+            details.appendChild(amount);
+            details.appendChild(pointsEl);
+
+            item.appendChild(dateEl);
+            item.appendChild(details);
+            list.appendChild(item);
+        });
+    });
+}
+
 
     async returnToMain() {
         this.selectedDuration = null;
