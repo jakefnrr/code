@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Godot Games Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+button,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+html,body{min-height:100%}
+body{
+    margin:0;
+    background:#020604;
+    color:#eafff1;
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;
+    overflow-x:hidden;
+    min-height:100vh;
+}
+
+/* ---------- BACKGROUND ---------- */
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:
+        radial-gradient(circle at 50% 0%,rgba(0,255,120,.10),transparent 45%),
+        radial-gradient(circle at 50% 110%,rgba(0,80,30,.25),transparent 55%),
+        linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.78));
+}
+.scanlines{
+    position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
+    background:repeating-linear-gradient(to bottom,transparent 0 3px,#4cff9a 4px);
+}
+
+/* ---------- LAYOUT ---------- */
+.app{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 20px 60px}
+
+/* Back button */
+.back-btn{
+    align-self:flex-start;
+    padding:10px 20px;
+    background:rgba(0,20,8,.6);
+    color:#6bffab;
+    border:1px solid rgba(60,255,140,.4);
+    border-radius:10px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    cursor:pointer;
+    text-decoration:none;
+    transition:.2s ease;
+    backdrop-filter:blur(8px);
+}
+.back-btn:hover{
+    background:rgba(20,60,30,.7);
+    border-color:#4cff9a;
+    box-shadow:0 0 18px rgba(50,255,140,.35);
+    transform:translateX(-4px);
+}
+
+/* ---------- HEADER ---------- */
+header{text-align:center;margin:44px 0 14px}
+.status{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 14px;
+    border:1px solid rgba(70,255,150,.35);
+    border-radius:99px;
+    color:#7dffb4;
+    background:rgba(0,25,10,.5);
+    font-size:9px;font-weight:800;letter-spacing:3px;
+    margin-bottom:20px;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#3dff8f;box-shadow:0 0 10px #3dff8f;animation:blink 1.5s infinite}
+@keyframes blink{50%{opacity:.3;transform:scale(.6)}}
+
+h1{
+    font-size:clamp(38px,7vw,84px);
+    line-height:.95;
+    letter-spacing:6px;
+    font-weight:900;
+    color:#f2fff6;
+    text-shadow:0 0 15px rgba(60,255,150,.8),0 0 55px rgba(60,255,150,.3);
+    animation:titleGlow 3s ease-in-out infinite;
+}
+h1 .accent{color:#3dff8f}
+@keyframes titleGlow{
+    0%,100%{text-shadow:0 0 15px rgba(60,255,150,.8),0 0 55px rgba(60,255,150,.3)}
+    50%{text-shadow:0 0 22px rgba(60,255,150,1),0 0 80px rgba(60,255,150,.45)}
+}
+.subtitle{
+    margin-top:14px;
+    color:rgba(220,255,232,.55);
+    font-size:11px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+}
+
+/* ---------- GAME CARDS ---------- */
+.grid{
+    width:min(980px,100%);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:22px;
+    margin-top:36px;
+}
+.game-card{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    text-decoration:none;
+    color:#eafff1;
+    padding:44px 26px 34px;
+    border:1px solid rgba(60,255,145,.35);
+    border-radius:20px;
+    background:linear-gradient(160deg,rgba(8,40,20,.72),rgba(2,14,7,.78));
+    backdrop-filter:blur(12px);
+    box-shadow:0 0 30px rgba(30,255,130,.08),inset 0 0 40px rgba(30,255,130,.04);
+    transition:.25s ease;
+    overflow:hidden;
+    animation:appear .5s both;
+}
+.game-card::before{
+    content:"";
+    position:absolute;inset:0;
+    background:radial-gradient(circle at 50% -20%,rgba(60,255,145,.18),transparent 60%);
+    opacity:0;
+    transition:.3s ease;
+}
+.game-card:hover{
+    transform:translateY(-8px);
+    border-color:#4dff9d;
+    box-shadow:0 0 35px rgba(60,255,145,.35),0 0 90px rgba(60,255,145,.12),inset 0 0 50px rgba(60,255,145,.07);
+}
+.game-card:hover::before{opacity:1}
+
+.game-card .bigicon{
+    font-size:52px;
+    line-height:1;
+    margin-bottom:20px;
+    filter:drop-shadow(0 0 14px rgba(70,255,150,.8));
+    transition:.3s ease;
+}
+.game-card:hover .bigicon{
+    transform:scale(1.15) rotate(-4deg);
+    filter:drop-shadow(0 0 22px rgba(70,255,150,1));
+}
+.game-card h2{
+    font-size:clamp(20px,3vw,26px);
+    font-weight:900;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:#eafff1;
+    text-shadow:0 0 12px rgba(60,255,150,.6);
+}
+.game-card p{
+    margin-top:12px;
+    font-size:11px;
+    letter-spacing:2px;
+    color:rgba(210,255,228,.5);
+    text-transform:uppercase;
+}
+.game-card .play-tag{
+    margin-top:22px;
+    padding:9px 26px;
+    border:1px solid rgba(60,255,145,.5);
+    border-radius:99px;
+    color:#0a1f10;
+    background:linear-gradient(180deg,#54ff9d,#2ee071);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    box-shadow:0 0 20px rgba(60,255,145,.4);
+    transition:.25s ease;
+}
+.game-card:hover .play-tag{
+    background:linear-gradient(180deg,#7dffb8,#46e889);
+    box-shadow:0 0 30px rgba(80,255,160,.6);
+    transform:scale(1.05);
+}
+
+/* Nightmare Breakout - red accent variant stays green but dimmer/locked feel */
+.game-card.locked{opacity:.75}
+.game-card.locked .play-tag{
+    background:transparent;
+    color:#4dff9d;
+    border-color:rgba(60,255,145,.6);
+    box-shadow:none;
+}
+
+@keyframes appear{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+footer{
+    margin-top:auto;
+    padding-top:50px;
+    color:rgba(210,255,226,.3);
+    font-size:9px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+}
+
+@media(max-width:640px){
+    header{margin-top:30px}
+    .grid{grid-template-columns:1fr;gap:16px}
+    .game-card{padding:34px 20px 28px}
+    .game-card .bigicon{font-size:42px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<div class="app">
+    <a class="back-btn" href="../index.html">← All Projects</a>
+
+    <header>
+        <div class="status"><span class="dot"></span>GODOT ENGINE ONLINE</div>
+        <h1>GODOT <span class="accent">GAMES</span></h1>
+        <div class="subtitle">Select a title to launch</div>
+    </header>
+
+    <div class="grid">
+        <a class="game-card" href="RageCore/" style="animation-delay:.05s">
+            <div class="bigicon">🔥</div>
+            <h2>Rage Core</h2>
+            <p>Action · Arcade</p>
+            <div class="play-tag">▶ Play</div>
+        </a>
+
+        <a class="game-card locked" href="NightmareBreakout/" style="animation-delay:.15s">
+            <div class="bigicon">👁️</div>
+            <h2>Nightmare Breakout</h2>
+            <p>Horror · Escape Room</p>
+            <div class="play-tag">Coming Soon</div>
+        </a>
+    </div>
+
+    <footer>Made by Jake Scalzo</footer>
+</div>
+
+<script>
+/* Silent animated neon-green background */
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
+let w,h,dpr,particles=[],t=0;
+
+function resize(){
+    dpr=Math.min(devicePixelRatio||1,2);
+    w=innerWidth;h=innerHeight;
+    canvas.width=w*dpr;canvas.height=h*dpr;
+    canvas.style.width=w+"px";canvas.style.height=h+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    particles=[];
+    const count=Math.min(90,Math.floor((w*h)/18000));
+    for(let i=0;i<count;i++){
+        particles.push({
+            x:Math.random()*w,y:Math.random()*h,
+            r:Math.random()*1.6+.25,
+            vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,
+            a:Math.random()*.55+.15
+        });
+    }
+}
+addEventListener("resize",resize);
+resize();
+
+function drawGrid(){
+    const spacing=80;
+    const move=(t*.015)%spacing;
+    ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(60,255,150,.05)";
+    for(let x=-spacing+move;x<w+spacing;x+=spacing){
+        ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();
+    }
+    for(let y=-spacing+move;y<h+spacing;y+=spacing){
+        ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
+    }
+}
+
+function drawParticles(){
+    for(const p of particles){
+        p.x+=p.vx;p.y+=p.vy;
+        if(p.x<-5)p.x=w+5;if(p.x>w+5)p.x=-5;
+        if(p.y<-5)p.y=h+5;if(p.y>h+5)p.y=-5;
+        const pulse=.6+.4*Math.sin(t*.002+p.x);
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(90,255,160,${p.a*pulse})`;
+        ctx.shadowBlur=9;ctx.shadowColor="rgba(60,255,150,.7)";
+        ctx.fill();ctx.shadowBlur=0;
+    }
+}
+
+function draw(){
+    t++;
+    ctx.clearRect(0,0,w,h);
+    const g=ctx.createRadialGradient(w*.5,h*.4,0,w*.5,h*.4,Math.max(w,h)*.8);
+    g.addColorStop(0,"rgba(5,50,25,.35)");
+    g.addColorStop(.5,"rgba(1,15,7,.15)");
+    g.addColorStop(1,"rgba(0,3,2,.95)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    drawGrid();
+    drawParticles();
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
